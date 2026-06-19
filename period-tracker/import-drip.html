@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Import from drip — Your Cycle Keeper</title>
+  <title>Import from drip — My Cycle Keeper</title>
   <link rel="stylesheet" href="style.css" />
   <style>
     body { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 2rem 1rem; }
@@ -40,13 +40,13 @@
 </head>
 <body>
   <div class="tool-card">
-    <a href="index.html" class="back-link" style="display:inline-block;margin-bottom:1rem">← Back to Your Cycle Keeper</a>
+    <a href="index.html" class="back-link" style="display:inline-block;margin-bottom:1rem">← Back to My Cycle Keeper</a>
 
     <!-- Step 1: Pick CSV -->
     <div id="s-csv" class="screen active">
       <h1>Import from drip</h1>
-      <p>One-time migration tool. Select your drip CSV export to bring your cycle history into Your Cycle Keeper.</p>
-      <p><strong>Before you start:</strong> Make sure you have already opened Your Cycle Keeper and created a PIN. Then in drip, go to Menu → Export Data → Export as CSV.</p>
+      <p>One-time migration tool. Select your drip CSV export to bring your cycle history into My Cycle Keeper.</p>
+      <p><strong>Before you start:</strong> Make sure you have already opened My Cycle Keeper and created a PIN. Then in drip, go to Menu → Export Data → Export as CSV.</p>
       <button class="apply-btn" onclick="pickCsv()" style="margin-top:0.5rem">Choose drip CSV file</button>
       <div class="converter-link-block">
         <p class="converter-link-label">Using My Calendar instead of drip?</p>
@@ -57,7 +57,7 @@
     <!-- Step 2: Enter PIN -->
     <div id="s-pin" class="screen">
       <h1>Enter your PIN</h1>
-      <p>Your Your Cycle Keeper PIN is needed to update your encrypted data.</p>
+      <p>Enter your PIN to update your encrypted data.</p>
       <div class="pin-row">
         <div class="pin-dot" id="d0"></div>
         <div class="pin-dot" id="d1"></div>
@@ -83,7 +83,7 @@
       <div class="big-icon">✅</div>
       <div class="done-title">Import complete!</div>
       <div class="done-msg" id="done-msg"></div>
-      <a href="index.html" class="back-link">Open Your Cycle Keeper →</a>
+      <a href="index.html" class="back-link">Open My Cycle Keeper →</a>
     </div>
 
     <!-- Step 5: Error -->
@@ -156,7 +156,7 @@
     async function verifyPin(pin) {
       try {
         const saltB64 = await getFromDB(SALT_KEY);
-        if (!saltB64) throw new Error("No salt found — please open Your Cycle Keeper first.");
+        if (!saltB64) throw new Error("No salt found — please open My Cycle Keeper first.");
         _salt = Uint8Array.from(atob(saltB64), c => c.charCodeAt(0));
 
         const storedHash  = await getFromDB(PINHASH_KEY);
@@ -182,7 +182,7 @@
           `Found <strong>${_parsed.dayCount} days</strong> of drip data across ` +
           `<strong>${_parsed.periodCount} period episodes</strong>.` +
           (existingDays > 0
-            ? `<br><br>Your Cycle Keeper currently has <strong>${existingDays} days</strong> of data.`
+            ? `<br><br>My Cycle Keeper currently has <strong>${existingDays} days</strong> of data.`
             : "");
         showScreen("s-merge");
       } catch (err) {
@@ -210,7 +210,7 @@
           if (!storedHash) {
             showError(
               "App not set up yet",
-              "Please open Your Cycle Keeper, create a PIN and enter your start date, then return here to import."
+              "Please open My Cycle Keeper, create a PIN and enter your start date, then return here to import."
             );
             return;
           }
@@ -258,7 +258,7 @@
         await setInDB(STORE_KEY, enc);
 
         document.getElementById("done-msg").textContent =
-          `${Object.keys(mergedLogs).length} days of data are now in Your Cycle Keeper.`;
+          `${Object.keys(mergedLogs).length} days of data are now in My Cycle Keeper.`;
         showScreen("s-done");
       } catch (err) {
         showError("Import failed", err.message || "Please try again.");

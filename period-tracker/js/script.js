@@ -1736,11 +1736,11 @@ function downloadChart() {
       const centerX = exportCanvas.width / 2;
       ctx.drawImage(logo, centerX - logoSize / 2, 20 * dpr, logoSize, logoSize);
 
-      // Draw "Your Cycle Keeper" text below logo
+      // Draw "My Cycle Keeper" text below logo
       ctx.fillStyle = "#A78BFA";
       ctx.font = `${16 * dpr}px sans-serif`;
       ctx.textAlign = "center";
-      ctx.fillText("Your Cycle Keeper", centerX, 70 * dpr);
+      ctx.fillText("My Cycle Keeper", centerX, 70 * dpr);
 
       // Draw period label (subtle, top right)
       ctx.font = `${13 * dpr}px sans-serif`;
@@ -1790,11 +1790,11 @@ function downloadChart() {
     logo.onerror = () => {
       const centerX = exportCanvas.width / 2;
 
-      // Draw "Your Cycle Keeper" text
+      // Draw "My Cycle Keeper" text
       ctx.fillStyle = "#A78BFA";
       ctx.font = `${16 * dpr}px sans-serif`;
       ctx.textAlign = "center";
-      ctx.fillText("Your Cycle Keeper", centerX, 40 * dpr);
+      ctx.fillText("My Cycle Keeper", centerX, 40 * dpr);
 
       // Draw period label
       ctx.font = `${13 * dpr}px sans-serif`;

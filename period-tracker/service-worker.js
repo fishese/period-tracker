@@ -1,8 +1,8 @@
 /*
- * Your Cycle Keeper — Service Worker
+ * My Cycle Keeper — Service Worker
  * ─────────────────────────────────────────────────────────────
  * Strategy: Cache-first for app shell, network-only for nothing
- * (Your Cycle Keeper has no network calls at all — everything is local).
+ * (My Cycle Keeper has no network calls at all — everything is local).
  *
  * Versioned cache: bump CACHE_VERSION when deploying updates
  * so stale caches are automatically purged on activation.

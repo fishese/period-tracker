@@ -1,5 +1,5 @@
 /**
- * IndexedDB Storage Module for Your Cycle Keeper
+ * IndexedDB Storage Module for My Cycle Keeper
  * Replaces localStorage with persistent IndexedDB storage
  * Maintains AES-256-GCM encryption with PIN-derived keys
  */

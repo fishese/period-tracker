@@ -1,5 +1,5 @@
 {
-  "name": "Your Cycle Keeper — Private Period & Cycle Tracker",
+  "name": "My Cycle Keeper — Private Period & Cycle Tracker",
   "short_name": "Cycle Keeper",
   "description": "Private, AES-encrypted period and cycle tracker. Zero data collection. Forever free.",
   "start_url": "/period-tracker/",

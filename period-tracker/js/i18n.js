@@ -33,23 +33,23 @@ const LOCALES = {
     about_tab_disclaimer: "Disclaimer",
     privacy_title: "Privacy Guarantee",
     privacy_info:
-      "Your Cycle Keeper collects zero data. This app: Stores all data locally on your device only; Has no servers, no accounts, no cloud storage; Has no analytics, no tracking, no telemetry; Has no ads, no third-party code; Never transmits any data anywhere; Is encrypted with your PIN via AES-256-GCM. Your health data is yours alone.",
+      "My Cycle Keeper collects zero data. This app: Stores all data locally on your device only; Has no servers, no accounts, no cloud storage; Has no analytics, no tracking, no telemetry; Has no ads, no third-party code; Never transmits any data anywhere; Is encrypted with your PIN via AES-256-GCM. Your health data is yours alone.",
 
-    about_title: "About Your Cycle Keeper",
+    about_title: "About My Cycle Keeper",
     about_info:
-      "Your Cycle Keeper is free software built with care for privacy. Based on the Calendar Rhythm Method and Standard Days Method for cycle estimation. For informational purposes only. Version: 1.0.0-beta. License: GPL v3 License. Developer: pythonime-lab. Found a bug or have a suggestion? Visit our GitHub repository.",
+      "My Cycle Keeper is free software built with care for privacy. Based on the Calendar Rhythm Method and Standard Days Method for cycle estimation. For informational purposes only. Version: 1.0.0-beta. License: GPL v3 License. Developer: pythonime-lab. Found a bug or have a suggestion? Visit our GitHub repository.",
 
     support_title: "Support Development",
     support_info:
-      "Your Cycle Keeper is free forever with no ads, no tracking, and no data collection. If you find it helpful and would like to support continued development, you can buy me a coffee! Your support helps keep this project maintained and ad-free for everyone. Thank you! 💜",
+      "My Cycle Keeper is free forever with no ads, no tracking, and no data collection. If you find it helpful and would like to support continued development, you can buy me a coffee! Your support helps keep this project maintained and ad-free for everyone. Thank you! 💜",
 
     disclaimer_title: "Medical Disclaimer",
     disclaimer_info:
-      "⚠️ This app provides cycle estimations based on average biological patterns. It is not medical advice and must not be used as a substitute for professional medical consultation. Your Cycle Keeper predicts your cycle by tracking patterns and estimating ovulation timing. Actual cycle timing can vary due to stress, illness, medications, and many other factors. Do not use this app as a contraceptive or fertility guarantee. Always consult a qualified healthcare professional for medical decisions.",
+      "⚠️ This app provides cycle estimations based on average biological patterns. It is not medical advice and must not be used as a substitute for professional medical consultation. My Cycle Keeper predicts your cycle by tracking patterns and estimating ovulation timing. Actual cycle timing can vary due to stress, illness, medications, and many other factors. Do not use this app as a contraceptive or fertility guarantee. Always consult a qualified healthcare professional for medical decisions.",
 
     accessibility_title: "Accessibility",
     accessibility_info:
-      "Your Cycle Keeper follows WCAG 2.0 accessibility standards: Tab/Shift+Tab: Navigate forward/backward through all interactive elements; Arrow Keys: Navigate calendar dates (complex grid component); Enter/Space: Activate buttons and links; Escape: Close modals and return focus to trigger element; PIN Entry: Type digits 0-9 and Backspace on all PIN screens; Form Controls: Native keyboard support for inputs, selects, and textareas; Screen Readers: Semantic HTML with proper ARIA labels and roles; Focus Management: Visible focus indicators, logical tab order. Standards based on Salesforce Accessibility Guidelines.",
+      "My Cycle Keeper follows WCAG 2.0 accessibility standards: Tab/Shift+Tab: Navigate forward/backward through all interactive elements; Arrow Keys: Navigate calendar dates (complex grid component); Enter/Space: Activate buttons and links; Escape: Close modals and return focus to trigger element; PIN Entry: Type digits 0-9 and Backspace on all PIN screens; Form Controls: Native keyboard support for inputs, selects, and textareas; Screen Readers: Semantic HTML with proper ARIA labels and roles; Focus Management: Visible focus indicators, logical tab order. Standards based on Salesforce Accessibility Guidelines.",
 
     cycle_stats: "Cycle Stats",
     avg_length: "Avg Length",
@@ -64,7 +64,7 @@ const LOCALES = {
     mood: "Mood",
     how_it_works: "How it Works",
     how_it_works_p1:
-      "Your Cycle Keeper estimates your fertile window by tracking cycle patterns. Ovulation is estimated ~14 days before your next period. Fertile days are calculated as day 8 through (cycle length − 11).",
+      "My Cycle Keeper estimates your fertile window by tracking cycle patterns. Ovulation is estimated ~14 days before your next period. Fertile days are calculated as day 8 through (cycle length − 11).",
     how_it_works_p2:
       "For regular 28-day cycles, this means days 8–17 are typically fertile, with ovulation around day 14.",
     disclaimer: "Disclaimer",
@@ -102,11 +102,11 @@ const LOCALES = {
     // Forgot PIN / reset
     forgot_pin_title: "Forgot PIN?",
     forgot_pin_msg:
-      "This will permanently erase all your cycle data and reset Your Cycle Keeper. This cannot be undone. Are you sure?",
+      "This will permanently erase all your cycle data and reset My Cycle Keeper. This cannot be undone. Are you sure?",
     forgot_pin_confirm: "Yes, erase and reset",
     reset_complete_title: "Reset Complete",
     reset_complete_msg:
-      "Your Cycle Keeper has been reset. Please set a new PIN to get started.",
+      "My Cycle Keeper has been reset. Please set a new PIN to get started.",
     reset_failed_title: "Reset Failed",
     reset_failed_msg:
       "Could not clear your data. Please refresh the page and try again.",
@@ -320,7 +320,7 @@ const LOCALES = {
     ob_period_dur: "Average period duration (days)",
     pin_setup_title: "🔒 Set a 4-digit PIN",
     pin_setup_sub_1: "Your PIN encrypts all data locally.",
-    pin_setup_sub_2: "Your Cycle Keeper never sends data anywhere.",
+    pin_setup_sub_2: "My Cycle Keeper never sends data anywhere.",
     pin_setup_sub_3: "If you forget your PIN, data will be erased.",
     onboard_start_btn: "Start Tracking ✨",
     privacy_note_aes: "AES-256-GCM encrypted.",
@@ -374,18 +374,18 @@ const LOCALES = {
     data_persistence:
       '⚠️ <strong>Data Persistence:</strong> Your data is stored in IndexedDB. Clearing browser cache is safe, but clearing "site data" or "cookies and site data" in your browser settings WILL erase all your cycle data. Always export a backup first!',
     about_info_html:
-      'Your Cycle Keeper is free software built with care for privacy. Based on the <strong>Calendar Rhythm Method</strong> and <strong>Standard Days Method</strong> for cycle estimation. For informational purposes only.<br><br><strong>Version:</strong> 1.0.0-beta<br><strong>License:</strong> GNU General Public License v3.0<br><strong>Developer:</strong> <a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">pythonime-lab</a><br><br>Found a bug or have a suggestion? Visit our <a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">GitHub repository</a>.',
+      'My Cycle Keeper is free software built with care for privacy. Based on the <strong>Calendar Rhythm Method</strong> and <strong>Standard Days Method</strong> for cycle estimation. For informational purposes only.<br><br><strong>Version:</strong> 1.0.0-beta<br><strong>License:</strong> GNU General Public License v3.0<br><strong>Developer:</strong> <a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">pythonime-lab</a><br><br>Found a bug or have a suggestion? Visit our <a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">GitHub repository</a>.',
     support_info:
-      "Your Cycle Keeper is <strong>free forever</strong> with no ads, no tracking, and no data collection. If you find it helpful and would like to support continued development, you can buy me a coffee!",
+      "My Cycle Keeper is <strong>free forever</strong> with no ads, no tracking, and no data collection. If you find it helpful and would like to support continued development, you can buy me a coffee!",
     support_via: "Support via",
     support_footer:
       "Your support helps keep this project maintained and ad-free for everyone. Thank you! 💜",
     privacy_info_html:
-      "Your Cycle Keeper collects <strong>zero data</strong>. This app:<br>&nbsp;• Stores all data locally on your device only<br>&nbsp;• Has no servers, no accounts, no cloud storage<br>&nbsp;• Has no analytics, no tracking, no telemetry<br>&nbsp;• Has no ads, no third-party code<br>&nbsp;• Never transmits any data anywhere<br>&nbsp;• Is encrypted with your PIN via AES-256-GCM<br><br>Your health data is yours alone.",
+      "My Cycle Keeper collects <strong>zero data</strong>. This app:<br>&nbsp;• Stores all data locally on your device only<br>&nbsp;• Has no servers, no accounts, no cloud storage<br>&nbsp;• Has no analytics, no tracking, no telemetry<br>&nbsp;• Has no ads, no third-party code<br>&nbsp;• Never transmits any data anywhere<br>&nbsp;• Is encrypted with your PIN via AES-256-GCM<br><br>Your health data is yours alone.",
     disclaimer_info_html:
-      "⚠️ <strong>This app provides cycle estimations based on average biological patterns.</strong> It is <em>not</em> medical advice and must not be used as a substitute for professional medical consultation.<br><br>Your Cycle Keeper predicts your cycle by tracking patterns and estimating ovulation timing. Actual cycle timing can vary due to stress, illness, medications, and many other factors.<br><br>Do <strong>not</strong> use this app as a contraceptive or fertility guarantee. Always consult a qualified healthcare professional for medical decisions.",
+      "⚠️ <strong>This app provides cycle estimations based on average biological patterns.</strong> It is <em>not</em> medical advice and must not be used as a substitute for professional medical consultation.<br><br>My Cycle Keeper predicts your cycle by tracking patterns and estimating ovulation timing. Actual cycle timing can vary due to stress, illness, medications, and many other factors.<br><br>Do <strong>not</strong> use this app as a contraceptive or fertility guarantee. Always consult a qualified healthcare professional for medical decisions.",
     accessibility_info_html:
-      'Your Cycle Keeper follows <strong>WCAG 2.0 accessibility standards</strong>:<br><br>&nbsp;• <strong>Tab/Shift+Tab:</strong> Navigate forward/backward through all interactive elements<br>&nbsp;• <strong>Arrow Keys:</strong> Navigate calendar dates (complex grid component)<br>&nbsp;• <strong>Enter/Space:</strong> Activate buttons and links<br>&nbsp;• <strong>Escape:</strong> Close modals and return focus to trigger element<br>&nbsp;• <strong>PIN Entry:</strong> Type digits 0-9 and Backspace on all PIN screens<br>&nbsp;• <strong>Form Controls:</strong> Native keyboard support for inputs, selects, and textareas<br>&nbsp;• <strong>Screen Readers:</strong> Semantic HTML with proper ARIA labels and roles<br>&nbsp;• <strong>Focus Management:</strong> Visible focus indicators, logical tab order<br><br>Standards based on <a href="https://trailhead.salesforce.com/content/learn/modules/coding-for-web-accessibility/understand-accessible-navigation" target="_blank" rel="noopener" class="accessibility-link">Salesforce Accessibility Guidelines</a>.',
+      'My Cycle Keeper follows <strong>WCAG 2.0 accessibility standards</strong>:<br><br>&nbsp;• <strong>Tab/Shift+Tab:</strong> Navigate forward/backward through all interactive elements<br>&nbsp;• <strong>Arrow Keys:</strong> Navigate calendar dates (complex grid component)<br>&nbsp;• <strong>Enter/Space:</strong> Activate buttons and links<br>&nbsp;• <strong>Escape:</strong> Close modals and return focus to trigger element<br>&nbsp;• <strong>PIN Entry:</strong> Type digits 0-9 and Backspace on all PIN screens<br>&nbsp;• <strong>Form Controls:</strong> Native keyboard support for inputs, selects, and textareas<br>&nbsp;• <strong>Screen Readers:</strong> Semantic HTML with proper ARIA labels and roles<br>&nbsp;• <strong>Focus Management:</strong> Visible focus indicators, logical tab order<br><br>Standards based on <a href="https://trailhead.salesforce.com/content/learn/modules/coding-for-web-accessibility/understand-accessible-navigation" target="_blank" rel="noopener" class="accessibility-link">Salesforce Accessibility Guidelines</a>.',
   },
 
   // ── Russian ────────────────────────────────────────────────────────────────
@@ -410,7 +410,7 @@ const LOCALES = {
     mood: "Настроение",
     how_it_works: "Как это работает",
     how_it_works_p1:
-      "Your Cycle Keeper оценивает ваше фертильное окно, отслеживая паттерны цикла. Овуляция оценивается ~ за 14 дней до следующей менструации. Фертильные дни рассчитываются по формуле: день 8 — (длина цикла − 11).",
+      "My Cycle Keeper оценивает ваше фертильное окно, отслеживая паттерны цикла. Овуляция оценивается ~ за 14 дней до следующей менструации. Фертильные дни рассчитываются по формуле: день 8 — (длина цикла − 11).",
     how_it_works_p2:
       "При регулярном цикле в 28 дней это означает, что дни с 8 по 17 обычно являются фертильными с овуляцией примерно на 14 день.",
     disclaimer: "Отказ от ответственности",
@@ -441,11 +441,11 @@ const LOCALES = {
 
     forgot_pin_title: "Забыли PIN?",
     forgot_pin_msg:
-      "Это действие безвозвратно удалит все данные о цикле и сбросит Your Cycle Keeper. Это нельзя отменить. Вы уверены?",
+      "Это действие безвозвратно удалит все данные о цикле и сбросит My Cycle Keeper. Это нельзя отменить. Вы уверены?",
     forgot_pin_confirm: "Да, удалить и сбросить",
     reset_complete_title: "Сброс выполнен",
     reset_complete_msg:
-      "Your Cycle Keeper был сброшен. Пожалуйста, установите новый PIN для начала работы.",
+      "My Cycle Keeper был сброшен. Пожалуйста, установите новый PIN для начала работы.",
     reset_failed_title: "Ошибка сброса",
     reset_failed_msg:
       "Не удалось удалить данные. Пожалуйста, обновите страницу и попробуйте снова.",
@@ -614,7 +614,7 @@ const LOCALES = {
     ob_period_dur: "Средняя длительность менструации (дни)",
     pin_setup_title: "🔒 Задайте 4-значный PIN",
     pin_setup_sub_1: "Ваш PIN шифрует все данные локально.",
-    pin_setup_sub_2: "Your Cycle Keeper никогда не отправляет данные.",
+    pin_setup_sub_2: "My Cycle Keeper никогда не отправляет данные.",
     pin_setup_sub_3: "Если вы забудете PIN, данные будут удалены.",
     onboard_start_btn: "Начать отслеживание ✨",
     privacy_note_aes: "Шифрование AES-256-GCM.",
@@ -677,11 +677,11 @@ const LOCALES = {
 
     forgot_pin_title: "Забылі PIN?",
     forgot_pin_msg:
-      "Гэта назаўжды выдаліць усе даныя пра цыкл і скіне Your Cycle Keeper. Гэта нельга адмяніць. Вы ўпэўнены?",
+      "Гэта назаўжды выдаліць усе даныя пра цыкл і скіне My Cycle Keeper. Гэта нельга адмяніць. Вы ўпэўнены?",
     forgot_pin_confirm: "Так, выдаліць і скінуць",
     reset_complete_title: "Скід выкананы",
     reset_complete_msg:
-      "Your Cycle Keeper быў скінуты. Калі ласка, усталюйце новы PIN для пачатку працы.",
+      "My Cycle Keeper быў скінуты. Калі ласка, усталюйце новы PIN для пачатку працы.",
     reset_failed_title: "Памылка скіду",
     reset_failed_msg:
       "Не ўдалося выдаліць даныя. Калі ласка, абнавіце старонку і паўтарыце спробу.",
@@ -850,7 +850,7 @@ const LOCALES = {
     ob_period_dur: "Сярэдняя працягласць менструацыі (дні)",
     pin_setup_title: "🔒 Задаць 4-значны PIN",
     pin_setup_sub_1: "Ваш PIN шыфруе ўсе даныя лакальна.",
-    pin_setup_sub_2: "Your Cycle Keeper ніколі не адпраўляе даныя.",
+    pin_setup_sub_2: "My Cycle Keeper ніколі не адпраўляе даныя.",
     pin_setup_sub_3: "Калі вы забудзецеся PIN, даныя будуць выдалены.",
     onboard_start_btn: "Пачаць адсочванне ✨",
     privacy_note_aes: "Шыфраванне AES-256-GCM.",
@@ -910,7 +910,7 @@ const LOCALES = {
     mood: "Ánimo",
     how_it_works: "Cómo funciona",
     how_it_works_p1:
-      "Your Cycle Keeper estima tu ventana fértil rastreando patrones del ciclo. La ovulación se estima ~14 días antes de tu próximo período. Los días fértiles se calculan como el día 8 hasta (longitud del ciclo − 11).",
+      "My Cycle Keeper estima tu ventana fértil rastreando patrones del ciclo. La ovulación se estima ~14 días antes de tu próximo período. Los días fértiles se calculan como el día 8 hasta (longitud del ciclo − 11).",
     how_it_works_p2:
       "Para ciclos regulares de 28 días, esto significa que los días 8–17 suelen ser fértiles, con ovulación alrededor del día 14.",
     disclaimer: "Aviso",
@@ -946,11 +946,11 @@ const LOCALES = {
 
     forgot_pin_title: "¿Olvidaste el PIN?",
     forgot_pin_msg:
-      "Esto eliminará permanentemente todos tus datos del ciclo y restablecerá Your Cycle Keeper. No se puede deshacer. ¿Estás segura?",
+      "Esto eliminará permanentemente todos tus datos del ciclo y restablecerá My Cycle Keeper. No se puede deshacer. ¿Estás segura?",
     forgot_pin_confirm: "Sí, borrar y restablecer",
     reset_complete_title: "Restablecimiento completado",
     reset_complete_msg:
-      "Your Cycle Keeper ha sido restablecido. Por favor, establece un nuevo PIN para comenzar.",
+      "My Cycle Keeper ha sido restablecido. Por favor, establece un nuevo PIN para comenzar.",
     reset_failed_title: "Error al restablecer",
     reset_failed_msg:
       "No se pudieron borrar los datos. Por favor, recarga la página e inténtalo de nuevo.",
@@ -1119,7 +1119,7 @@ const LOCALES = {
     ob_period_dur: "Duración promedio del período (días)",
     pin_setup_title: "🔒 Establece un PIN de 4 dígitos",
     pin_setup_sub_1: "Tu PIN cifra todos los datos localmente.",
-    pin_setup_sub_2: "Your Cycle Keeper nunca envía datos a ningún lugar.",
+    pin_setup_sub_2: "My Cycle Keeper nunca envía datos a ningún lugar.",
     pin_setup_sub_3: "Si olvidas tu PIN, los datos serán borrados.",
     onboard_start_btn: "Comenzar seguimiento ✨",
     privacy_note_aes: "Cifrado AES-256-GCM.",
@@ -1166,21 +1166,21 @@ const LOCALES = {
     data_persistence:
       '⚠️ <strong>Persistencia de datos:</strong> Tus datos se almacenan en IndexedDB. Limpiar el caché del navegador es seguro, pero limpiar los "datos del sitio" o "cookies y datos del sitio" en la configuración del navegador BORRARÁ todos tus datos del ciclo. ¡Siempre exporta una copia de seguridad primero!',
     about_info_html:
-      'Your Cycle Keeper es software libre creado con atención a la privacidad. Basado en el <strong>Método del Ritmo del Calendario</strong> y el <strong>Método de Días Estándar</strong> para la estimación del ciclo. Solo con fines informativos.<br><br><strong>Versión:</strong> 1.0.0-beta<br><strong>Licencia:</strong> GNU General Public License v3.0<br><strong>Desarrollador:</strong> <a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">pythonime-lab</a><br><br>¿Encontraste un error o tienes una sugerencia? Visita nuestro <a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">repositorio de GitHub</a>.',
+      'My Cycle Keeper es software libre creado con atención a la privacidad. Basado en el <strong>Método del Ritmo del Calendario</strong> y el <strong>Método de Días Estándar</strong> para la estimación del ciclo. Solo con fines informativos.<br><br><strong>Versión:</strong> 1.0.0-beta<br><strong>Licencia:</strong> GNU General Public License v3.0<br><strong>Desarrollador:</strong> <a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">pythonime-lab</a><br><br>¿Encontraste un error o tienes una sugerencia? Visita nuestro <a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">repositorio de GitHub</a>.',
     support_info:
-      "Your Cycle Keeper es <strong>gratis para siempre</strong> sin anuncios, sin rastreo y sin recopilación de datos. Si lo encuentras útil y quieres apoyar el desarrollo continuo, ¡puedes invitarme un café!",
+      "My Cycle Keeper es <strong>gratis para siempre</strong> sin anuncios, sin rastreo y sin recopilación de datos. Si lo encuentras útil y quieres apoyar el desarrollo continuo, ¡puedes invitarme un café!",
     support_via: "Apoyar vía",
     support_footer:
       "Tu apoyo ayuda a mantener este proyecto sin anuncios para todos. ¡Gracias! 💜",
     privacy_title: "Garantía de privacidad",
     privacy_info_html:
-      "Your Cycle Keeper recopila <strong>cero datos</strong>. Esta aplicación:<br>&nbsp;• Almacena todos los datos localmente solo en tu dispositivo<br>&nbsp;• No tiene servidores, cuentas ni almacenamiento en la nube<br>&nbsp;• No tiene analíticas, rastreo ni telemetría<br>&nbsp;• No tiene anuncios ni código de terceros<br>&nbsp;• Nunca transmite ningún dato<br>&nbsp;• Está cifrada con tu PIN mediante AES-256-GCM<br><br>Tus datos de salud son solo tuyos.",
+      "My Cycle Keeper recopila <strong>cero datos</strong>. Esta aplicación:<br>&nbsp;• Almacena todos los datos localmente solo en tu dispositivo<br>&nbsp;• No tiene servidores, cuentas ni almacenamiento en la nube<br>&nbsp;• No tiene analíticas, rastreo ni telemetría<br>&nbsp;• No tiene anuncios ni código de terceros<br>&nbsp;• Nunca transmite ningún dato<br>&nbsp;• Está cifrada con tu PIN mediante AES-256-GCM<br><br>Tus datos de salud son solo tuyos.",
     disclaimer_title: "Aviso médico",
     disclaimer_info_html:
-      "⚠️ <strong>Esta aplicación proporciona estimaciones del ciclo basadas en patrones biológicos promedio.</strong> <em>No</em> es consejo médico y no debe usarse como sustituto de la consulta médica profesional.<br><br>Your Cycle Keeper predice tu ciclo rastreando patrones y estimando el momento de ovulación. El momento real del ciclo puede variar debido al estrés, enfermedades, medicamentos y muchos otros factores.<br><br><strong>No</strong> uses esta aplicación como anticonceptivo ni como garantía de fertilidad. Consulta siempre a un profesional de la salud cualificado para decisiones médicas.",
+      "⚠️ <strong>Esta aplicación proporciona estimaciones del ciclo basadas en patrones biológicos promedio.</strong> <em>No</em> es consejo médico y no debe usarse como sustituto de la consulta médica profesional.<br><br>My Cycle Keeper predice tu ciclo rastreando patrones y estimando el momento de ovulación. El momento real del ciclo puede variar debido al estrés, enfermedades, medicamentos y muchos otros factores.<br><br><strong>No</strong> uses esta aplicación como anticonceptivo ni como garantía de fertilidad. Consulta siempre a un profesional de la salud cualificado para decisiones médicas.",
     accessibility_title: "Accesibilidad",
     accessibility_info_html:
-      'Your Cycle Keeper sigue los <strong>estándares de accesibilidad WCAG 2.0</strong>:<br><br>&nbsp;• <strong>Tab/Shift+Tab:</strong> Navegar hacia adelante/atrás por todos los elementos interactivos<br>&nbsp;• <strong>Teclas de flecha:</strong> Navegar por las fechas del calendario<br>&nbsp;• <strong>Enter/Espacio:</strong> Activar botones y enlaces<br>&nbsp;• <strong>Escape:</strong> Cerrar modales y devolver el foco al elemento activador<br>&nbsp;• <strong>Entrada de PIN:</strong> Escribe dígitos 0-9 y Retroceso en todas las pantallas de PIN<br>&nbsp;• <strong>Controles de formulario:</strong> Soporte de teclado nativo para inputs, selects y textareas<br>&nbsp;• <strong>Lectores de pantalla:</strong> HTML semántico con etiquetas ARIA y roles apropiados<br>&nbsp;• <strong>Gestión del foco:</strong> Indicadores de foco visibles, orden de tabulación lógico<br><br>Estándares basados en las <a href="https://trailhead.salesforce.com/content/learn/modules/coding-for-web-accessibility/understand-accessible-navigation" target="_blank" rel="noopener" class="accessibility-link">Directrices de Accesibilidad de Salesforce</a>.',
+      'My Cycle Keeper sigue los <strong>estándares de accesibilidad WCAG 2.0</strong>:<br><br>&nbsp;• <strong>Tab/Shift+Tab:</strong> Navegar hacia adelante/atrás por todos los elementos interactivos<br>&nbsp;• <strong>Teclas de flecha:</strong> Navegar por las fechas del calendario<br>&nbsp;• <strong>Enter/Espacio:</strong> Activar botones y enlaces<br>&nbsp;• <strong>Escape:</strong> Cerrar modales y devolver el foco al elemento activador<br>&nbsp;• <strong>Entrada de PIN:</strong> Escribe dígitos 0-9 y Retroceso en todas las pantallas de PIN<br>&nbsp;• <strong>Controles de formulario:</strong> Soporte de teclado nativo para inputs, selects y textareas<br>&nbsp;• <strong>Lectores de pantalla:</strong> HTML semántico con etiquetas ARIA y roles apropiados<br>&nbsp;• <strong>Gestión del foco:</strong> Indicadores de foco visibles, orden de tabulación lógico<br><br>Estándares basados en las <a href="https://trailhead.salesforce.com/content/learn/modules/coding-for-web-accessibility/understand-accessible-navigation" target="_blank" rel="noopener" class="accessibility-link">Directrices de Accesibilidad de Salesforce</a>.',
   },
 };
 
