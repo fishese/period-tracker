@@ -45,12 +45,15 @@ const COL = {
 };
 
 // Wrap a field value in quotes if it contains commas, quotes, or newlines.
+// Prefix with a single quote if the value starts with a spreadsheet formula
+// trigger character (=, +, -, @) so Excel/Sheets treats it as plain text.
 function csvField(val) {
   const s = String(val);
-  if (s.includes(",") || s.includes('"') || s.includes("\n")) {
-    return '"' + s.replace(/"/g, '""') + '"';
+  const safe = /^[=+\-@\t\r]/.test(s) ? "'" + s : s;
+  if (safe.includes(",") || safe.includes('"') || safe.includes("\n")) {
+    return '"' + safe.replace(/"/g, '""') + '"';
   }
-  return s;
+  return safe;
 }
 
 // app flow 1-3 maps 1:1 to drip bleeding.value 1-3 (light/medium/heavy).
