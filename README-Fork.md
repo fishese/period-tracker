@@ -204,6 +204,120 @@ Linked from the first step of `import-drip.html` under "Using My Calendar instea
 
 ---
 
+### 13. Onboarding Simplified to PIN-Only
+
+**Files:** `period-tracker/index.html`, `period-tracker/js/script.js` → `startApp()`
+
+Removed the "Last period start date", "Average cycle length", and "Period duration" input fields from the first-time setup screen. The onboarding now asks only for a 4-digit PIN.
+
+**Why:** These fields were confusing for new users who had no data yet. They also caused conflicts when users immediately imported data from a backup or drip CSV (the imported data would be overwritten by the onboarding defaults). Users build up their data organically by logging or importing — the settings can be adjusted later from the Settings tab.
+
+---
+
+### 14. Empty State for Status Card
+
+**Files:** `period-tracker/index.html`, `period-tracker/js/script.js` → `updateStatusCard()`, `period-tracker/js/i18n.js`
+
+When no period data has been logged, the status card now shows a large Georgian-serif message ("Start recording your period to see statistics.") in the same style as the normal "Day X of your Y-day cycle" heading. Below it, a smaller subtitle-style link reads "or import your data" — clicking it navigates directly to the Settings tab.
+
+The cycle pills (Cycle Day / Until Next / Avg Length) show `—` dashes in the empty state. History and Predictions tables remain blank. Translated in all 6 locales.
+
+---
+
+### 15. Status Card Uses Predicted Date (Not Day Count)
+
+**File:** `period-tracker/js/script.js` → `updateStatusCard()`
+
+The period countdown in the status card subtitle was changed from "in N days" to an actual date string (e.g. "Next period expected around June 26"). This is more useful than a day count because users can plan ahead with a real date.
+
+Two messages:
+- Within 3 days: "May start today or around [date]"
+- Otherwise: "Next period expected around [date]"
+
+The date is formatted with `toLocaleDateString(getLanguage(), { month: "long", day: "numeric" })` — using the **app's chosen language**, not the OS locale. Previously `undefined` was passed, which caused Chinese date formats to appear even when the app was set to English on a Chinese-locale system.
+
+---
+
+### 16. Auto-fill Triggered from Modal (Not Only Save Button)
+
+**File:** `period-tracker/js/script.js`
+
+Auto-fill was only wired to the explicit **Save** button (`saveLog()`). On mobile, most users confirm their flow selection in the flow modal and then close the log panel without pressing Save — the auto-save path (`autoSaveSymptomSelection()`) ran but never triggered auto-fill.
+
+**Fix:**
+- Extracted a shared `applyAutoFill(dateStr, flow)` helper function
+- Session guard: `autoFillDatesThisSession` Set prevents double-fill if both paths run for the same date
+- Both `saveLog()` and `autoSaveSymptomSelection()` call the helper
+- Banner is shown only after save/render completes (used a `didAutoFill` flag + try-catch to prevent banner errors from blocking the save)
+
+---
+
+### 17. Auto-fill Banner Improvements
+
+**Files:** `period-tracker/index.html`, `period-tracker/js/script.js`, `period-tracker/style.css`
+
+The auto-fill notification banner was updated:
+- Added a "Reminder to back up" line with **"back up"** as a clickable link that calls `exportData()` directly
+- Restructured to two-row layout (`flex-wrap: wrap`, `flex: 1 1 100%` on the message) so the main message occupies its own row and the action links sit below
+- Wired the backup link in JS: `backupLink.onclick = (e) => { e.preventDefault(); dismissAutoFillBanner(); exportData(); }`
+
+---
+
+### 18. Theme System
+
+**Files:** `period-tracker/style.css`, `period-tracker/style-desktop.css`, `period-tracker/index.html`, `period-tracker/js/script.js`, `period-tracker/js/i18n.js`
+
+Added four selectable colour themes. The active theme is stored in `localStorage` under `yourcyclekeeper_theme` (UI preference only — not health data, so localStorage is acceptable here).
+
+| Key | Name | Description |
+|-----|------|-------------|
+| `default` | YCK Classic | Original dark-purple midnight theme |
+| `light` | Newsroom Light | Black-on-warm-grey, news/planner aesthetic |
+| `dark` | Newsroom Dark | Dark-slate neutral, same minimal accent |
+| `kawaii` | Pink Power 🌸 | Blush-pink background, hot-pink / lavender accents |
+
+Implemented via `[data-theme="..."]` attribute on `<html>` and CSS custom property overrides per theme block. A 2×2 swatch picker in Settings → Layout lets users switch theme — swatches use hardcoded per-swatch text colours so they remain readable regardless of the currently active theme.
+
+**Theme-aware fixes applied:**
+- `.field-input`, `.setting-save-btn` — were invisible on light cards (used hardcoded `rgba(255,255,255,...)` backgrounds); overridden per theme
+- Desktop nav pills and settings/insights tab buttons — used hardcoded light-lavender colours that disappeared on light headers; overridden per theme
+- Info boxes, backup status, chart select — swapped hardcoded dark-only tints to `var(--...)` values
+- Legend dots on the cycle stage bar — hardcoded to `#FF3D6B / #34D399 / #F59E0B / #A78BFA` so they always match the bar regardless of theme
+
+---
+
+### 19. Layout Settings Tab
+
+**Files:** `period-tracker/index.html`, `period-tracker/js/script.js`, `period-tracker/js/i18n.js`
+
+Added a **Layout** tab to the Settings screen (between Cycle and Security), containing:
+- **Calendar** section — "Show fertile window in calendar" toggle (moved from Cycle tab)
+- **Theme** section — theme picker (moved from Cycle tab)
+- **Language** section — language selector (moved from Cycle tab)
+
+The Cycle tab now contains only numeric settings (period duration, prediction tolerance, auto-fill days).
+
+Tab label translations: Layout / Apariencia / Интерфейс / Інтэрфейс / レイアウト / 介面設定
+
+---
+
+### 20. Post-Import Modal DOM Fix
+
+**File:** `period-tracker/js/script.js`
+
+After importing an encrypted backup (or changing the PIN), the flow/pain/mood buttons in the log panel appeared to do nothing — the modal would not open. Refreshing and logging back in cleared the problem.
+
+**Root cause:** Both `_showImportPinModal` and `_renderChangePinModal` use `box.replaceChildren()` to build their custom PIN-pad UI inside the shared `#modal-overlay`. This call physically removes the static elements `#modal-icon`, `#modal-title`, `#modal-msg`, `#modal-confirm`, and `#modal-cancel` from the DOM. After the PIN modal closed, any subsequent call to `showModal()` (including the ✅ success confirmation) or to `showFlowModal()` / `showPainModal()` / `showMoodModal()` would immediately throw a null-reference error on `getElementById("modal-icon").textContent = ...` and silently bail out. A page refresh restored the HTML and the IDs with it.
+
+**Fix:** Added `_restoreModalBox()`, which recreates the standard modal box structure (icon, title, message, cancel button, confirm button — all with their original IDs). It is called in all four exit paths where the PIN pad replaces the box:
+
+- Import backup — cancel
+- Import backup — success
+- Change PIN — cancel
+- Change PIN — success
+
+---
+
 ## Architecture Notes for Future Work
 
 ### State shape (current)
@@ -215,12 +329,13 @@ state = {
   periodDuration: 5,
   toleranceDays: null,       // null = auto, 0-5 = manual override
   showFertility: true,
+  autoFillDays: 5,           // number of days to auto-fill after first flow day; 0 = disabled
   logs: { "YYYY-MM-DD": { flow, pain, mood, note } },
   cycleHistory: [{ start: "YYYY-MM-DD", length: N }],
 }
 ```
 
-`toleranceDays` and `showFertility` are new fields added in this session. All 3 state initialization sites in `script.js` include them.
+`toleranceDays`, `showFertility`, and `autoFillDays` are fields added in this fork. All state initialization sites in `script.js` include them with `?? default` fallbacks for backward-compatible migration.
 
 ### `getStatisticalCycleData()` (cycles.js)
 
@@ -254,14 +369,15 @@ My Calendar export (.txt/.csv)
 
 | File | What changed |
 |------|-------------|
-| `period-tracker/index.html` | Status card markup, tab structure (removed chart tab, added Predictions), Settings (removed last-period/avg-len, added tolerance/fertility toggle), history column labels |
-| `period-tracker/style.css` | History grid columns (`5fr 2fr 3fr`), fullpage overlay structure, tolerance-period vs predicted-period classes, setting-row/setting-save-btn/field-hint styles, toggle-row styles, history legend, pred-col-labels |
-| `period-tracker/js/script.js` | `updateStatusCard()`, `renderCalendar()`, `buildHistoryRow()`, `showHistoryFullPage()`, `renderPredictionsTab()`, `savePeriodDuration()`, `saveTolerance()`, `toggleFertility()`, `loadSettingsFields()`, `saveLog()` (auto-fill 5 days), `getCycleInfo()` stats fix, state shape additions |
-| `period-tracker/js/cycles.js` | `getCycleInfo()` uses stats mean; `calculatePredictions()` respects `state.toleranceDays`; two-pass `getDayType()` for tolerance band |
-| `period-tracker/js/crypto.js` | Chunked base64 (`u8ToBase64`) to fix stack overflow on large datasets |
-| `period-tracker/js/i18n.js` | New keys: status card phrases, settings labels, history column labels, predictions tab, tolerance hint |
-| `period-tracker/js/periodMarking.js` | `isSameMenses()` exported for use by auto-fill logic in script.js |
-| `period-tracker/service-worker.js` | Minor cache version bump |
-| `period-tracker/import-drip.html` | New — standalone drip CSV import page; updated with back link and My Calendar converter entry point |
-| `period-tracker/js/import-drip.js` | New — drip CSV parser + IndexedDB import logic |
-| `period-tracker/mycalendar-to-drip.html` | New — My Calendar → drip CSV converter (client-side, no data stored) |
+| `period-tracker/index.html` | Status card markup (import hint, empty state), Settings layout tab, Layout tab content (theme/lang/fertility moved), removed onboarding period/cycle fields, auto-fill banner backup link |
+| `period-tracker/style.css` | Import hint visibility rule, onboarding scroll fix (`flex-shrink: 0`), light/kawaii theme overrides (inputs, buttons, info boxes, chart controls, nav), 4-theme variable blocks |
+| `period-tracker/style-desktop.css` | Light/kawaii overrides for `.bnav-item`, `.settings-tab-btn`, `.insight-tab-btn` |
+| `period-tracker/js/script.js` | `updateStatusCard()` (empty state + import hint + predicted date + app locale); `applyAutoFill()` helper; `autoSaveSymptomSelection()` triggers auto-fill; `autoFillDatesThisSession` session guard; `switchSettingsTab()` includes layout tab; `startApp()` PIN-only onboarding; auto-fill banner backup link wired; `_restoreModalBox()` fix for post-import/PIN-change modal breakage |
+| `period-tracker/js/i18n.js` | New keys: `status_import_hint`, `settings_layout_tab`, `settings_calendar_display`; all 6 locales |
+| `period-tracker/service-worker.js` | Cache version bumped to `v20260619h` |
+| `period-tracker/js/cycles.js` | (unchanged this session) |
+| `period-tracker/js/crypto.js` | (unchanged this session) |
+| `period-tracker/js/periodMarking.js` | (unchanged this session) |
+| `period-tracker/import-drip.html` | (unchanged this session) |
+| `period-tracker/js/import-drip.js` | (unchanged this session) |
+| `period-tracker/mycalendar-to-drip.html` | (unchanged this session) |
