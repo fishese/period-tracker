@@ -510,6 +510,29 @@ let currentMoodSet = false;
 let currentPainValue = 5;
 let currentPainSet = false;
 
+// Tracks which dates already had auto-fill applied this session to prevent double-fill
+// when both autoSaveSymptomSelection and saveLog run for the same date.
+const autoFillDatesThisSession = new Set();
+
+// Fills the next N days with light flow when a brand-new period starts.
+// Returns true if any filling was done (for banner display).
+function applyAutoFill(dateStr, flow) {
+  if (!flow) return false;
+  const fillDays = state.autoFillDays ?? 5;
+  if (fillDays <= 0) return false;
+  if (autoFillDatesThisSession.has(dateStr)) return false;
+  if (isSameMenses(dateStr)) return false;
+  const start = fromISO(dateStr);
+  for (let i = 1; i <= fillDays; i++) {
+    const next = toISO(addDays(start, i));
+    if (!state.logs[next]?.flow) {
+      state.logs[next] = { ...(state.logs[next] || {}), flow: 1 };
+    }
+  }
+  autoFillDatesThisSession.add(dateStr);
+  return true;
+}
+
 async function autoSaveSymptomSelection() {
   if (!selectedDate || !/^\d{4}-\d{2}-\d{2}$/.test(selectedDate)) return;
 
@@ -533,11 +556,15 @@ async function autoSaveSymptomSelection() {
   log.note = rawNote.slice(0, 500).replace(/[<>]/g, "");
 
   state.logs[selectedDate] = log;
+  const didAutoFill = currentFlowSet ? applyAutoFill(selectedDate, log.flow) : false;
   cleanupEmptyLogs();
   await save();
   renderCalendar();
   updateStatusCard();
   updateInsights();
+  if (didAutoFill) {
+    try { showAutoFillBanner(state.autoFillDays ?? 5); } catch (_) {}
+  }
 }
 
 // ── Autosave note debounce ──────────────────────────────────────────────
@@ -1043,18 +1070,17 @@ function updateStatusCard() {
     Luteal: "luteal",
   }[info.phase] || "luteal";
 
-  // Period countdown message
+  // Period countdown message – show predicted date rather than day count
+  const predictedDate = info.nextPeriod.toLocaleDateString(undefined, { month: "long", day: "numeric" });
   let periodMsg;
   if (info.phase === "Menstruation") {
     periodMsg = t("subtitle_menstruation", { day: info.cycleDay });
   } else if (info.daysUntilNext <= 0) {
     periodMsg = t("status_period_today");
-  } else if (info.daysUntilNext === 1) {
-    periodMsg = t("status_period_tomorrow");
   } else if (info.daysUntilNext <= 3) {
-    periodMsg = t("status_period_soon", { n: info.daysUntilNext });
+    periodMsg = t("status_period_soon_date", { date: predictedDate });
   } else {
-    periodMsg = t("status_period_in", { n: info.daysUntilNext });
+    periodMsg = t("status_period_in_date", { date: predictedDate });
   }
 
   safeText("status-subtitle", `Phase ${phaseNum} — ${t(phaseNameKey)}  ·  ${periodMsg}`);
@@ -2062,22 +2088,7 @@ async function saveLog() {
   state.logs[selectedDate] = log;
   if (log.flow) updateCycleHistory(selectedDate);
 
-  // When marking a new period start, pre-fill the following N days with light
-  // flow so the user doesn't have to return each day during their period.
-  // Only triggers on the first day of a new episode (no flow in prior 2 days).
-  // Never overwrites a day that already has flow logged.
-  const fillDays = state.autoFillDays ?? 5;
-  let didAutoFill = false;
-  if (log.flow && fillDays > 0 && !isSameMenses(selectedDate)) {
-    const start = fromISO(selectedDate);
-    for (let i = 1; i <= fillDays; i++) {
-      const next = toISO(addDays(start, i));
-      if (!state.logs[next]?.flow) {
-        state.logs[next] = { ...(state.logs[next] || {}), flow: 1 };
-      }
-    }
-    didAutoFill = true;
-  }
+  const didAutoFill = applyAutoFill(selectedDate, log.flow);
 
   cleanupEmptyLogs();
   await save();
@@ -2088,7 +2099,7 @@ async function saveLog() {
   if (navigator.vibrate) navigator.vibrate(40);
 
   if (didAutoFill) {
-    try { showAutoFillBanner(fillDays); } catch (_) {}
+    try { showAutoFillBanner(state.autoFillDays ?? 5); } catch (_) {}
   }
 }
 
@@ -2223,9 +2234,11 @@ function showAutoFillBanner(n) {
   const banner = document.getElementById("autofill-banner");
   const msg = document.getElementById("autofill-banner-msg");
   const link = document.getElementById("autofill-banner-settings-link");
+  const backupLink = document.getElementById("autofill-banner-backup-link");
   if (!banner || !msg) return;
   msg.textContent = tp("autofill_banner_msg", n);
   link.onclick = (e) => { e.preventDefault(); dismissAutoFillBanner(); switchTab("settings"); };
+  if (backupLink) backupLink.onclick = (e) => { e.preventDefault(); dismissAutoFillBanner(); exportData(); };
   banner.classList.remove("hidden");
   // Dismiss when clicking anywhere outside the banner
   setTimeout(() => {

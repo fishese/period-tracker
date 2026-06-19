@@ -2004,8 +2004,9 @@ body {
   border-radius: 0.75rem;
   padding: 0.625rem 0.875rem;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.25rem 0.5rem;
   font-size: 0.8125rem;
   z-index: 150;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
@@ -2016,7 +2017,7 @@ body {
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 .autofill-banner__msg {
-  flex: 1;
+  flex: 1 1 100%;
   color: var(--text);
   line-height: 1.4;
 }
@@ -2027,6 +2028,11 @@ body {
   font-size: 0.8125rem;
 }
 .autofill-banner__link:hover { text-decoration: underline; }
+.autofill-banner__sep {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
 .autofill-banner__close {
   background: none;
   border: none;
@@ -2036,4 +2042,5 @@ body {
   cursor: pointer;
   padding: 0 0 0 0.125rem;
   flex-shrink: 0;
+  margin-left: auto;
 }

@@ -165,9 +165,8 @@ const LOCALES = {
     // Status card – period info
     status_cycle_day_of: "Day {day} of your {total}-day cycle",
     status_period_today: "Your period is expected today",
-    status_period_tomorrow: "Your period is expected tomorrow",
-    status_period_soon: "Your period may start today or in the next {n} days",
-    status_period_in: "Next period expected in {n} days",
+    status_period_soon_date: "May start today or around {date}",
+    status_period_in_date: "Next period expected around {date}",
 
     // Status card
     now: "Now",
@@ -275,6 +274,7 @@ const LOCALES = {
     autofill_banner_msg_one: "Auto-filled {n} day ahead with light flow.",
     autofill_banner_msg_many: "Auto-filled {n} days ahead with light flow.",
     autofill_banner_settings: "Adjust in Settings",
+    autofill_banner_backup: "Back up",
 
     // Language switcher
     language_label: "Language",
@@ -1317,9 +1317,8 @@ const LOCALES = {
 
     status_cycle_day_of: "{total}日周期の{day}日目",
     status_period_today: "今日生理が来る予定です",
-    status_period_tomorrow: "明日生理が来る予定です",
-    status_period_soon: "今日から{n}日以内に生理が来る可能性があります",
-    status_period_in: "次の生理まで{n}日",
+    status_period_soon_date: "今日または{date}頃に生理が来る可能性があります",
+    status_period_in_date: "次の生理は{date}頃の予定です",
     now: "現在",
     bar_day: "{n}日目",
 
@@ -1406,6 +1405,7 @@ const LOCALES = {
     settings_autofill_hint: "生理初日の記録後、軽度の経血量で自動入力する日数。0で無効化。",
     autofill_banner_msg_many: "{n}日分を軽度の経血量で自動入力しました。",
     autofill_banner_settings: "設定で変更",
+    autofill_banner_backup: "バックアップ",
 
     language_label: "言語",
     lang_en: "English",
@@ -1636,9 +1636,8 @@ const LOCALES = {
 
     status_cycle_day_of: "{total}天週期的第{day}天",
     status_period_today: "預計今天來生理期",
-    status_period_tomorrow: "預計明天來生理期",
-    status_period_soon: "生理期可能在今天或未來{n}天內開始",
-    status_period_in: "預計{n}天後來生理期",
+    status_period_soon_date: "生理期可能今天或{date}左右開始",
+    status_period_in_date: "預計{date}左右來生理期",
     now: "現在",
     bar_day: "第{n}天",
 
@@ -1725,6 +1724,7 @@ const LOCALES = {
     settings_autofill_hint: "記錄生理期第一天後，自動填入少量經血的天數。設為0可停用此功能。",
     autofill_banner_msg_many: "已自動填入{n}天的少量經血記錄。",
     autofill_banner_settings: "在設定中調整",
+    autofill_banner_backup: "立即備份",
 
     language_label: "語言",
     lang_en: "English",
