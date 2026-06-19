@@ -14,6 +14,8 @@ This is a personal fork of [`pythonime-lab/yourcyclekeeper`](https://github.com/
 
 **What was added:** The prediction logic was updated to derive the average cycle length from recorded history, similar to how drip approaches it, rather than relying on a fixed user-set value. Auto-fill for period days was added because of a tendency to forget to log mid-period — logging the first flow day automatically fills the following days with light flow. An export-to-drip-CSV function was added (accessible from Settings while logged in) so data can be migrated to another app in the future without needing to re-enter encryption credentials.
 
+**References:** [drip](https://gitlab.com/bloodyhealth/drip) was referenced for the CSV column format, prediction logic approach, and some display elements.
+
 > ⚠️ All coding in this fork was done via Claude Code with minimal coding experience. Use at your own risk.
 
 ---
