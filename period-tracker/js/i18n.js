@@ -277,6 +277,13 @@ const LOCALES = {
     autofill_banner_backup_pre: "Reminder to ",
     autofill_banner_backup: "back up",
 
+    // Theme picker
+    settings_theme_label: "Theme",
+    theme_default: "Midnight",
+    theme_light: "Newsroom Light",
+    theme_dark: "Newsroom Dark",
+    theme_kawaii: "Kawaii 🌸",
+
     // Language switcher
     language_label: "Language",
     lang_en: "English",
@@ -1416,6 +1423,12 @@ const LOCALES = {
     lang_ja: "日本語",
     lang_zh_tw: "繁體中文",
 
+    settings_theme_label: "テーマ",
+    theme_default: "ミッドナイト",
+    theme_light: "ニュースルーム ライト",
+    theme_dark: "ニュースルーム ダーク",
+    theme_kawaii: "かわいい 🌸",
+
     nav_calendar: "カレンダー",
     nav_insights: "インサイト",
     nav_settings: "設定",
@@ -1735,6 +1748,12 @@ const LOCALES = {
     lang_es: "Español",
     lang_ja: "日本語",
     lang_zh_tw: "繁體中文",
+
+    settings_theme_label: "主題",
+    theme_default: "午夜紫",
+    theme_light: "新聞室 淺色",
+    theme_dark: "新聞室 深色",
+    theme_kawaii: "可愛風 🌸",
 
     nav_calendar: "日曆",
     nav_insights: "洞察",

@@ -40,7 +40,30 @@ const STORE_KEY = "yourcyclekeeper_enc_v1"; // encrypted blob
 const SALT_KEY = "yourcyclekeeper_salt_v1"; // random salt (not secret)
 const PINHASH_KEY = "yourcyclekeeper_ph_v1"; // HMAC of PIN for fast wrong-PIN detection
 const BACKUP_KEY = "yourcyclekeeper_lastbackup_v1"; // ISO date of last export
+const THEME_KEY = "yourcyclekeeper_theme"; // UI-only preference, not sensitive
 const SCHEMA_VERSION = 1; // bump when state shape changes
+
+const VALID_THEMES = ["default", "light", "dark", "kawaii"];
+
+function setTheme(name) {
+  const t = VALID_THEMES.includes(name) ? name : "default";
+  if (t === "default") {
+    delete document.documentElement.dataset.theme;
+  } else {
+    document.documentElement.dataset.theme = t;
+  }
+  try { localStorage.setItem(THEME_KEY, t); } catch (_) {}
+  // Sync the radio buttons (called programmatically as well as from onclick)
+  document.querySelectorAll('input[name="theme"]').forEach(r => {
+    r.checked = r.value === t;
+  });
+}
+
+function loadTheme() {
+  let saved = "default";
+  try { saved = localStorage.getItem(THEME_KEY) || "default"; } catch (_) {}
+  setTheme(saved);
+}
 
 // The old deriveKey, encryptData, decryptData, hashPin functions are now imported from crypto.js
 
@@ -77,6 +100,9 @@ let state = {
 // Initialize modular state references
 setCyclesState(state);
 setPeriodMarkingState(state);
+
+// Apply saved theme immediately so there's no flash of default colours
+loadTheme();
 
 let sessionPin = null; // PIN held only in JS memory (never persisted)
 let viewMonth = new Date();
@@ -2830,6 +2856,7 @@ async function init() {
   initializePainChartControls();
   applyI18n();
   _initLangSwitcher();
+  loadTheme();
   _updateMonthDropdown();
 }
 
@@ -2967,6 +2994,7 @@ window.exportData = exportData;
 window.importData = importData;
 window.confirmClear = confirmClear;
 window.switchTab = switchTab;
+window.setTheme = setTheme;
 window.changeLanguage = (lang) => {
   setLanguage(lang);
   applyI18n();

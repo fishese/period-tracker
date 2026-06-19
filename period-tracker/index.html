@@ -907,6 +907,56 @@
             <div class="field-hint" data-i18n="settings_autofill_hint">Days to auto-fill with light flow after the first day of a new period. Set to 0 to disable.</div>
           </div>
           <div class="settings-section">
+            <h3 data-i18n="settings_theme_label">Theme</h3>
+            <div class="theme-grid">
+              <label class="theme-option">
+                <input type="radio" name="theme" value="default" onchange="setTheme('default')" checked />
+                <div class="theme-swatch ts-default-bg">
+                  <div class="theme-swatch__dots">
+                    <span class="theme-swatch__dot ts-default"></span>
+                    <span class="theme-swatch__dot ts-default-a"></span>
+                    <span class="theme-swatch__dot ts-default-b"></span>
+                  </div>
+                  <span class="theme-swatch__name" data-i18n="theme_default">Midnight</span>
+                </div>
+              </label>
+              <label class="theme-option">
+                <input type="radio" name="theme" value="light" onchange="setTheme('light')" />
+                <div class="theme-swatch ts-light-bg">
+                  <div class="theme-swatch__dots">
+                    <span class="theme-swatch__dot ts-light"></span>
+                    <span class="theme-swatch__dot ts-light-a"></span>
+                    <span class="theme-swatch__dot ts-light-b"></span>
+                  </div>
+                  <span class="theme-swatch__name" data-i18n="theme_light">Newsroom Light</span>
+                </div>
+              </label>
+              <label class="theme-option">
+                <input type="radio" name="theme" value="dark" onchange="setTheme('dark')" />
+                <div class="theme-swatch ts-dark-bg">
+                  <div class="theme-swatch__dots">
+                    <span class="theme-swatch__dot ts-dark"></span>
+                    <span class="theme-swatch__dot ts-dark-a"></span>
+                    <span class="theme-swatch__dot ts-dark-b"></span>
+                  </div>
+                  <span class="theme-swatch__name" data-i18n="theme_dark">Newsroom Dark</span>
+                </div>
+              </label>
+              <label class="theme-option">
+                <input type="radio" name="theme" value="kawaii" onchange="setTheme('kawaii')" />
+                <div class="theme-swatch ts-kawaii-bg">
+                  <div class="theme-swatch__dots">
+                    <span class="theme-swatch__dot ts-kawaii"></span>
+                    <span class="theme-swatch__dot ts-kawaii-a"></span>
+                    <span class="theme-swatch__dot ts-kawaii-b"></span>
+                  </div>
+                  <span class="theme-swatch__name" data-i18n="theme_kawaii">Kawaii 🌸</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="settings-section">
             <h3 data-i18n="language_label">Language</h3>
             <select id="lang-switcher" class="field-input">
               <option value="en" data-i18n="lang_en">English</option>

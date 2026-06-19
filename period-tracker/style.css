@@ -24,6 +24,77 @@
   --border: rgba(167, 139, 250, 0.28);
   --danger: #e6233b;
   --success: #34d399;
+  --status-card-bg: linear-gradient(135deg, #2a1040 0%, #1a0828 100%);
+}
+
+/* ── Newsroom Light ─────────────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg: #f0f0ed;
+  --bg2: #e6e6e3;
+  --bg3: #d8d8d5;
+  --card: #ffffff;
+  --text: #1a1a1a;
+  --text-muted: #6b7280;
+  --border: rgba(0, 0, 0, 0.1);
+  --rose: #374151;
+  --rose-light: #4b5563;
+  --rose-pale: #f3f4f6;
+  --lavender: #1a1a1a;
+  --deep-purple: #374151;
+  --amber: #92400e;
+  --coral: #b45309;
+  --fertile-green: #166534;
+  --ovulation: #92400e;
+  --danger: #dc2626;
+  --success: #166534;
+  --status-card-bg: linear-gradient(135deg, #e6e6e3 0%, #f0f0ed 100%);
+}
+
+/* ── Newsroom Dark ──────────────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --bg: #111827;
+  --bg2: #1f2937;
+  --bg3: #374151;
+  --card: #1f2937;
+  --text: #f9fafb;
+  --text-muted: #9ca3af;
+  --border: rgba(255, 255, 255, 0.08);
+  --rose: #6b7280;
+  --rose-light: #9ca3af;
+  --rose-pale: #374151;
+  --lavender: #d1d5db;
+  --deep-purple: #4b5563;
+  --amber: #fbbf24;
+  --coral: #f59e0b;
+  --fertile-green: #34d399;
+  --ovulation: #fbbf24;
+  --danger: #ef4444;
+  --success: #34d399;
+  --status-card-bg: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+}
+
+/* ── Kawaii 🌸 ──────────────────────────────────────────────────────────────── */
+[data-theme="kawaii"] {
+  --bg: #fff0f7;
+  --bg2: #ffe4f0;
+  --bg3: #ffd6e8;
+  --card: #fff8fc;
+  --text: #3d1040;
+  --text-muted: #a855f7;
+  --border: rgba(244, 63, 142, 0.25);
+  --rose: #f43f8e;
+  --rose-light: #fb7185;
+  --rose-pale: #ffe4f0;
+  --lavender: #c084fc;
+  --deep-purple: #7c3aed;
+  --amber: #f9a8d4;
+  --coral: #fb7185;
+  --fertile-green: #86efac;
+  --ovulation: #fde68a;
+  --teal: #67e8f9;
+  --danger: #f43f8e;
+  --success: #86efac;
+  --status-card-bg: linear-gradient(135deg, #ffd6e8 0%, #fff0f7 100%);
 }
 
 * {
@@ -462,7 +533,7 @@ body {
 }
 .status-card {
   margin: 1rem 1rem 0;
-  background: linear-gradient(135deg, #2a1040 0%, #1a0828 100%);
+  background: var(--status-card-bg);
   border: 0.0625rem solid var(--border);
   border-radius: 1.5rem;
   padding: 1.125rem;
@@ -1943,6 +2014,73 @@ body {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
+
+/* ── Theme picker ────────────────────────────────────────────────────────────── */
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.625rem;
+  margin-top: 0.75rem;
+}
+.theme-option {
+  position: relative;
+  cursor: pointer;
+}
+.theme-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.theme-swatch {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  border: 0.125rem solid transparent;
+  transition: border-color 0.15s;
+  user-select: none;
+}
+.theme-option input:checked + .theme-swatch {
+  border-color: var(--lavender);
+}
+.theme-swatch__dots {
+  display: flex;
+  gap: 0.3rem;
+}
+.theme-swatch__dot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+}
+.theme-swatch__name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Swatch palette colours (hard-coded so they look right in any active theme) */
+.ts-default  { background: #120818; }
+.ts-default-a { background: #a78bfa; }
+.ts-default-b { background: #e6233b; }
+.ts-default-bg { background: #1c0f2b; border: 1px solid rgba(167,139,250,0.3); }
+
+.ts-light    { background: #f0f0ed; border: 1px solid #ccc; }
+.ts-light-a  { background: #374151; }
+.ts-light-b  { background: #4b5563; }
+.ts-light-bg { background: #ffffff; border: 1px solid #ddd; }
+
+.ts-dark     { background: #111827; }
+.ts-dark-a   { background: #d1d5db; }
+.ts-dark-b   { background: #6b7280; }
+.ts-dark-bg  { background: #1f2937; border: 1px solid rgba(255,255,255,0.08); }
+
+.ts-kawaii   { background: #fff0f7; border: 1px solid #f9a8d4; }
+.ts-kawaii-a { background: #c084fc; }
+.ts-kawaii-b { background: #f43f8e; }
+.ts-kawaii-bg { background: #fff8fc; border: 1px solid #f9a8d4; }
 
 /* ── Calendar nav disabled state ────────────────────────────────────────────── */
 .cal-nav-btn.nav-disabled {
