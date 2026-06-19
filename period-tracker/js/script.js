@@ -1045,6 +1045,7 @@ function showMoodModal() {
 function updateStatusCard() {
   const info = getCycleInfo();
   const emptyHint = document.getElementById("status-empty-hint");
+  const importHint = document.getElementById("status-import-hint");
   if (!info) {
     safeText("status-phase-text", "");
     safeText("status-title", "");
@@ -1058,9 +1059,15 @@ function updateStatusCard() {
       emptyHint.textContent = t("status_no_data_hint");
       emptyHint.classList.remove("hidden");
     }
+    if (importHint) {
+      const link = importHint.querySelector("#status-import-link");
+      if (link) link.textContent = t("status_import_hint");
+      importHint.classList.remove("hidden");
+    }
     return;
   }
   if (emptyHint) emptyHint.classList.add("hidden");
+  if (importHint) importHint.classList.add("hidden");
 
   // Date line
   const phaseEl = document.getElementById("status-phase");

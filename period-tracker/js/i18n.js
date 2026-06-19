@@ -361,6 +361,7 @@ const LOCALES = {
     settings_saved_toast: "Settings saved",
     status_no_data_hint:
       "Start recording your period to see statistics.",
+    status_import_hint: "or import your data",
 
     // Storage full error
     storage_full_title: "Storage Full",
@@ -657,6 +658,7 @@ const LOCALES = {
     settings_saved_toast: "Настройки сохранены",
     status_no_data_hint:
       "Начните записывать менструацию, чтобы увидеть статистику.",
+    status_import_hint: "или импортируйте данные",
 
     // Storage full error
     storage_full_title: "Хранилище заполнено",
@@ -895,6 +897,7 @@ const LOCALES = {
     settings_saved_toast: "Налады захаваны",
     status_no_data_hint:
       "Пачніце запісваць цыкл, каб убачыць статыстыку.",
+    status_import_hint: "або імпартуйце даныя",
 
     // Storage full error
     storage_full_title: "Сховішча запоўнена",
@@ -1166,6 +1169,7 @@ const LOCALES = {
     settings_saved_toast: "Ajustes guardados",
     status_no_data_hint:
       "Empieza a registrar tu período para ver estadísticas.",
+    status_import_hint: "o importa tus datos",
 
     // Storage full error
     storage_full_title: "Almacenamiento lleno",
@@ -1494,6 +1498,7 @@ const LOCALES = {
     settings_saved_toast: "設定が保存されました",
     status_no_data_hint:
       "生理を記録すると統計が表示されます。",
+    status_import_hint: "またはデータをインポート",
 
     storage_full_title: "ストレージ満杯",
     storage_full_msg:
@@ -1820,6 +1825,7 @@ const LOCALES = {
     settings_saved_toast: "設定已儲存",
     status_no_data_hint:
       "開始記錄生理期以顯示統計資料。",
+    status_import_hint: "或匯入您的資料",
 
     storage_full_title: "儲存空間已滿",
     storage_full_msg:

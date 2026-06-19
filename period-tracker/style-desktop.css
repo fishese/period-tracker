@@ -277,6 +277,62 @@ body:has(.settings-wrap.visible) .insights-wrap {
   padding-top: 1.25rem !important;
 }
 
+/* ── Light-background nav pill fixes ─────────────────────────────────────── */
+/* Hardcoded #c4b5fd / #e9ddff (light lavender) are invisible on white/pink  */
+[data-theme="light"] .bnav-item,
+[data-theme="kawaii"] .bnav-item {
+  color: var(--text-muted);
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+[data-theme="light"] .bnav-item.active {
+  color: var(--text);
+  background: rgba(0, 0, 0, 0.1);
+  border-color: rgba(0, 0, 0, 0.3);
+}
+[data-theme="kawaii"] .bnav-item.active {
+  color: var(--rose);
+  background: rgba(219, 39, 119, 0.1);
+  border-color: rgba(219, 39, 119, 0.4);
+}
+/* Settings & Insights tab pills */
+[data-theme="light"] .settings-tab-btn,
+[data-theme="light"] .insight-tab-btn {
+  color: var(--text-muted) !important;
+  background: rgba(0, 0, 0, 0.05) !important;
+  border-color: rgba(0, 0, 0, 0.15) !important;
+}
+[data-theme="light"] .settings-tab-btn.active,
+[data-theme="light"] .insight-tab-btn.active {
+  color: var(--text) !important;
+  background: rgba(0, 0, 0, 0.1) !important;
+  border-color: rgba(0, 0, 0, 0.3) !important;
+  box-shadow: none !important;
+}
+[data-theme="light"] .settings-tab-btn:hover:not(.active),
+[data-theme="light"] .insight-tab-btn:hover:not(.active) {
+  background: rgba(0, 0, 0, 0.08) !important;
+  color: var(--text) !important;
+}
+[data-theme="kawaii"] .settings-tab-btn,
+[data-theme="kawaii"] .insight-tab-btn {
+  color: var(--lavender) !important;
+  background: rgba(219, 39, 119, 0.05) !important;
+  border-color: rgba(219, 39, 119, 0.2) !important;
+}
+[data-theme="kawaii"] .settings-tab-btn.active,
+[data-theme="kawaii"] .insight-tab-btn.active {
+  color: var(--rose) !important;
+  background: rgba(219, 39, 119, 0.12) !important;
+  border-color: rgba(219, 39, 119, 0.4) !important;
+  box-shadow: none !important;
+}
+[data-theme="kawaii"] .settings-tab-btn:hover:not(.active),
+[data-theme="kawaii"] .insight-tab-btn:hover:not(.active) {
+  background: rgba(219, 39, 119, 0.1) !important;
+  color: var(--rose) !important;
+}
+
 /* Onboarding two-column layout */
 #onboarding {
   display: grid;

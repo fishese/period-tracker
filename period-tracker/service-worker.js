@@ -19,7 +19,7 @@ const IS_DEV =
   self.location.hostname === "localhost" ||
   self.location.hostname === "127.0.0.1";
 
-const CACHE_VERSION = "v20260619e";
+const CACHE_VERSION = "v20260619f";
 const CACHE_NAME = `yourcyclekeeper-${CACHE_VERSION}`;
 
 const ASSETS_TO_CACHE = [

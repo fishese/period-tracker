@@ -2183,3 +2183,123 @@ body {
   flex-shrink: 0;
   margin-left: auto;
 }
+
+/* ── Status import hint ──────────────────────────────────────────────────── */
+.status-import-link {
+  color: var(--lavender);
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+.status-import-link:hover {
+  text-decoration: underline;
+}
+
+/* ── Light-background theme: input/control fixes ─────────────────────────── */
+/* .field-input uses rgba(255,255,255,...) which is invisible on white/pink cards */
+[data-theme="light"] .field-input,
+[data-theme="kawaii"] .field-input {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.18);
+  color: var(--text);
+}
+[data-theme="light"] .field-input:focus,
+[data-theme="kawaii"] .field-input:focus {
+  border-color: rgba(0, 0, 0, 0.4);
+}
+[data-theme="light"] .field-input[type="date"]::-webkit-calendar-picker-indicator,
+[data-theme="kawaii"] .field-input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: none;
+}
+[data-theme="light"] .setting-save-btn {
+  background: rgba(55, 65, 81, 0.1);
+  color: #374151;
+  border-color: rgba(55, 65, 81, 0.3);
+}
+[data-theme="kawaii"] .setting-save-btn {
+  background: rgba(219, 39, 119, 0.1);
+  color: var(--rose);
+  border-color: rgba(219, 39, 119, 0.3);
+}
+[data-theme="light"] .setting-save-btn:hover,
+[data-theme="kawaii"] .setting-save-btn:hover {
+  background: rgba(0, 0, 0, 0.12);
+}
+[data-theme="light"] .log-btn,
+[data-theme="kawaii"] .log-btn {
+  background: rgba(0, 0, 0, 0.04);
+}
+[data-theme="light"] .log-note,
+[data-theme="kawaii"] .log-note {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--text);
+}
+[data-theme="light"] .modal-btn.secondary,
+[data-theme="kawaii"] .modal-btn.secondary {
+  background: rgba(0, 0, 0, 0.06);
+}
+[data-theme="light"] .status-pill,
+[data-theme="kawaii"] .status-pill {
+  background: rgba(0, 0, 0, 0.05);
+}
+[data-theme="light"] .cycle-bar,
+[data-theme="kawaii"] .cycle-bar {
+  background: rgba(0, 0, 0, 0.08);
+}
+[data-theme="light"] .stat-box,
+[data-theme="kawaii"] .stat-box {
+  background: rgba(0, 0, 0, 0.04);
+}
+[data-theme="light"] .stat-box:hover,
+[data-theme="kawaii"] .stat-box:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+/* Info boxes: swap hardcoded dark-only tints to theme variables */
+[data-theme="light"] .info-box,
+[data-theme="kawaii"] .info-box {
+  color: var(--text-muted);
+}
+[data-theme="light"] .info-box--success,
+[data-theme="kawaii"] .info-box--success {
+  color: var(--success);
+}
+[data-theme="light"] .info-box--warning,
+[data-theme="kawaii"] .info-box--warning {
+  color: var(--amber);
+}
+[data-theme="light"] .info-box--security,
+[data-theme="kawaii"] .info-box--security {
+  color: var(--lavender);
+}
+[data-theme="light"] .info-box--data-warning,
+[data-theme="kawaii"] .info-box--data-warning {
+  color: var(--amber);
+}
+[data-theme="light"] .info-box--fork,
+[data-theme="kawaii"] .info-box--fork {
+  color: var(--rose);
+}
+[data-theme="light"] .backup-status,
+[data-theme="kawaii"] .backup-status {
+  color: var(--text-muted);
+}
+[data-theme="light"] .backup-status--ok,
+[data-theme="kawaii"] .backup-status--ok {
+  color: var(--success);
+}
+[data-theme="light"] .beta-warning,
+[data-theme="kawaii"] .beta-warning {
+  color: var(--amber);
+}
+/* Chart select: white text/arrow invisible on light bg */
+[data-theme="light"] .chart-select,
+[data-theme="kawaii"] .chart-select {
+  background-color: rgba(0, 0, 0, 0.05);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%231a1a1a'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  border-color: rgba(0, 0, 0, 0.18);
+  color: var(--text);
+}
+[data-theme="light"] .chart-select option,
+[data-theme="kawaii"] .chart-select option {
+  background: var(--card);
+  color: var(--text);
+}
