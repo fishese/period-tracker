@@ -1873,6 +1873,13 @@ body {
   margin-bottom: 0.625rem;
 }
 
+.btn--export-drip {
+  background: transparent;
+  color: var(--lavender);
+  border: 2px solid var(--lavender);
+  margin-bottom: 0.625rem;
+}
+
 /* Tab Switching Animation */
 .settings-wrap,
 .insights-wrap,

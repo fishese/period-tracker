@@ -34,6 +34,7 @@ import {
   isSameMenses,
   setState as setPeriodMarkingState,
 } from "./periodMarking.js";
+import { buildDripCsv } from "./export-drip.js";
 
 const STORE_KEY = "yourcyclekeeper_enc_v1"; // encrypted blob
 const SALT_KEY = "yourcyclekeeper_salt_v1"; // random salt (not secret)
@@ -2192,6 +2193,42 @@ function toggleFertility() {
   renderCalendar();
 }
 
+function exportToDrip() {
+  const logs = state.logs || {};
+  const count = Object.keys(logs).filter(d => {
+    const l = logs[d];
+    return l.flow || l.pain || l.mood != null || (l.note && l.note.trim());
+  }).length;
+
+  if (count === 0) {
+    showModal({
+      icon: "📭",
+      title: "No data to export",
+      msg: "Log some cycle data first, then come back to export.",
+      confirmText: t("ok"),
+      cancelText: "",
+    });
+    return;
+  }
+
+  showModal({
+    icon: "📤",
+    title: "Export to drip CSV",
+    msg: `Export ${count} days of data as a drip-compatible CSV?\n\nPain and mood are converted to drip\'s flag format; the original values are preserved in the note columns so nothing is lost.`,
+    confirmText: "Export",
+    cancelText: t("cancel"),
+    onConfirm: () => {
+      const csv = buildDripCsv(logs);
+      const blob = new Blob([csv], { type: "text/csv" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `drip-export_${today()}.csv`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    },
+  });
+}
+
 async function exportData() {
   if (!sessionPin) return;
   showModal({
@@ -2871,6 +2908,7 @@ window.saveTolerance = saveTolerance;
 window.toggleFertility = toggleFertility;
 window.showHistoryFullPage = showHistoryFullPage;
 window.showChangePinModal = showChangePinModal;
+window.exportToDrip = exportToDrip;
 window.exportData = exportData;
 window.importData = importData;
 window.confirmClear = confirmClear;
