@@ -2067,6 +2067,7 @@ async function saveLog() {
   // Only triggers on the first day of a new episode (no flow in prior 2 days).
   // Never overwrites a day that already has flow logged.
   const fillDays = state.autoFillDays ?? 5;
+  let didAutoFill = false;
   if (log.flow && fillDays > 0 && !isSameMenses(selectedDate)) {
     const start = fromISO(selectedDate);
     for (let i = 1; i <= fillDays; i++) {
@@ -2075,7 +2076,7 @@ async function saveLog() {
         state.logs[next] = { ...(state.logs[next] || {}), flow: 1 };
       }
     }
-    showAutoFillBanner(fillDays);
+    didAutoFill = true;
   }
 
   cleanupEmptyLogs();
@@ -2085,6 +2086,10 @@ async function saveLog() {
   updateStatusCard();
   updateInsights();
   if (navigator.vibrate) navigator.vibrate(40);
+
+  if (didAutoFill) {
+    try { showAutoFillBanner(fillDays); } catch (_) {}
+  }
 }
 
 function updateCycleHistory(dateStr) {
