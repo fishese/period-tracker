@@ -19,43 +19,45 @@ const IS_DEV =
   self.location.hostname === "localhost" ||
   self.location.hostname === "127.0.0.1";
 
-const CACHE_VERSION = "v20260619h";
+const CACHE_VERSION = "v20260619i";
 const CACHE_NAME = `yourcyclekeeper-${CACHE_VERSION}`;
 
+// Derive base path from the SW's own URL so this works on both localhost
+// (/period-tracker/) and GitHub Pages (/period-tracker/period-tracker/).
+const BASE_PATH = self.location.pathname.substring(
+  0,
+  self.location.pathname.lastIndexOf("/") + 1
+);
+
 const ASSETS_TO_CACHE = [
-  "/period-tracker/",
-  "/period-tracker/index.html",
-  "/period-tracker/style.css",
-  "/period-tracker/style-desktop.css",
-  "/period-tracker/manifest.json",
-  "/period-tracker/js/script.js",
-  "/period-tracker/js/indexeddb-storage.js",
-  "/period-tracker/js/crypto.js",
-  "/period-tracker/js/cycles.js",
-  "/period-tracker/js/dateUtils.js",
-  "/period-tracker/js/i18n.js",
-  "/period-tracker/js/navigation.js",
-  "/period-tracker/js/periodMarking.js",
-  "/period-tracker/js/session.js",
-  "/period-tracker/js/validators.js",
-  "/period-tracker/js/import-drip.js",
-  "/period-tracker/import-drip.html",
-  "/icons/favicon-16x16.png",
-  "/icons/favicon-32x32.png",
-  "/icons/favicon-48x48.png",
-  "/icons/favicon-64x64.png",
-  "/icons/favicon-96x96.png",
-  "/icons/favicon-128x128.png",
-  "/icons/favicon-144x144.png",
-  "/icons/favicon-152x152.png",
-  "/icons/favicon-180x180.png",
-  "/icons/favicon-192x192.png",
-  "/icons/favicon-256x256.png",
-  "/icons/favicon-512x512.png",
-  "/icons/your_cycle_keeper_logo.png",
-  "/icons/yourcyclekeeper_background.png",
-  "/icons/yourcyclekeeper_calendar.svg",
-  "/icons/yourcyclekeeper_pinscreen.svg",
+  BASE_PATH,
+  BASE_PATH + "index.html",
+  BASE_PATH + "style.css",
+  BASE_PATH + "style-desktop.css",
+  BASE_PATH + "manifest.json",
+  BASE_PATH + "js/script.js",
+  BASE_PATH + "js/indexeddb-storage.js",
+  BASE_PATH + "js/crypto.js",
+  BASE_PATH + "js/cycles.js",
+  BASE_PATH + "js/dateUtils.js",
+  BASE_PATH + "js/i18n.js",
+  BASE_PATH + "js/navigation.js",
+  BASE_PATH + "js/periodMarking.js",
+  BASE_PATH + "js/session.js",
+  BASE_PATH + "js/validators.js",
+  BASE_PATH + "js/import-drip.js",
+  BASE_PATH + "import-drip.html",
+  BASE_PATH + "icons/favicon-16x16.png",
+  BASE_PATH + "icons/favicon-32x32.png",
+  BASE_PATH + "icons/favicon-48x48.png",
+  BASE_PATH + "icons/android-chrome-192x192.png",
+  BASE_PATH + "icons/android-chrome-512x512.png",
+  BASE_PATH + "icons/apple-touch-icon.png",
+  BASE_PATH + "icons/apple-touch-icon-152x152.png",
+  BASE_PATH + "icons/apple-touch-icon-167x167.png",
+  BASE_PATH + "icons/apple-touch-icon-180x180.png",
+  BASE_PATH + "icons/favicon.ico",
+  BASE_PATH + "icons/favicon.svg",
 ];
 
 self.addEventListener("install", (event) => {

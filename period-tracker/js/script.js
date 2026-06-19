@@ -2836,7 +2836,7 @@ async function init() {
       "serviceWorker" in navigator &&
       (location.protocol === "http:" || location.protocol === "https:")
     ) {
-      const swUrl = `/period-tracker/service-worker.js`;
+      const swUrl = `service-worker.js`;
       navigator.serviceWorker
         .register(swUrl)
         .then((reg) => {
