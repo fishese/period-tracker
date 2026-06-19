@@ -15,11 +15,17 @@ function pluralSimple(n) {
   return Math.abs(n) === 1 ? "one" : "many";
 }
 
+function pluralFlat() {
+  return "many";
+}
+
 const PLURAL_FN = {
   en: pluralSimple,
   ru: pluralSlavic,
   be: pluralSlavic,
   es: pluralSimple,
+  ja: pluralFlat,
+  "zh-TW": pluralFlat,
 };
 
 // ─── Locale data ──────────────────────────────────────────────────────────────
@@ -268,6 +274,8 @@ const LOCALES = {
     lang_en: "English",
     lang_ru: "Русский",
     lang_es: "Español",
+    lang_ja: "日本語",
+    lang_zh_tw: "繁體中文",
 
     // Nav tabs
     nav_calendar: "Calendar",
@@ -586,6 +594,8 @@ const LOCALES = {
     lang_en: "English",
     lang_ru: "Русский",
     lang_es: "Español",
+    lang_ja: "日本語",
+    lang_zh_tw: "繁體中文",
 
     settings_cycle_tab: "Настройки цикла",
     settings_security_tab: "Безопасность",
@@ -822,6 +832,8 @@ const LOCALES = {
     lang_ru: "Русский",
     lang_be: "Беларуская",
     lang_es: "Español",
+    lang_ja: "日本語",
+    lang_zh_tw: "繁體中文",
 
     settings_cycle_tab: "Налады цыкла",
     settings_security_tab: "Бяспека",
@@ -1085,6 +1097,8 @@ const LOCALES = {
     lang_en: "English",
     lang_ru: "Русский",
     lang_es: "Español",
+    lang_ja: "日本語",
+    lang_zh_tw: "繁體中文",
 
     // Nav tabs
     nav_calendar: "Calendario",
@@ -1182,20 +1196,651 @@ const LOCALES = {
     accessibility_info_html:
       'My Cycle Keeper sigue los <strong>estándares de accesibilidad WCAG 2.0</strong>:<br><br>&nbsp;• <strong>Tab/Shift+Tab:</strong> Navegar hacia adelante/atrás por todos los elementos interactivos<br>&nbsp;• <strong>Teclas de flecha:</strong> Navegar por las fechas del calendario<br>&nbsp;• <strong>Enter/Espacio:</strong> Activar botones y enlaces<br>&nbsp;• <strong>Escape:</strong> Cerrar modales y devolver el foco al elemento activador<br>&nbsp;• <strong>Entrada de PIN:</strong> Escribe dígitos 0-9 y Retroceso en todas las pantallas de PIN<br>&nbsp;• <strong>Controles de formulario:</strong> Soporte de teclado nativo para inputs, selects y textareas<br>&nbsp;• <strong>Lectores de pantalla:</strong> HTML semántico con etiquetas ARIA y roles apropiados<br>&nbsp;• <strong>Gestión del foco:</strong> Indicadores de foco visibles, orden de tabulación lógico<br><br>Estándares basados en las <a href="https://trailhead.salesforce.com/content/learn/modules/coding-for-web-accessibility/understand-accessible-navigation" target="_blank" rel="noopener" class="accessibility-link">Directrices de Accesibilidad de Salesforce</a>.',
   },
+
+  // ── Japanese ───────────────────────────────────────────────────────────────
+  ja: {
+    about_tab_developer: "開発者",
+    about_tab_privacy: "プライバシー",
+    about_tab_disclaimer: "免責事項",
+    privacy_title: "プライバシー保証",
+    privacy_info:
+      "My Cycle Keeperはデータを一切収集しません。このアプリは：デバイス上にのみデータをローカル保存します；サーバー・アカウント・クラウドストレージはありません；分析・追跡・テレメトリーはありません；広告・サードパーティコードはありません；データを外部に送信しません；AES-256-GCMによりPINで暗号化されています。あなたの健康データはあなただけのものです。",
+    about_title: "Your Cycle Keeperについて",
+    about_info:
+      "Your Cycle Keeperはプライバシーへの配慮から作られた無料ソフトウェアです。カレンダーリズム法と標準日法に基づいたサイクル推定。情報提供のみを目的としています。バージョン：1.0.0-beta。ライセンス：GPL v3。開発者：pythonime-lab。バグや提案はGitHubリポジトリへ。",
+    support_title: "開発を支援する",
+    support_info:
+      "My Cycle Keeperは広告・追跡・データ収集なしで永久無料です。役に立てていただけましたら、コーヒーを一杯おごっていただけると嬉しいです！",
+    disclaimer_title: "医療免責事項",
+    disclaimer_info:
+      "⚠️ このアプリは平均的な生物学的パターンに基づくサイクル推定を提供します。医療アドバイスではなく、専門医の診察の代替として使用してはいけません。My Cycle Keeperはパターンを追跡してサイクルを予測し、排卵タイミングを推定します。実際のサイクルは、ストレス・病気・薬などさまざまな要因で変動します。避妊や妊娠の保証としてこのアプリを使用しないでください。医療的な決定には必ず専門の医療従事者にご相談ください。",
+    accessibility_title: "アクセシビリティ",
+    accessibility_info:
+      "My Cycle KeeperはWCAG 2.0アクセシビリティ基準に準拠しています。Tab/Shift+Tab：すべてのインタラクティブ要素を前後に移動；矢印キー：カレンダー日付を移動；Enter/Space：ボタンとリンクを実行；Escape：モーダルを閉じてフォーカスを戻す；PIN入力：数字0〜9とBackspace；フォームコントロール：入力・選択・テキストエリアのネイティブキーボードサポート；スクリーンリーダー：適切なARIAラベルとロールを含むセマンティックHTML；フォーカス管理：可視フォーカスインジケーター、論理的なタブ順序。",
+
+    cycle_stats: "サイクル統計",
+    avg_length: "平均周期",
+    cycles_logged: "記録済みサイクル",
+    avg_period: "平均生理期間",
+    fertile_days: "妊娠可能日",
+    symptom_tracking: "症状記録",
+    period: "生理",
+    ovulation: "排卵",
+    flow: "経血量",
+    pain: "痛み",
+    mood: "気分",
+    how_it_works: "仕組み",
+    how_it_works_p1:
+      "My Cycle Keeperはサイクルパターンを追跡して妊娠可能期間を推定します。排卵は次の生理の約14日前と推定されます。妊娠可能日は8日目から（周期長さ－11）まで計算されます。",
+    how_it_works_p2:
+      "28日周期の場合、通常8〜17日目が妊娠可能日で、14日目頃に排卵します。",
+    disclaimer: "免責事項",
+    estimation_disclaimer:
+      "⚠️ 推定ツールのみです。避妊には使用しないでください。ストレス・病気・薬は時期に影響します。",
+    no_symptoms_logged: "まだ症状が記録されていません — 今日から記録を始めましょう",
+    cycle_history: "サイクル履歴",
+    all_months: "すべての月",
+    cycle_day: "サイクル日",
+    until_next: "次まで",
+    day_1: "1日目",
+    avg_length_short: "平均周期",
+    period_short: "生理",
+    fertile: "妊娠可能",
+    ovulation_short: "排卵",
+    luteal: "黄体期",
+
+    storage_error_title: "ストレージエラー",
+    storage_error_msg: "ストレージにアクセスできませんでした。ページを再読み込みしてください。",
+    db_error_title: "データベースエラー",
+    db_error_msg: "アプリのストレージを初期化できませんでした。ページを再読み込みしてください。",
+
+    unlock_subtitle: "PINを入力してプライベートな健康データのロックを解除してください",
+    too_many_attempts: "試行回数が多すぎます。{secs}秒後に再試行してください。",
+    locked_out: "🚫 試行回数が多すぎます。60秒間ロックされました。",
+    lockout_ended: "ロック解除されました。再試行してください。",
+    incorrect_pin_many: "PINが違います。残り{remaining}回。",
+    decryption_failed: "復号化に失敗しました。データが破損している可能性があります。",
+    error_try_again: "エラーが発生しました。もう一度お試しください。",
+
+    forgot_pin_title: "PINを忘れましたか？",
+    forgot_pin_msg:
+      "すべてのサイクルデータが完全に削除され、My Cycle Keeperがリセットされます。この操作は取り消せません。よろしいですか？",
+    forgot_pin_confirm: "はい、削除してリセット",
+    reset_complete_title: "リセット完了",
+    reset_complete_msg: "My Cycle Keeperがリセットされました。新しいPINを設定してください。",
+    reset_failed_title: "リセット失敗",
+    reset_failed_msg: "データを削除できませんでした。ページを再読み込みして再試行してください。",
+
+    save_failed_title: "保存失敗",
+    save_failed_msg: "データを保存できませんでした。もう一度お試しください。",
+    missing_date_title: "日付がありません",
+    missing_date_msg: "最後の生理の初日を入力してください。",
+    set_pin_title: "PINを設定",
+    set_pin_msg: "4桁のPINを入力してデータを保護してください。",
+    setup_error_title: "設定エラー",
+    setup_error_msg: "設定を完了できませんでした。ページを再読み込みして再試行してください。",
+
+    note_count: "{count} / 500",
+    note_placeholder: "メモを追加…",
+
+    set_flow: "経血量を設定",
+    save: "保存",
+    cancel: "キャンセル",
+    ok: "OK",
+    refresh: "更新",
+    pain_label: "痛み {value} / 10",
+    set_pain: "痛みを設定",
+    mood_low: "気分が悪い",
+    mood_happy: "幸せ",
+    mood_neutral: "普通",
+    set_mood: "気分を設定",
+
+    period_expected_in_many: "{n}日後に生理が予定されています",
+
+    phase_menstruation: "生理中 🩸",
+    phase_follicular: "卵胞期 ✨",
+    phase_fertile: "妊娠可能日 🌿",
+    phase_ovulation: "排卵日 🌟",
+    phase_luteal: "黄体期 🌙",
+
+    subtitle_menstruation: "生理{day}日目",
+    subtitle_fertile: "{start}〜{end}日目が妊娠可能",
+    subtitle_ovulation: "本日が最高妊娠可能日",
+    subtitle_other: "次の生理まで{n}日",
+
+    status_cycle_day_of: "{total}日周期の{day}日目",
+    status_period_today: "今日生理が来る予定です",
+    status_period_tomorrow: "明日生理が来る予定です",
+    status_period_soon: "今日から{n}日以内に生理が来る可能性があります",
+    status_period_in: "次の生理まで{n}日",
+    now: "現在",
+    bar_day: "{n}日目",
+
+    cycle_history_empty: "サイクル履歴を見るには、2回以上の生理開始日を記録してください。",
+    history_days_many: "{n}日",
+    no_data_yet: "まだデータが記録されていません",
+
+    chart_full_year: "{year}年全体",
+    chart_month_year: "{year}年{month}月",
+
+    download_failed_title: "ダウンロード失敗",
+    download_failed_msg: "チャートをダウンロードできませんでした。もう一度お試しください。",
+
+    invalid_date_title: "無効な日付",
+    invalid_date_msg: "有効な生理開始日を入力してください。",
+    invalid_cycle_title: "無効な周期長",
+    invalid_cycle_msg: "周期長は20〜45日の間でなければなりません。",
+    invalid_duration_title: "無効な期間",
+    invalid_duration_msg: "生理期間は1〜10日の間でなければなりません。",
+    update_predictions_title: "予測を更新しますか？",
+    update_predictions_msg:
+      "新しい設定に基づいてすべての周期予測が再計算されます。記録された症状とメモは変更されません。続けますか？",
+    update_predictions_confirm: "はい、更新する",
+
+    backup_never: "最後のバックアップ：なし",
+    backup_today: "最後のバックアップ：今日",
+    backup_yesterday: "最後のバックアップ：昨日",
+    backup_days_ago_many: "最後のバックアップ：{n}日前",
+    backup_overdue_many: "最後のバックアップ：{n}日前 — 更新が必要！",
+
+    export_backup_title: "バックアップをエクスポート",
+    export_backup_msg:
+      "バックアップは暗号化ファイルとしてエクスポートされます。PINがないと復号化できません。安全に保管してください。",
+    export: "エクスポート",
+    export_failed_title: "エクスポート失敗",
+    export_failed_msg: "バックアップをエクスポートできませんでした。もう一度お試しください。",
+    enter_backup_pin_title: "バックアップPINを入力",
+    enter_backup_pin_msg: "このバックアップを作成したときのPINを入力してください。",
+    incorrect_pin_simple: "PINが違います。もう一度お試しください。",
+    restored_title: "復元完了",
+    restored_msg: "バックアップが正常に復元されました。",
+    invalid_backup_title: "無効なバックアップ",
+    invalid_backup_msg: "このバックアップ形式はサポートされていません。",
+    import_failed_title: "インポート失敗",
+    import_failed_msg: "バックアップファイルを読み込めませんでした。有効なファイルを確認してください。",
+
+    storage_used: "{sizeKB} KB (IndexedDB)",
+    storage_unknown: "不明",
+
+    erase_title: "すべてのデータを削除",
+    erase_msg:
+      "すべてのサイクルデータが完全に削除され、取り消すことはできません。本当によろしいですか？",
+    erase_confirm: "はい、すべて削除",
+    erase_failed_title: "削除失敗",
+    erase_failed_msg: "データを削除できませんでした。もう一度お試しください。",
+
+    confirm_new_pin: "新しいPINを確認",
+    enter_new_pin: "新しいPINを入力",
+    reenter_pin_msg: "確認のため新しいPINをもう一度入力してください。",
+    choose_pin_msg: "4桁のPINを選択してください。",
+    pins_no_match: "PINが一致しません。もう一度お試しください。",
+    pin_changed_title: "PIN変更完了",
+    pin_changed_msg:
+      "PINが更新され、すべてのデータが再暗号化されました。\n\nご注意：この変更前に作成されたバックアップの復元には古いPINが必要です。",
+    pin_change_failed_title: "PIN変更失敗",
+    pin_change_failed_msg: "PINを更新できませんでした。もう一度お試しください。",
+
+    calendar_day_period: "生理日",
+    calendar_day_ovulation: "排卵日",
+    calendar_day_fertile: "妊娠可能日",
+    calendar_day_regular: "通常日",
+    calendar_day_period_possible: "生理予定日",
+
+    stat_std_dev: "標準偏差",
+    stat_range: "周期の範囲",
+    stat_prediction_window: "予測ウィンドウ",
+    stat_regularity: "規則性",
+    stat_regular: "規則的",
+    stat_variable: "不規則",
+
+    follicular: "卵胞期",
+
+    language_label: "言語",
+    lang_en: "English",
+    lang_ru: "Русский",
+    lang_es: "Español",
+    lang_ja: "日本語",
+    lang_zh_tw: "繁體中文",
+
+    nav_calendar: "カレンダー",
+    nav_insights: "インサイト",
+    nav_settings: "設定",
+    nav_about: "About",
+
+    settings_cycle_tab: "サイクル設定",
+    settings_security_tab: "セキュリティとプライバシー",
+    settings_cycle_section: "サイクル設定",
+    settings_last_period: "最後の生理開始日",
+    settings_cycle_length: "平均周期長（日）",
+    settings_period_duration: "生理期間（日）",
+    settings_update_btn: "予測を更新",
+    settings_tolerance: "予測許容日数",
+    settings_tolerance_hint:
+      "カレンダーに表示される予測生理日の前後の日数。空白にすると自動（周期の規則性に基づく）。",
+    save: "保存",
+    settings_show_fertility: "カレンダーに妊娠可能期間を表示",
+    settings_security_section: "セキュリティとプライバシー",
+    settings_change_pin: "PINを変更",
+    settings_export: "暗号化バックアップをエクスポート",
+    settings_import: "暗号化バックアップをインポート",
+    settings_import_drip: "dripからインポート（CSV）",
+
+    drip_import_title: "dripからインポート",
+    drip_import_found:
+      "{days}日分のデータ（{periods}日分の経血を含む）が見つかりました。インポート方法を選択してください。",
+    drip_import_merge: "マージ（自分のデータを保持）",
+    drip_import_replace: "上書き（dripのデータを使用）",
+    drip_import_done_title: "インポート完了",
+    drip_import_done_msg: "{days}日分のデータが正常にインポートされました。",
+    drip_import_failed_title: "インポート失敗",
+    drip_import_failed_msg: "ファイルを読み込めませんでした。dripのCSVエクスポートであることを確認してください。",
+    drip_import_empty_title: "インポートするデータがありません",
+    drip_import_empty_msg: "ファイルに使用可能なデータが含まれていませんでした。",
+    settings_storage_label: "使用ストレージ：",
+    settings_storage_calculating: "計算中...",
+    settings_erase: "すべてのデータを削除",
+
+    onboard_sub: "生理とサイクルをプライベートに記録",
+    onboard_tagline:
+      "経血量・気分・症状をデバイス上で記録。無料、広告なし、完全にプライベート。",
+    beta_label: "ベータ",
+    beta_warning_text:
+      "このアプリは現在開発中です。機能が変わる可能性があり、バグが発生することがあります。",
+    ob_last_period: "最後の生理の初日",
+    ob_cycle_len: "平均周期長（日）",
+    ob_period_dur: "平均生理期間（日）",
+    pin_setup_title: "🔒 4桁のPINを設定",
+    pin_setup_sub_1: "PINはすべてのデータをローカルで暗号化します。",
+    pin_setup_sub_2: "My Cycle Keeperはデータを外部に送信しません。",
+    pin_setup_sub_3: "PINを忘れた場合、データは削除されます。",
+    onboard_start_btn: "記録を始める ✨",
+    privacy_note_aes: "AES-256-GCM暗号化。",
+    privacy_note_rest:
+      "データはデバイスから外に出ません。アカウント不要、追跡なし、永久無料。",
+    timeout_before: "⏱️ セッションが",
+    timeout_after: "秒後に期限切れになります — タップしてリセット",
+
+    flow_light: "少ない",
+    flow_medium: "普通",
+    flow_heavy: "多い",
+
+    settings_saved_toast: "設定が保存されました",
+    status_no_data_hint:
+      "設定で最後の生理日を入力すると、周期予測が表示されます。",
+
+    storage_full_title: "ストレージ満杯",
+    storage_full_msg:
+      "デバイスのストレージが満杯です。データをエクスポートするか、ログを削除してスペースを確保してください。",
+
+    forgot_pin_confirm2_title: "最終警告",
+    forgot_pin_confirm2_msg:
+      "すべての生理記録データが完全に削除され、復元できません。この操作は取り消せません。",
+    forgot_pin_confirm2_btn: "はい、すべて削除する",
+
+    no_cycle_history: "まだサイクル履歴がありません。2回以上の生理を記録してください。",
+    history_showing: "全{total}サイクルのうち最新{shown}件を表示",
+    predictions_tab: "次回の生理",
+    predictions_empty: "予測を表示するには、少なくとも1回の生理開始日を記録してください。",
+    history_col_start: "開始",
+    history_col_end: "終了",
+    history_col_period: "生理",
+    history_col_cycle: "周期",
+    view_all_history: "すべて表示",
+
+    legend_short: "短い（26日未満）",
+    legend_normal: "普通（26〜32日）",
+    legend_long: "長い（32日超）",
+
+    flow_question: "今日の経血量は？ 🌊",
+    security_info:
+      "すべてのデータはPINで暗号化されてから保存されます。Cycle KeeperはHTTPSと同じ標準である<strong>Web Crypto API</strong>を使用しています。<br><br>サーバーへのデータ送信はゼロです。アカウント不要。分析なし。",
+    data_persistence:
+      '⚠️ <strong>データの永続性：</strong>データはIndexedDBに保存されています。ブラウザのキャッシュをクリアしても安全ですが、ブラウザ設定で「サイトデータ」や「Cookieとサイトデータ」をクリアすると、すべてのサイクルデータが削除されます。必ず先にバックアップをエクスポートしてください！',
+    about_info_html:
+      'Your Cycle Keeperはプライバシーへの配慮から作られた無料ソフトウェアです。<strong>カレンダーリズム法</strong>と<strong>標準日法</strong>に基づいたサイクル推定。情報提供のみを目的としています。<br><br><strong>バージョン：</strong>1.0.0-beta<br><strong>ライセンス：</strong>GNU General Public License v3.0<br><strong>開発者：</strong><a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">pythonime-lab</a><br><br>バグや提案は<a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">GitHubリポジトリ</a>へ。',
+    support_info:
+      "My Cycle Keeperは広告・追跡・データ収集なしで<strong>永久無料</strong>です。役に立てていただけましたら、コーヒーを一杯おごっていただけると嬉しいです！",
+    support_via: "支援する",
+    support_footer:
+      "あなたのサポートがこのプロジェクトを維持し、みんなのために広告なしを実現します。ありがとうございます！💜",
+    privacy_info_html:
+      "My Cycle Keeperは<strong>データを一切収集しません</strong>。このアプリは：<br>&nbsp;• デバイス上にのみデータをローカル保存<br>&nbsp;• サーバー・アカウント・クラウドストレージなし<br>&nbsp;• 分析・追跡・テレメトリーなし<br>&nbsp;• 広告・サードパーティコードなし<br>&nbsp;• データを外部に送信しない<br>&nbsp;• AES-256-GCMによりPINで暗号化<br><br>あなたの健康データはあなただけのものです。",
+    disclaimer_info_html:
+      "⚠️ <strong>このアプリは平均的な生物学的パターンに基づくサイクル推定を提供します。</strong>医療アドバイスではなく、<em>専門医の診察の代替として使用してはいけません。</em><br><br>My Cycle Keeperはパターンを追跡してサイクルを予測し、排卵タイミングを推定します。実際のサイクルは、ストレス・病気・薬などさまざまな要因で変動します。<br><br>避妊や妊娠の<strong>保証</strong>としてこのアプリを使用しないでください。医療的な決定には必ず専門の医療従事者にご相談ください。",
+    accessibility_info_html:
+      'My Cycle KeeperはWCAG 2.0アクセシビリティ基準に準拠しています：<br><br>&nbsp;• <strong>Tab/Shift+Tab：</strong>すべてのインタラクティブ要素を前後に移動<br>&nbsp;• <strong>矢印キー：</strong>カレンダー日付を移動<br>&nbsp;• <strong>Enter/Space：</strong>ボタンとリンクを実行<br>&nbsp;• <strong>Escape：</strong>モーダルを閉じてフォーカスを戻す<br>&nbsp;• <strong>PIN入力：</strong>数字0〜9とBackspace<br>&nbsp;• <strong>フォームコントロール：</strong>入力・選択・テキストエリアのネイティブキーボードサポート<br>&nbsp;• <strong>スクリーンリーダー：</strong>適切なARIAラベルとロールを含むセマンティックHTML<br>&nbsp;• <strong>フォーカス管理：</strong>可視フォーカスインジケーター、論理的なタブ順序',
+  },
+
+  // ── Traditional Chinese ────────────────────────────────────────────────────
+  "zh-TW": {
+    about_tab_developer: "開發者",
+    about_tab_privacy: "隱私",
+    about_tab_disclaimer: "免責聲明",
+    privacy_title: "隱私保障",
+    privacy_info:
+      "My Cycle Keeper不收集任何資料。本應用程式：僅在您的裝置上本地儲存資料；無伺服器、帳戶或雲端儲存；無分析、追蹤或遙測；無廣告、無第三方程式碼；不向任何地方傳輸資料；使用AES-256-GCM透過PIN加密。您的健康資料僅屬於您。",
+    about_title: "關於Your Cycle Keeper",
+    about_info:
+      "Your Cycle Keeper是一款注重隱私的免費軟體。基於日曆節奏法和標準日法進行週期估算。僅供參考。版本：1.0.0-beta。授權：GPL v3。開發者：pythonime-lab。有錯誤或建議？請造訪GitHub儲存庫。",
+    support_title: "支持開發",
+    support_info:
+      "My Cycle Keeper永久免費，無廣告、無追蹤、無資料收集。若您覺得有幫助，歡迎請我喝一杯咖啡！",
+    disclaimer_title: "醫療免責聲明",
+    disclaimer_info:
+      "⚠️ 本應用程式提供基於平均生物學模式的週期估算。這不是醫療建議，不能替代專業醫療諮詢。My Cycle Keeper透過追蹤模式預測您的週期並估算排卵時間。實際週期時間可能因壓力、疾病、藥物等多種因素而有所不同。請勿將本應用程式用作避孕或生育保證。醫療決定請務必諮詢合格的醫療專業人員。",
+    accessibility_title: "無障礙功能",
+    accessibility_info:
+      "My Cycle Keeper遵循WCAG 2.0無障礙標準。Tab/Shift+Tab：在所有互動元素間前後導覽；方向鍵：導覽日曆日期；Enter/Space：啟動按鈕和連結；Escape：關閉對話框並返回焦點；PIN輸入：0-9數字和Backspace；表單控制項：原生鍵盤支援；螢幕閱讀器：語義HTML含ARIA標籤；焦點管理：可見焦點指示器、邏輯Tab順序。",
+
+    cycle_stats: "週期統計",
+    avg_length: "平均週期",
+    cycles_logged: "已記錄週期",
+    avg_period: "平均生理期",
+    fertile_days: "可孕期",
+    symptom_tracking: "症狀追蹤",
+    period: "生理期",
+    ovulation: "排卵",
+    flow: "經血量",
+    pain: "疼痛",
+    mood: "心情",
+    how_it_works: "運作原理",
+    how_it_works_p1:
+      "My Cycle Keeper透過追蹤週期模式來估算您的可孕期。排卵估計在下次生理期前約14天。可孕期計算為第8天至（週期長度－11）天。",
+    how_it_works_p2:
+      "對於規律的28天週期，第8至17天通常為可孕期，排卵約在第14天。",
+    disclaimer: "免責聲明",
+    estimation_disclaimer:
+      "⚠️ 僅為估算工具。請勿用於避孕。壓力、疾病和藥物可能影響時間。",
+    no_symptoms_logged: "尚未記錄任何症狀 — 從今天開始記錄吧",
+    cycle_history: "週期歷史",
+    all_months: "所有月份",
+    cycle_day: "週期日",
+    until_next: "距下次",
+    day_1: "第1天",
+    avg_length_short: "平均週期",
+    period_short: "生理期",
+    fertile: "可孕期",
+    ovulation_short: "排卵",
+    luteal: "黃體期",
+
+    storage_error_title: "儲存錯誤",
+    storage_error_msg: "無法存取儲存空間。請重新整理頁面。",
+    db_error_title: "資料庫錯誤",
+    db_error_msg: "無法初始化應用程式儲存空間。請嘗試重新整理頁面。",
+
+    unlock_subtitle: "輸入PIN以解鎖您的私人健康資料",
+    too_many_attempts: "嘗試次數太多。請在{secs}秒後再試。",
+    locked_out: "🚫 嘗試次數太多。已鎖定60秒。",
+    lockout_ended: "鎖定已解除。請再試一次。",
+    incorrect_pin_many: "PIN不正確。剩餘{remaining}次嘗試。",
+    decryption_failed: "解密失敗。資料可能已損壞。",
+    error_try_again: "發生錯誤。請再試一次。",
+
+    forgot_pin_title: "忘記PIN？",
+    forgot_pin_msg:
+      "這將永久刪除所有週期資料並重置My Cycle Keeper。此操作無法撤銷。您確定嗎？",
+    forgot_pin_confirm: "是的，刪除並重置",
+    reset_complete_title: "重置完成",
+    reset_complete_msg: "My Cycle Keeper已重置。請設定新PIN以開始使用。",
+    reset_failed_title: "重置失敗",
+    reset_failed_msg: "無法清除您的資料。請重新整理頁面並再試一次。",
+
+    save_failed_title: "儲存失敗",
+    save_failed_msg: "無法儲存您的資料。請再試一次。",
+    missing_date_title: "缺少日期",
+    missing_date_msg: "請輸入上次生理期的第一天。",
+    set_pin_title: "設定PIN",
+    set_pin_msg: "輸入4位數PIN以保護您的資料。",
+    setup_error_title: "設定錯誤",
+    setup_error_msg: "無法完成設定。請重新整理頁面並再試一次。",
+
+    note_count: "{count} / 500",
+    note_placeholder: "新增備註…",
+
+    set_flow: "設定經血量",
+    save: "儲存",
+    cancel: "取消",
+    ok: "確定",
+    refresh: "重新整理",
+    pain_label: "疼痛 {value} / 10",
+    set_pain: "設定疼痛",
+    mood_low: "心情低落",
+    mood_happy: "開心",
+    mood_neutral: "普通",
+    set_mood: "設定心情",
+
+    period_expected_in_many: "預計{n}天後來生理期",
+
+    phase_menstruation: "生理期 🩸",
+    phase_follicular: "卵泡期 ✨",
+    phase_fertile: "可孕期 🌿",
+    phase_ovulation: "排卵日 🌟",
+    phase_luteal: "黃體期 🌙",
+
+    subtitle_menstruation: "生理期第{day}天",
+    subtitle_fertile: "第{start}至{end}天為可孕期",
+    subtitle_ovulation: "今日受孕機率最高",
+    subtitle_other: "距下次生理期{n}天",
+
+    status_cycle_day_of: "{total}天週期的第{day}天",
+    status_period_today: "預計今天來生理期",
+    status_period_tomorrow: "預計明天來生理期",
+    status_period_soon: "生理期可能在今天或未來{n}天內開始",
+    status_period_in: "預計{n}天後來生理期",
+    now: "現在",
+    bar_day: "第{n}天",
+
+    cycle_history_empty: "記錄至少2個生理期開始日期以查看週期歷史。",
+    history_days_many: "{n}天",
+    no_data_yet: "尚未記錄任何追蹤資料",
+
+    chart_full_year: "{year}年全年",
+    chart_month_year: "{year}年{month}月",
+
+    download_failed_title: "下載失敗",
+    download_failed_msg: "無法下載圖表。請再試一次。",
+
+    invalid_date_title: "無效日期",
+    invalid_date_msg: "請輸入有效的上次生理期日期。",
+    invalid_cycle_title: "無效週期長度",
+    invalid_cycle_msg: "週期長度必須在20至45天之間。",
+    invalid_duration_title: "無效期間",
+    invalid_duration_msg: "生理期間必須在1至10天之間。",
+    update_predictions_title: "更新預測？",
+    update_predictions_msg:
+      "這將根據您的新設定重新計算所有週期預測。已記錄的症狀和備註將保持不變。繼續嗎？",
+    update_predictions_confirm: "是的，更新",
+
+    backup_never: "上次備份：從未",
+    backup_today: "上次備份：今天",
+    backup_yesterday: "上次備份：昨天",
+    backup_days_ago_many: "上次備份：{n}天前",
+    backup_overdue_many: "上次備份：{n}天前 — 已過期！",
+
+    export_backup_title: "匯出備份",
+    export_backup_msg:
+      "您的備份將匯出為加密檔案。只有使用您的PIN才能解密。請妥善保管。",
+    export: "匯出",
+    export_failed_title: "匯出失敗",
+    export_failed_msg: "無法匯出備份。請再試一次。",
+    enter_backup_pin_title: "輸入備份PIN",
+    enter_backup_pin_msg: "請輸入建立此備份時使用的PIN。",
+    incorrect_pin_simple: "PIN不正確。請再試一次。",
+    restored_title: "已還原",
+    restored_msg: "您的備份已成功還原。",
+    invalid_backup_title: "無效備份",
+    invalid_backup_msg: "此備份格式不受支援。",
+    import_failed_title: "匯入失敗",
+    import_failed_msg: "無法讀取備份檔案。請確保檔案有效。",
+
+    storage_used: "{sizeKB} KB (IndexedDB)",
+    storage_unknown: "未知",
+
+    erase_title: "刪除所有資料",
+    erase_msg:
+      "這將永久刪除所有您的週期資料，且無法撤銷。您絕對確定嗎？",
+    erase_confirm: "是的，刪除所有內容",
+    erase_failed_title: "刪除失敗",
+    erase_failed_msg: "無法刪除資料。請再試一次。",
+
+    confirm_new_pin: "確認新PIN",
+    enter_new_pin: "輸入新PIN",
+    reenter_pin_msg: "請再次輸入新PIN以確認。",
+    choose_pin_msg: "選擇4位數PIN。",
+    pins_no_match: "PIN不符。請再試一次。",
+    pin_changed_title: "PIN已更改",
+    pin_changed_msg:
+      "您的PIN已更新，所有資料已重新加密。\n\n注意：在此更改之前建立的備份仍需要您的舊PIN才能還原。",
+    pin_change_failed_title: "PIN更改失敗",
+    pin_change_failed_msg: "無法更新PIN。請再試一次。",
+
+    calendar_day_period: "生理期日",
+    calendar_day_ovulation: "排卵日",
+    calendar_day_fertile: "可孕期日",
+    calendar_day_regular: "一般日",
+    calendar_day_period_possible: "可能的生理期日",
+
+    stat_std_dev: "標準差",
+    stat_range: "週期範圍",
+    stat_prediction_window: "預測視窗",
+    stat_regularity: "規律性",
+    stat_regular: "規律",
+    stat_variable: "不規律",
+
+    follicular: "卵泡期",
+
+    language_label: "語言",
+    lang_en: "English",
+    lang_ru: "Русский",
+    lang_es: "Español",
+    lang_ja: "日本語",
+    lang_zh_tw: "繁體中文",
+
+    nav_calendar: "日曆",
+    nav_insights: "洞察",
+    nav_settings: "設定",
+    nav_about: "關於",
+
+    settings_cycle_tab: "週期設定",
+    settings_security_tab: "安全與隱私",
+    settings_cycle_section: "週期設定",
+    settings_last_period: "上次生理期開始日期",
+    settings_cycle_length: "平均週期長度（天）",
+    settings_period_duration: "生理期間（天）",
+    settings_update_btn: "更新預測",
+    settings_tolerance: "預測容差（天）",
+    settings_tolerance_hint:
+      "日曆中每個預測生理期前後顯示的天數。留空則自動（根據您的週期規律性）。",
+    save: "儲存",
+    settings_show_fertility: "在日曆中顯示可孕期",
+    settings_security_section: "安全與隱私",
+    settings_change_pin: "更改PIN",
+    settings_export: "匯出加密備份",
+    settings_import: "匯入加密備份",
+    settings_import_drip: "從drip匯入（CSV）",
+
+    drip_import_title: "從drip匯入",
+    drip_import_found:
+      "找到{days}天的資料，包含{periods}天的經血記錄。您想如何匯入？",
+    drip_import_merge: "合併（保留我的資料）",
+    drip_import_replace: "取代（使用drip資料）",
+    drip_import_done_title: "匯入完成",
+    drip_import_done_msg: "已成功匯入{days}天的資料。",
+    drip_import_failed_title: "匯入失敗",
+    drip_import_failed_msg: "無法讀取檔案。請確保這是drip CSV匯出檔案。",
+    drip_import_empty_title: "無可匯入的內容",
+    drip_import_empty_msg: "該檔案不包含可用資料。",
+    settings_storage_label: "已使用儲存空間：",
+    settings_storage_calculating: "計算中...",
+    settings_erase: "刪除所有資料",
+
+    onboard_sub: "私密追蹤您的生理期和週期",
+    onboard_tagline:
+      "在您的裝置上追蹤經血量、心情和症狀。免費、無廣告、完全隱私。",
+    beta_label: "測試版",
+    beta_warning_text:
+      "本應用程式目前正在積極開發中。功能可能會變更，可能會出現錯誤。",
+    ob_last_period: "上次生理期的第一天",
+    ob_cycle_len: "平均週期長度（天）",
+    ob_period_dur: "平均生理期間（天）",
+    pin_setup_title: "🔒 設定4位數PIN",
+    pin_setup_sub_1: "您的PIN在本地加密所有資料。",
+    pin_setup_sub_2: "My Cycle Keeper從不向任何地方傳送資料。",
+    pin_setup_sub_3: "如果您忘記PIN，資料將被清除。",
+    onboard_start_btn: "開始追蹤 ✨",
+    privacy_note_aes: "AES-256-GCM加密。",
+    privacy_note_rest:
+      "資料永遠不會離開您的裝置。無帳戶、無追蹤、永久免費。",
+    timeout_before: "⏱️ 工作階段將在",
+    timeout_after: "秒無操作後過期 — 點擊重置",
+
+    flow_light: "少量",
+    flow_medium: "中量",
+    flow_heavy: "大量",
+
+    settings_saved_toast: "設定已儲存",
+    status_no_data_hint:
+      "在設定中設定上次生理期日期以獲取週期預測。",
+
+    storage_full_title: "儲存空間已滿",
+    storage_full_msg:
+      "您的裝置儲存空間已滿。請匯出您的資料或清除一些記錄以釋放空間。",
+
+    forgot_pin_confirm2_title: "最後警告",
+    forgot_pin_confirm2_msg:
+      "所有您的生理期追蹤資料將被永久刪除，無法恢復。此操作無法撤銷。",
+    forgot_pin_confirm2_btn: "是的，刪除所有內容",
+
+    no_cycle_history: "尚無週期歷史。請記錄至少2個生理期以查看歷史。",
+    history_showing: "顯示{total}個週期中的最後{shown}個",
+    predictions_tab: "即將到來的生理期",
+    predictions_empty: "請記錄至少一個生理期開始日期以查看預測。",
+    history_col_start: "開始",
+    history_col_end: "結束",
+    history_col_period: "生理期",
+    history_col_cycle: "週期",
+    view_all_history: "查看全部",
+
+    legend_short: "短（< 26天）",
+    legend_normal: "正常（26–32天）",
+    legend_long: "長（> 32天）",
+
+    flow_question: "今天的經血量如何？ 🌊",
+    security_info:
+      "所有資料在儲存前都以您的PIN加密。Cycle Keeper使用與HTTPS相同標準的<strong>Web Crypto API</strong>。<br><br>零資料傳送至任何伺服器。無帳戶。無分析。",
+    data_persistence:
+      '⚠️ <strong>資料持久性：</strong>您的資料儲存在IndexedDB中。清除瀏覽器快取是安全的，但在瀏覽器設定中清除「網站資料」或「Cookie和網站資料」將會清除所有週期資料。請務必先匯出備份！',
+    about_info_html:
+      'Your Cycle Keeper是一款注重隱私的免費軟體。基於<strong>日曆節奏法</strong>和<strong>標準日法</strong>進行週期估算。僅供參考。<br><br><strong>版本：</strong>1.0.0-beta<br><strong>授權：</strong>GNU General Public License v3.0<br><strong>開發者：</strong><a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">pythonime-lab</a><br><br>有錯誤或建議？請造訪我們的<a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">GitHub儲存庫</a>。',
+    support_info:
+      "My Cycle Keeper<strong>永久免費</strong>，無廣告、無追蹤、無資料收集。若您覺得有幫助，歡迎請我喝一杯咖啡！",
+    support_via: "透過以下方式支持",
+    support_footer:
+      "您的支持幫助維持此專案並讓所有人免受廣告困擾。謝謝！💜",
+    privacy_info_html:
+      "My Cycle Keeper收集<strong>零資料</strong>。本應用程式：<br>&nbsp;• 僅在您的裝置上本地儲存所有資料<br>&nbsp;• 無伺服器、帳戶或雲端儲存<br>&nbsp;• 無分析、追蹤或遙測<br>&nbsp;• 無廣告、無第三方程式碼<br>&nbsp;• 不向任何地方傳輸資料<br>&nbsp;• 使用AES-256-GCM透過PIN加密<br><br>您的健康資料僅屬於您。",
+    disclaimer_info_html:
+      "⚠️ <strong>本應用程式提供基於平均生物學模式的週期估算。</strong>這<em>不是</em>醫療建議，不能替代專業醫療諮詢。<br><br>My Cycle Keeper透過追蹤模式預測您的週期並估算排卵時間。實際週期時間可能因壓力、疾病、藥物等多種因素而有所不同。<br><br>請<strong>勿</strong>將本應用程式用作避孕或生育保證。醫療決定請務必諮詢合格的醫療專業人員。",
+    accessibility_info_html:
+      'My Cycle Keeper遵循<strong>WCAG 2.0無障礙標準</strong>：<br><br>&nbsp;• <strong>Tab/Shift+Tab：</strong>在所有互動元素間前後導覽<br>&nbsp;• <strong>方向鍵：</strong>導覽日曆日期<br>&nbsp;• <strong>Enter/Space：</strong>啟動按鈕和連結<br>&nbsp;• <strong>Escape：</strong>關閉對話框並返回焦點<br>&nbsp;• <strong>PIN輸入：</strong>0-9數字和Backspace<br>&nbsp;• <strong>表單控制項：</strong>原生鍵盤支援<br>&nbsp;• <strong>螢幕閱讀器：</strong>語義HTML含適當ARIA標籤和角色<br>&nbsp;• <strong>焦點管理：</strong>可見焦點指示器、邏輯Tab順序',
+  },
 };
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
 const LANG_STORAGE_KEY = "yck_lang";
-const SUPPORTED = ["en", "es"];
+const SUPPORTED = ["en", "es", "ja", "zh-TW"];
 
 function detectLanguage() {
   try {
     const stored = localStorage.getItem(LANG_STORAGE_KEY);
     if (stored && SUPPORTED.includes(stored)) return stored;
   } catch (_) {}
-  const nav = (navigator.language || "en").split("-")[0].toLowerCase();
-  return SUPPORTED.includes(nav) ? nav : "en";
+  const nav = (navigator.language || "en").toLowerCase();
+  // Check full BCP47 tag first (e.g. "zh-TW"), then base language (e.g. "ja")
+  if (SUPPORTED.includes(nav)) return nav;
+  const base = nav.split("-")[0];
+  return SUPPORTED.includes(base) ? base : "en";
 }
 
 let currentLang = detectLanguage();
