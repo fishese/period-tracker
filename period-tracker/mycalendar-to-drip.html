@@ -136,6 +136,7 @@
     font-weight: 600;
     color: #fff;
   }
+  .chip-spotting { background: rgba(167,139,250,0.25); color: var(--lavender); }
   .chip-light  { background: rgba(230,35,59,0.35); color: var(--rose-pale, #ffe8ee); }
   .chip-medium { background: rgba(230,35,59,0.65); }
   .chip-heavy  { background: var(--rose); }
@@ -215,7 +216,7 @@
   <a href="import-drip.html" class="page-back">← Back to Import</a>
 
   <h1>My Calendar → drip Converter</h1>
-  <p class="sub">Convert a <strong>My Calendar</strong> period export into a <strong>drip</strong>-compatible CSV. Only period days get a bleeding value (1 = light, 2 = medium, 3 = heavy).</p>
+  <p class="sub">Convert a <strong>My Calendar</strong> period export into a <strong>drip</strong>-compatible CSV. Only period days get a bleeding value (0 = spotting, 1 = light, 2 = medium, 3 = heavy).</p>
 
   <div class="step-card">
     <h2><span class="step-badge">1</span> Load your My Calendar export</h2>
@@ -230,7 +231,7 @@
     <div class="pattern-input-row">
       <label class="field-label" for="patternInput">Pattern for every cycle</label>
       <input type="text" id="patternInput" value="2,3,3,1">
-      <p class="hint">Comma-separated values (1 = light, 2 = medium, 3 = heavy), one per day from the start of each period. If a period lasts longer than the pattern, the last value repeats.</p>
+      <p class="hint">Comma-separated values (0 = spotting, 1 = light, 2 = medium, 3 = heavy), one per day from the start of each period. If a period lasts longer than the pattern, the last value repeats. If the pattern is longer than the period, extra values are dropped.</p>
     </div>
     <div class="preset-btns">
       <button type="button" class="preset-btn" data-preset="2,3,3,1">Default (2,3,3,1)</button>
@@ -261,7 +262,7 @@
   var HEADER = ["date","temperature.value","temperature.exclude","temperature.time","temperature.note","bleeding.value","bleeding.exclude","mucus.feeling","mucus.texture","mucus.value","mucus.exclude","cervix.opening","cervix.firmness","cervix.position","cervix.exclude","note.value","desire.value","sex.solo","sex.partner","sex.condom","sex.pill","sex.iud","sex.patch","sex.ring","sex.implant","sex.diaphragm","sex.none","sex.other","sex.note","pain.cramps","pain.ovulationPain","pain.headache","pain.backache","pain.nausea","pain.tenderBreasts","pain.migraine","pain.other","pain.note","mood.happy","mood.sad","mood.stressed","mood.balanced","mood.fine","mood.anxious","mood.energetic","mood.fatigue","mood.angry","mood.other","mood.note"];
 
   var MONTHS = {jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
-  var LABELS = {1:"Light",2:"Medium",3:"Heavy"};
+  var LABELS = {0:"Spotting",1:"Light",2:"Medium",3:"Heavy"};
 
   var $ = function (id) { return document.getElementById(id); };
   var lastCSV = "";
@@ -324,8 +325,8 @@
     var out = [];
     for (var i = 0; i < vals.length; i++) {
       var n = parseInt(vals[i], 10);
-      if (isNaN(n) || n < 1 || n > 3 || String(n) !== vals[i]) {
-        return { error: "Pattern values must be 1, 2 or 3. Got \"" + vals[i] + "\"." };
+      if (isNaN(n) || n < 0 || n > 3 || String(n) !== vals[i]) {
+        return { error: "Pattern values must be 0, 1, 2 or 3. Got \"" + vals[i] + "\"." };
       }
       out.push(n);
     }
@@ -365,7 +366,7 @@
     return rows.join("\n");
   }
 
-  function chipClass(v) { return v === 1 ? "chip chip-light" : v === 2 ? "chip chip-medium" : "chip chip-heavy"; }
+  function chipClass(v) { return v === 0 ? "chip chip-spotting" : v === 1 ? "chip chip-light" : v === 2 ? "chip chip-medium" : "chip chip-heavy"; }
 
   function renderPatternPreview() {
     var res = parsePattern($("patternInput").value);
@@ -402,7 +403,7 @@
     var html = '<details open><summary>Preview (' + days.length + ' period days across ' + periods.length + ' cycles)</summary>';
     html += '<table><thead><tr><th>Date</th><th>bleeding.value</th><th>Intensity</th></tr></thead><tbody>';
     var sorted = days.slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; });
-    var DOT_COLOR = { 1: "rgba(230,35,59,0.4)", 2: "rgba(230,35,59,0.7)", 3: "var(--rose)" };
+    var DOT_COLOR = { 0: "rgba(167,139,250,0.5)", 1: "rgba(230,35,59,0.4)", 2: "rgba(230,35,59,0.7)", 3: "var(--rose)" };
     for (var i = 0; i < sorted.length; i++) {
       var d = sorted[i];
       html += '<tr><td>' + d.date + '</td><td>' + d.value + '</td><td><span class="dot" style="background:' + DOT_COLOR[d.value] + '"></span>' + LABELS[d.value] + '</td></tr>';
