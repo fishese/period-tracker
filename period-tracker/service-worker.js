@@ -19,7 +19,7 @@ const IS_DEV =
   self.location.hostname === "localhost" ||
   self.location.hostname === "127.0.0.1";
 
-const CACHE_VERSION = "v20260619i";
+const CACHE_VERSION = "v20260619j";
 const CACHE_NAME = `yourcyclekeeper-${CACHE_VERSION}`;
 
 // Derive base path from the SW's own URL so this works on both localhost
