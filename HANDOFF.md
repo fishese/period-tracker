@@ -4,6 +4,20 @@ This document summarises all changes made to the app across the recent developme
 
 ---
 
+## About This Fork
+
+This is a personal fork of [`pythonime-lab/yourcyclekeeper`](https://github.com/pythonime-lab/yourcyclekeeper), maintained at [`fishese/period-tracker`](https://github.com/fishese/period-tracker) for personal use.
+
+**Why it exists:** The goal is to migrate historical data from **My Calendar** and continue tracking going forward. The drip CSV format was chosen as the go-between rather than importing from My Calendar directly — drip's column structure maps more cleanly to this app's data model.
+
+**What was removed:** Several features from the original that aren't relevant to personal use have been stripped out.
+
+**What was added:** The prediction logic was updated to derive the average cycle length from recorded history, similar to how drip approaches it, rather than relying on a fixed user-set value.
+
+> ⚠️ All coding in this fork was done via Claude Code with minimal coding experience. Use at your own risk.
+
+---
+
 ## What Was Changed and Why
 
 ### 1. Drip CSV Import Tool
@@ -168,6 +182,26 @@ The status card date (top of the page) still uses `toLocaleDateString` intention
 
 ---
 
+### 12. My Calendar → drip Converter
+
+**File:** `period-tracker/mycalendar-to-drip.html`
+
+A standalone browser tool for converting a **My Calendar** period export into a **drip**-compatible CSV, which can then be imported via the drip import tool (§1 above). This is the recommended migration path: My Calendar → convert to drip CSV → import into the app.
+
+The tool:
+- Accepts a My Calendar `.txt` or `.csv` export (or pasted text) where each line contains a date and either `Period Starts` or `Period Ends`
+- Lets the user set a per-day bleeding intensity pattern (e.g. `2,3,3,1`) applied across every cycle; the last value repeats if the period runs longer than the pattern
+- Outputs a drip-format CSV with only the `bleeding.value` and `bleeding.exclude` columns populated — all other drip columns are left blank, so existing drip data round-trips cleanly
+- Is entirely client-side — no data leaves the browser
+
+Linked from the first step of `import-drip.html` under "Using My Calendar instead of drip?".
+
+**Also updated** `import-drip.html`:
+- Added a **← Back to Your Cycle Keeper** link at the top of the card
+- Added the **Convert My Calendar to drip →** entry point in step 1
+
+---
+
 ## Architecture Notes for Future Work
 
 ### State shape (current)
@@ -199,9 +233,18 @@ getDayType(dateStr)         →   "period" / "predicted-period" / "tolerance-per
 renderCalendar()            →   applies CSS classes based on getDayType() result
 ```
 
-### Import tool
+### Import / migration flow
 
-`import-drip.html` is self-contained and not linked from the main app. Users access it by navigating directly. It imports into the same IndexedDB database as the main app (same origin, same key names).
+Recommended path for migrating from My Calendar:
+
+```
+My Calendar export (.txt/.csv)
+  → mycalendar-to-drip.html   (convert to drip CSV)
+  → import-drip.html           (import drip CSV into the app)
+  → index.html                 (Your Cycle Keeper, unlocked with PIN)
+```
+
+`import-drip.html` is self-contained and imports into the same IndexedDB database as the main app (same origin, same key names). `mycalendar-to-drip.html` is purely a file converter — it writes no data anywhere, only produces a downloadable CSV.
 
 ---
 
@@ -217,5 +260,6 @@ renderCalendar()            →   applies CSS classes based on getDayType() resu
 | `period-tracker/js/i18n.js` | New keys: status card phrases, settings labels, history column labels, predictions tab, tolerance hint |
 | `period-tracker/js/periodMarking.js` | `isSameMenses()` exported for use by auto-fill logic in script.js |
 | `period-tracker/service-worker.js` | Minor cache version bump |
-| `period-tracker/import-drip.html` | New — standalone Drip CSV import page |
-| `period-tracker/js/import-drip.js` | New — Drip CSV parser + IndexedDB import logic |
+| `period-tracker/import-drip.html` | New — standalone drip CSV import page; updated with back link and My Calendar converter entry point |
+| `period-tracker/js/import-drip.js` | New — drip CSV parser + IndexedDB import logic |
+| `period-tracker/mycalendar-to-drip.html` | New — My Calendar → drip CSV converter (client-side, no data stored) |
