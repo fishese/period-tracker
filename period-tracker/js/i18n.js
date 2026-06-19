@@ -35,9 +35,9 @@ const LOCALES = {
     privacy_info:
       "My Cycle Keeper collects zero data. This app: Stores all data locally on your device only; Has no servers, no accounts, no cloud storage; Has no analytics, no tracking, no telemetry; Has no ads, no third-party code; Never transmits any data anywhere; Is encrypted with your PIN via AES-256-GCM. Your health data is yours alone.",
 
-    about_title: "About My Cycle Keeper",
+    about_title: "About Your Cycle Keeper",
     about_info:
-      "My Cycle Keeper is free software built with care for privacy. Based on the Calendar Rhythm Method and Standard Days Method for cycle estimation. For informational purposes only. Version: 1.0.0-beta. License: GPL v3 License. Developer: pythonime-lab. Found a bug or have a suggestion? Visit our GitHub repository.",
+      "Your Cycle Keeper is free software built with care for privacy. Based on the Calendar Rhythm Method and Standard Days Method for cycle estimation. For informational purposes only. Version: 1.0.0-beta. License: GPL v3 License. Developer: pythonime-lab. Found a bug or have a suggestion? Visit our GitHub repository.",
 
     support_title: "Support Development",
     support_info:
@@ -374,7 +374,7 @@ const LOCALES = {
     data_persistence:
       '⚠️ <strong>Data Persistence:</strong> Your data is stored in IndexedDB. Clearing browser cache is safe, but clearing "site data" or "cookies and site data" in your browser settings WILL erase all your cycle data. Always export a backup first!',
     about_info_html:
-      'My Cycle Keeper is free software built with care for privacy. Based on the <strong>Calendar Rhythm Method</strong> and <strong>Standard Days Method</strong> for cycle estimation. For informational purposes only.<br><br><strong>Version:</strong> 1.0.0-beta<br><strong>License:</strong> GNU General Public License v3.0<br><strong>Developer:</strong> <a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">pythonime-lab</a><br><br>Found a bug or have a suggestion? Visit our <a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">GitHub repository</a>.',
+      'Your Cycle Keeper is free software built with care for privacy. Based on the <strong>Calendar Rhythm Method</strong> and <strong>Standard Days Method</strong> for cycle estimation. For informational purposes only.<br><br><strong>Version:</strong> 1.0.0-beta<br><strong>License:</strong> GNU General Public License v3.0<br><strong>Developer:</strong> <a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">pythonime-lab</a><br><br>Found a bug or have a suggestion? Visit our <a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">GitHub repository</a>.',
     support_info:
       "My Cycle Keeper is <strong>free forever</strong> with no ads, no tracking, and no data collection. If you find it helpful and would like to support continued development, you can buy me a coffee!",
     support_via: "Support via",
@@ -1166,7 +1166,7 @@ const LOCALES = {
     data_persistence:
       '⚠️ <strong>Persistencia de datos:</strong> Tus datos se almacenan en IndexedDB. Limpiar el caché del navegador es seguro, pero limpiar los "datos del sitio" o "cookies y datos del sitio" en la configuración del navegador BORRARÁ todos tus datos del ciclo. ¡Siempre exporta una copia de seguridad primero!',
     about_info_html:
-      'My Cycle Keeper es software libre creado con atención a la privacidad. Basado en el <strong>Método del Ritmo del Calendario</strong> y el <strong>Método de Días Estándar</strong> para la estimación del ciclo. Solo con fines informativos.<br><br><strong>Versión:</strong> 1.0.0-beta<br><strong>Licencia:</strong> GNU General Public License v3.0<br><strong>Desarrollador:</strong> <a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">pythonime-lab</a><br><br>¿Encontraste un error o tienes una sugerencia? Visita nuestro <a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">repositorio de GitHub</a>.',
+      'Your Cycle Keeper es software libre creado con atención a la privacidad. Basado en el <strong>Método del Ritmo del Calendario</strong> y el <strong>Método de Días Estándar</strong> para la estimación del ciclo. Solo con fines informativos.<br><br><strong>Versión:</strong> 1.0.0-beta<br><strong>Licencia:</strong> GNU General Public License v3.0<br><strong>Desarrollador:</strong> <a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">pythonime-lab</a><br><br>¿Encontraste un error o tienes una sugerencia? Visita nuestro <a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">repositorio de GitHub</a>.',
     support_info:
       "My Cycle Keeper es <strong>gratis para siempre</strong> sin anuncios, sin rastreo y sin recopilación de datos. Si lo encuentras útil y quieres apoyar el desarrollo continuo, ¡puedes invitarme un café!",
     support_via: "Apoyar vía",
