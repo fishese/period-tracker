@@ -1,6 +1,14 @@
 // Encryption and cryptography functions
 const SCHEMA_VERSION = 1;
 
+function u8ToBase64(u8) {
+  let bin = "";
+  for (let i = 0; i < u8.length; i += 8192) {
+    bin += String.fromCharCode(...u8.subarray(i, i + 8192));
+  }
+  return btoa(bin);
+}
+
 export async function deriveKey(pin, salt) {
   const enc = new TextEncoder();
   const keyMat = await crypto.subtle.importKey(
@@ -32,7 +40,7 @@ export async function encryptData(data, pin, salt) {
   const combined = new Uint8Array(iv.byteLength + ct.byteLength);
   combined.set(iv, 0);
   combined.set(new Uint8Array(ct), iv.byteLength);
-  return btoa(String.fromCharCode(...combined));
+  return u8ToBase64(combined);
 }
 
 export async function decryptData(b64, pin, salt) {

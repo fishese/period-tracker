@@ -465,7 +465,7 @@
 
 
           <div class="status-card">
-            <div class="status-phase" id="status-phase"><span class="phase-dot"></span><span id="status-phase-text">Current Phase</span></div>
+            <div class="status-phase" id="status-phase"><span id="status-phase-text">—</span></div>
             <div class="status-title" id="status-title">—</div>
             <div class="status-subtitle" id="status-subtitle">Loading…</div>
             <div id="status-empty-hint" class="status-empty-hint hidden" data-i18n="status_no_data_hint"></div>
@@ -633,140 +633,49 @@
               <div class="sm" data-i18n="fertile_days">Fertile Days</div>
             </div>
           </div>
+          <!-- Statistical detail panel — shown once 3+ cycles are tracked -->
+          <div id="cycle-stats-panel" class="cycle-stats-panel" style="display:none;">
+            <div class="stats-row">
+              <span data-i18n="stat_std_dev">Std Deviation</span>
+              <span id="stat-std-dev">—</span>
+            </div>
+            <div class="stats-row">
+              <span data-i18n="stat_range">Cycle Range</span>
+              <span id="stat-min-max">—</span>
+            </div>
+            <div class="stats-row">
+              <span data-i18n="stat_prediction_window">Prediction Window</span>
+              <span id="stat-variation">—</span>
+            </div>
+            <div class="stats-row">
+              <span data-i18n="stat_regularity">Regularity</span>
+              <span id="stat-regularity">—</span>
+            </div>
+          </div>
         </div>
         <div class="insight-card" id="insight-tabs-card">
           <div class="insight-tabs-nav">
-            <button id="tab-btn-chart" class="insight-tab-btn active" onclick="switchInsightTab('chart')">
-              <span data-i18n="symptom_tracking">Symptoms</span>
+            <button id="tab-btn-history" class="insight-tab-btn active" onclick="switchInsightTab('history')">
+              <span data-i18n="cycle_history">History</span>
+            </button>
+            <button id="tab-btn-predictions" class="insight-tab-btn" onclick="switchInsightTab('predictions')">
+              <span data-i18n="predictions_tab">Predictions</span>
             </button>
             <button id="tab-btn-how" class="insight-tab-btn" onclick="switchInsightTab('how')">
               <span data-i18n="how_it_works">How it Works</span>
             </button>
-
-            <button id="tab-btn-history" class="insight-tab-btn" onclick="switchInsightTab('history')">
-              <span data-i18n="cycle_history">Cycle History</span>
-            </button>
           </div>
 
-          <div id="insight-tab-chart" class="insight-tab-content">
-            <h3 class="mobile-only-title" data-i18n="symptom_tracking">Symptom Tracking</h3>
-          <div id="pain-chart-container" class="chart-container">
-            <div class="chart-controls-row">
-              <select
-                id="pain-view-month"
-                onchange="updatePainChart()"
-                aria-label="Select month to view"
-                class="chart-select"
-              >
-                <option value="" class="chart-select option" data-i18n="all_months">All Months</option>
-                <option value="0" class="chart-select option">January</option>
-                <option value="1" class="chart-select option">February</option>
-                <option value="2" class="chart-select option">March</option>
-                <option value="3" class="chart-select option">April</option>
-                <option value="4" class="chart-select option">May</option>
-                <option value="5" class="chart-select option">June</option>
-                <option value="6" class="chart-select option">July</option>
-                <option value="7" class="chart-select option">August</option>
-                <option value="8" class="chart-select option">September</option>
-                <option value="9" class="chart-select option">October</option>
-                <option value="10" class="chart-select option">November</option>
-                <option value="11" class="chart-select option">December</option>
-              </select>
-              <select
-                id="pain-view-year"
-                onchange="updatePainChart()"
-                aria-label="Select year to view"
-                class="chart-select"
-              ></select>
-              <button
-                onclick="downloadChart()"
-                aria-label="Export chart as image"
-                class="chart-export-btn"
-              >
-                <span data-i18n="export">Export</span>
-                <svg
-                  class="w-4 h-4"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke="currentColor"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M4 15v2a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-2m-8 1V4m0 12-4-4m4 4 4-4"
-                  />
-                </svg>
-              </button>
+          <div id="insight-tab-predictions" class="insight-tab-content" style="display: none;">
+            <h3 class="mobile-only-title" data-i18n="predictions_tab">Upcoming Periods</h3>
+            <div class="history-col-labels pred-col-labels">
+              <span data-i18n="history_col_start">Start</span>
+              <span data-i18n="history_col_end">End</span>
+              <span data-i18n="history_col_period">Duration</span>
             </div>
-
-            <canvas id="pain-chart" class="chart-canvas"></canvas>
+            <div id="predictions-list"></div>
           </div>
-          <div id="chart-legend" class="chart-legend">
-            <div class="legend-items">
-              <span
-                id="legend-period"
-                onclick="setChartFilter('period')"
-                tabindex="0"
-                role="button"
-                aria-pressed="true"
-                aria-label="Toggle period data visibility"
-                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();setChartFilter('period');}"
-                class="legend-item--period"
-                ><span data-i18n="period_short">Period</span></span
-              >
-              <span
-                id="legend-ovulation"
-                onclick="setChartFilter('ovulation')"
-                tabindex="0"
-                role="button"
-                aria-pressed="true"
-                aria-label="Toggle ovulation data visibility"
-                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();setChartFilter('ovulation');}"
-                class="legend-item--ovulation"
-                ><span data-i18n="ovulation_short">Ovulation</span></span
-              >
-              <span
-                id="legend-flow"
-                onclick="setChartFilter('flow')"
-                tabindex="0"
-                role="button"
-                aria-pressed="true"
-                aria-label="Toggle flow data visibility"
-                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();setChartFilter('flow');}"
-                class="legend-item--flow"
-                ><span data-i18n="flow">Flow</span></span
-              >
-              <span
-                id="legend-pain"
-                onclick="setChartFilter('pain')"
-                tabindex="0"
-                role="button"
-                aria-pressed="true"
-                aria-label="Toggle pain data visibility"
-                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();setChartFilter('pain');}"
-                class="legend-item--pain"
-                ><span data-i18n="pain">Pain</span></span
-              >
-              <span
-                id="legend-mood"
-                onclick="setChartFilter('mood')"
-                tabindex="0"
-                role="button"
-                aria-pressed="true"
-                aria-label="Toggle mood data visibility"
-                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();setChartFilter('mood');}"
-                class="legend-item--mood"
-                ><span data-i18n="mood">Mood</span></span
-              >
-            </div>
-          </div>
-          </div>
-          <div id="insight-tab-how" class="insight-tab-content" style="display: none;">
+          <div id="insight-tab-how" class="insight-tab-content" style="display: none;"><!-- how -->
             <h3 class="mobile-only-title" data-i18n="how_it_works">How it Works</h3>
             <div class="info-box" style="margin-bottom: 0.75rem;">
               <p data-i18n="how_it_works_p1" style="margin-bottom: 0.75rem;">Your Cycle Keeper estimates your fertile window by tracking cycle patterns. Ovulation is estimated ~14 days before your next period. Fertile days are calculated as day 8 through (cycle length − 11).</p>
@@ -776,12 +685,18 @@
               <p data-i18n="estimation_disclaimer">⚠️ This is an estimation tool only. Not for contraception. Stress, illness &amp; medications can shift timing.</p>
             </div>
           </div>
-          <div id="insight-tab-history" class="insight-tab-content" style="display: none;">
+          <div id="insight-tab-history" class="insight-tab-content">
             <h3 class="mobile-only-title" data-i18n="cycle_history">Cycle History</h3>
+            <div class="history-col-labels">
+              <span data-i18n="history_col_start">Start</span>
+              <span data-i18n="history_col_period">Period</span>
+              <span data-i18n="history_col_cycle">Cycle</span>
+            </div>
             <div id="cycle-history">
               <p class="empty-history" data-i18n="cycle_history_empty">No history yet.</p>
             </div>
             <div id="history-count" style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem;"></div>
+            <button class="history-expand-btn" onclick="showHistoryFullPage()" data-i18n="view_all_history" style="margin-top:0.75rem">View all</button>
             <div class="history-legend">
               <span class="legend-item"><span class="legend-dot" style="background:var(--fertile-green)"></span><span data-i18n="legend_short">Short (&lt;26d)</span></span>
               <span class="legend-item"><span class="legend-dot" style="background:var(--lavender)"></span><span data-i18n="legend_normal">Normal (26–32d)</span></span>
@@ -955,34 +870,41 @@
         <div id="settings-tab-cycle" class="settings-tab-content active">
           <div class="settings-section">
             <h3 data-i18n="settings_cycle_section">Cycle Settings</h3>
-            <div class="field-label" data-i18n="settings_last_period">Last period start date</div>
-            <input
-              class="field-input"
-              type="date"
-              id="s-last-period"
-              autocomplete="off"
-            />
-            <div class="field-label" data-i18n="settings_cycle_length">Average cycle length (days)</div>
-            <input
-              class="field-input"
-              type="number"
-              id="s-cycle-len"
-              min="20"
-              max="45"
-              autocomplete="off"
-            />
+
             <div class="field-label" data-i18n="settings_period_duration">Period duration (days)</div>
-            <input
-              class="field-input"
-              type="number"
-              id="s-period-dur"
-              min="1"
-              max="10"
-              autocomplete="off"
-            />
-            <button class="apply-btn" onclick="applySettings()" data-i18n="settings_update_btn">
-              Update Predictions
-            </button>
+            <div class="setting-row">
+              <input
+                class="field-input"
+                type="number"
+                id="s-period-dur"
+                min="1"
+                max="10"
+                autocomplete="off"
+              />
+              <button class="setting-save-btn" onclick="savePeriodDuration()" data-i18n="save">Save</button>
+            </div>
+
+            <div class="field-label" data-i18n="settings_tolerance">Prediction tolerance (days)</div>
+            <div class="setting-row">
+              <input
+                class="field-input"
+                type="number"
+                id="s-tolerance"
+                min="0"
+                max="5"
+                placeholder="auto"
+                autocomplete="off"
+              />
+              <button class="setting-save-btn" onclick="saveTolerance()" data-i18n="save">Save</button>
+            </div>
+            <div class="field-hint" data-i18n="settings_tolerance_hint">Days shown before/after each predicted period in the calendar. Leave blank to use auto (based on your cycle regularity).</div>
+
+            <div class="toggle-row">
+              <label class="toggle-label">
+                <input type="checkbox" id="s-show-fertility" onchange="toggleFertility()" checked>
+                <span data-i18n="settings_show_fertility">Show fertile window in calendar</span>
+              </label>
+            </div>
           </div>
           <div class="settings-section">
             <h3 data-i18n="language_label">Language</h3>

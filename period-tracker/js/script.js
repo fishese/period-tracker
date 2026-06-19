@@ -24,12 +24,14 @@ import {
   calculatePredictions,
   getDayType,
   isPredictedFuturePeriod,
+  getStatisticalCycleData,
   setState as setCyclesState,
 } from "./cycles.js";
 import { initKeyboardNavigation, setNavigationState } from "./navigation.js";
 import { t, tp, applyI18n, setLanguage, getLanguage, getSupportedLanguages } from "./i18n.js";
 import {
   cleanupEmptyLogs,
+  isSameMenses,
   setState as setPeriodMarkingState,
 } from "./periodMarking.js";
 
@@ -65,6 +67,7 @@ let state = {
   lastPeriodStart: null,
   cycleLength: 28,
   periodDuration: 5,
+  toleranceDays: null,
   logs: {},
   cycleHistory: [],
 };
@@ -77,6 +80,7 @@ let sessionPin = null; // PIN held only in JS memory (never persisted)
 let viewMonth = new Date();
 let selectedDate = null;
 let currentTab = "calendar";
+let backupReminderShownThisSession = false;
 
 // Reset on any user interaction (deferred until DOM ready)
 function setupEventListeners() {
@@ -276,6 +280,7 @@ function lockApp() {
     lastPeriodStart: null,
     cycleLength: 28,
     periodDuration: 5,
+    toleranceDays: null,
     logs: {},
     cycleHistory: [],
   };
@@ -334,6 +339,7 @@ async function _executeForgotPinReset() {
       lastPeriodStart: null,
       cycleLength: 28,
       periodDuration: 5,
+      toleranceDays: null,
       logs: {},
       cycleHistory: [],
     };
@@ -1004,28 +1010,51 @@ function updateStatusCard() {
     return;
   }
   if (emptyHint) emptyHint.classList.add("hidden");
-  const phaseTagKey = {
+
+  // Date line
+  const phaseEl = document.getElementById("status-phase");
+  if (phaseEl) phaseEl.style.color = "";
+  const dateLabel = new Date().toLocaleDateString(undefined, {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+  safeText("status-phase-text", dateLabel);
+
+  // Main: "Day X of your Y-day cycle"
+  safeText(
+    "status-title",
+    t("status_cycle_day_of", { day: info.cycleDay, total: info.cl })
+  );
+
+  // Phase number + name
+  const phaseNum = { Menstruation: 1, Follicular: 2, "Fertile Window": 3, "Ovulation Day": 3, Luteal: 4 }[info.phase] ?? "—";
+  const phaseNameKey = {
     Menstruation: "period_short",
     Follicular: "follicular",
     "Fertile Window": "fertile",
-    Ovulation: "ovulation_short",
+    "Ovulation Day": "ovulation_short",
     Luteal: "luteal",
-  }[info.phase] || "period_short";
-  const phaseEl = document.getElementById("status-phase");
-  if (phaseEl) phaseEl.style.color = info.phaseColor;
+  }[info.phase] || "luteal";
 
-  safeText("status-phase-text", t(phaseTagKey).toUpperCase());
-  safeText("status-title", getPhaseMessage(info));
+  // Period countdown message
+  let periodMsg;
+  if (info.phase === "Menstruation") {
+    periodMsg = t("subtitle_menstruation", { day: info.cycleDay });
+  } else if (info.daysUntilNext <= 0) {
+    periodMsg = t("status_period_today");
+  } else if (info.daysUntilNext === 1) {
+    periodMsg = t("status_period_tomorrow");
+  } else if (info.daysUntilNext <= 3) {
+    periodMsg = t("status_period_soon", { n: info.daysUntilNext });
+  } else {
+    periodMsg = t("status_period_in", { n: info.daysUntilNext });
+  }
 
-  // Hide subtitle if the reminder chip captures the same 'Next period in X days' info
-  const showReminder = info.daysUntilNext > 0 && info.daysUntilNext <= 3;
-  safeText("status-subtitle", showReminder ? "" : getPhaseSubtitle(info));
+  safeText("status-subtitle", `Phase ${phaseNum} — ${t(phaseNameKey)}  ·  ${periodMsg}`);
 
   safeText("cycle-day", info.cycleDay);
-  safeText(
-    "days-until-next",
-    info.daysUntilNext > 0 ? info.daysUntilNext : t("now")
-  );
+  safeText("days-until-next", info.daysUntilNext > 0 ? info.daysUntilNext : t("now"));
   safeText("cycle-len-disp", info.cl);
   updateCycleBar(info);
   updateReminderBanner(info);
@@ -1106,13 +1135,174 @@ function updateCycleBar(info) {
   }
 }
 
+function renderPredictionsTab() {
+  const el = document.getElementById("predictions-list");
+  if (!el) return;
+  el.innerHTML = "";
+  const info = getCycleInfo();
+  if (!info || !info.nextPeriod) {
+    const p = document.createElement("p");
+    p.style.cssText = "color:var(--text-muted);font-size:0.875rem;padding:0.5rem 0";
+    p.textContent = t("predictions_empty");
+    el.appendChild(p);
+    return;
+  }
+  const statsData = getStatisticalCycleData();
+  const predCl = statsData ? Math.round(statsData.mean) : info.cl;
+  for (let i = 0; i < 6; i++) {
+    const startD = addDays(info.nextPeriod, i * predCl);
+    const endD = addDays(startD, info.pd - 1);
+    const row = document.createElement("div");
+    row.className = "history-row pred-row";
+    const startEl = document.createElement("span");
+    startEl.textContent = toISO(startD);
+    const endEl = document.createElement("span");
+    endEl.textContent = toISO(endD);
+    const durEl = document.createElement("span");
+    durEl.className = "history-dur";
+    durEl.textContent = `${info.pd}d`;
+    row.appendChild(startEl);
+    row.appendChild(endEl);
+    row.appendChild(durEl);
+    el.appendChild(row);
+  }
+}
+
+function getPeriodEndDate(startDateStr) {
+  const start = fromISO(startDateStr);
+  let hasFlow = false;
+  let lastFlow = start;
+  for (let i = 0; i < 20; i++) {
+    const d = addDays(start, i);
+    const dStr = toISO(d);
+    if (state.logs[dStr]?.flow) {
+      hasFlow = true;
+      lastFlow = d;
+    } else if (hasFlow) {
+      // allow a 1-day gap, then stop
+      if (!state.logs[toISO(addDays(d, 1))]?.flow) break;
+    }
+  }
+  return hasFlow ? toISO(lastFlow) : toISO(addDays(start, (state.periodDuration || 5) - 1));
+}
+
+function buildHistoryRow(c) {
+  const row = document.createElement("div");
+  row.className = "history-row";
+  const endStr = getPeriodEndDate(c.start);
+  const durDays = diffDays(fromISO(c.start), fromISO(endStr)) + 1;
+
+  const startEl = document.createElement("span");
+  startEl.className = "history-date";
+  startEl.textContent = c.start; // YYYY-MM-DD
+
+  const durEl = document.createElement("span");
+  durEl.className = "history-dur";
+  durEl.textContent = `${durDays}d`;
+
+  const lenEl = document.createElement("span");
+  lenEl.className = "history-len";
+  const col = c.length < 26 ? "#34D399" : c.length > 32 ? "#FF6B4A" : "#A78BFA";
+  lenEl.style.cssText = `background:${col}22;color:${col}`;
+  lenEl.textContent = tp("history_days", parseInt(c.length));
+
+  row.appendChild(startEl);
+  row.appendChild(durEl);
+  row.appendChild(lenEl);
+  return row;
+}
+
+function showHistoryFullPage() {
+  const existing = document.getElementById("history-fullpage-overlay");
+  if (existing) existing.remove();
+
+  // Prevent body from scrolling behind the overlay
+  document.body.style.overflow = "hidden";
+
+  const overlay = document.createElement("div");
+  overlay.id = "history-fullpage-overlay";
+  overlay.className = "history-fullpage-overlay";
+
+  const header = document.createElement("div");
+  header.className = "history-fullpage-header";
+  const title = document.createElement("span");
+  title.textContent = t("cycle_history");
+  const closeBtn = document.createElement("button");
+  closeBtn.className = "history-fullpage-close";
+  closeBtn.textContent = "✕";
+  closeBtn.setAttribute("aria-label", "Close");
+  closeBtn.addEventListener("click", () => {
+    overlay.remove();
+    document.body.style.overflow = "";
+  });
+  header.appendChild(title);
+  header.appendChild(closeBtn);
+
+  const body = document.createElement("div");
+  body.className = "history-fullpage-body";
+
+  // Column labels pinned at the top of the scrollable body
+  const subheader = document.createElement("div");
+  subheader.className = "history-fullpage-subheader";
+  [t("history_col_start"), t("history_col_period"), t("history_col_cycle")].forEach((label) => {
+    const s = document.createElement("span");
+    s.textContent = label;
+    subheader.appendChild(s);
+  });
+  body.appendChild(subheader);
+
+  if (!state.cycleHistory || state.cycleHistory.length === 0) {
+    const p = document.createElement("p");
+    p.style.cssText = "color:var(--text-muted);font-size:0.875rem;padding:1rem 0";
+    p.textContent = t("no_cycle_history");
+    body.appendChild(p);
+  } else {
+    [...state.cycleHistory].reverse().forEach((c) => body.appendChild(buildHistoryRow(c)));
+  }
+
+  overlay.appendChild(header);
+  overlay.appendChild(body);
+  document.body.appendChild(overlay);
+}
+
 function updateInsights() {
   const info = getCycleInfo();
   if (!info) return;
-  safeText("avg-cycle", info.cl + "d");
+
+  const statsData = getStatisticalCycleData();
+
+  // Show statistically-derived average when available, otherwise use setting.
+  safeText("avg-cycle", (statsData ? Math.round(statsData.mean) : info.cl) + "d");
   safeText("avg-period", info.pd + "d");
   safeText("tracked-cycles", state.cycleHistory.length || 1);
   safeText("fertile-window", info.fertileEnd - info.fertileStart + 1);
+
+  // Statistical panel — visible only once 3+ cycles are tracked.
+  const statsPanel = document.getElementById("cycle-stats-panel");
+  if (statsPanel) {
+    if (statsData) {
+      statsPanel.style.display = "";
+      safeText(
+        "stat-std-dev",
+        statsData.stdDeviation !== null ? `±${statsData.stdDeviation}d` : "—"
+      );
+      safeText("stat-min-max", `${statsData.min}–${statsData.max}d`);
+      safeText("stat-variation", `±${statsData.variation}d`);
+      const regularityEl = document.getElementById("stat-regularity");
+      if (regularityEl) {
+        const isRegular =
+          statsData.stdDeviation !== null && statsData.stdDeviation < 1.5;
+        regularityEl.textContent = isRegular
+          ? t("stat_regular")
+          : t("stat_variable");
+        regularityEl.style.color = isRegular
+          ? "var(--fertile-green)"
+          : "var(--amber)";
+      }
+    } else {
+      statsPanel.style.display = "none";
+    }
+  }
 
   const hist = document.getElementById("cycle-history");
   const histCount = document.getElementById("history-count");
@@ -1129,33 +1319,14 @@ function updateInsights() {
   const total = state.cycleHistory.length;
   const shown = Math.min(6, total);
   [...state.cycleHistory]
-    .slice(-6)
+    .slice(-shown)
     .reverse()
-    .forEach((c) => {
-      const row = document.createElement("div");
-      row.className = "history-row";
-      const dateSpan = document.createElement("span");
-      dateSpan.textContent = c.start; // sanitized via textContent
-      const lenSpan = document.createElement("span");
-      lenSpan.className = "history-len";
-      const col =
-        c.length < 26 ? "#34D399" : c.length > 32 ? "#FF6B4A" : "#A78BFA";
-      lenSpan.style.cssText = `background:${col}22;color:${col}`;
-      lenSpan.textContent = tp("history_days", parseInt(c.length)); // parseInt guards injections
-      row.appendChild(dateSpan);
-      row.appendChild(lenSpan);
-      hist.appendChild(row);
-    });
+    .forEach((c) => hist.appendChild(buildHistoryRow(c)));
   if (histCount) {
     histCount.textContent = total > 6 ? t("history_showing", { shown, total }) : "";
   }
 
-  // Ensure chart controls are initialized
-  const yearSelect = document.getElementById("pain-view-year");
-  if (yearSelect && yearSelect.options.length === 0) {
-    initializePainChartControls();
-  }
-  renderPainChart();
+  renderPredictionsTab();
 }
 
 function initializePainChartControls() {
@@ -1722,10 +1893,11 @@ function renderCalendar() {
     const cell = document.createElement("div");
     const dayType = getDayType(dateStr);
     let cls = "cal-day";
-    if (dayType === "period") cls += " period";
-    else if (dayType === "ovulation") cls += " ovulation";
-    else if (dayType === "fertile") cls += " fertile";
-    else if (isPredictedFuturePeriod(dateStr)) cls += " predicted-period";
+    if (dayType === "period")
+      cls += isPredictedFuturePeriod(dateStr) ? " predicted-period" : " period";
+    else if (dayType === "ovulation" && state.showFertility !== false) cls += " ovulation";
+    else if (dayType === "fertile" && state.showFertility !== false) cls += " fertile";
+    else if (dayType === "predicted-period") cls += " tolerance-period";
     if (dateStr === todayStr) cls += " today";
     if (dateStr === selectedDate) cls += " selected-log";
     if (state.logs[dateStr]) cls += " has-log";
@@ -1743,6 +1915,8 @@ function renderCalendar() {
           ? t("calendar_day_ovulation")
           : dayType === "fertile"
           ? t("calendar_day_fertile")
+          : dayType === "predicted-period"
+          ? t("calendar_day_period_possible")
           : t("calendar_day_regular")
       }`
     );
@@ -1755,6 +1929,13 @@ function renderCalendar() {
     });
     grid.appendChild(cell);
   }
+
+  // Sync legend visibility with fertility toggle
+  const showFertility = state.showFertility !== false;
+  const fertileLegend = document.querySelector(".legend-dot--fertile")?.closest(".legend-item");
+  const ovulationLegend = document.querySelector(".legend-dot--ovulation")?.closest(".legend-item");
+  if (fertileLegend) fertileLegend.style.display = showFertility ? "" : "none";
+  if (ovulationLegend) ovulationLegend.style.display = showFertility ? "" : "none";
 }
 
 function changeMonth(dir) {
@@ -1874,6 +2055,21 @@ async function saveLog() {
 
   state.logs[selectedDate] = log;
   if (log.flow) updateCycleHistory(selectedDate);
+
+  // When marking a new period start, pre-fill the following 5 days with light
+  // flow so the user doesn't have to return each day during their period.
+  // Only triggers on the first day of a new episode (no flow in prior 2 days).
+  // Never overwrites a day that already has flow logged.
+  if (log.flow && !isSameMenses(selectedDate)) {
+    const start = fromISO(selectedDate);
+    for (let i = 1; i <= 5; i++) {
+      const next = toISO(addDays(start, i));
+      if (!state.logs[next]?.flow) {
+        state.logs[next] = { ...(state.logs[next] || {}), flow: 1 };
+      }
+    }
+  }
+
   cleanupEmptyLogs();
   await save();
 
@@ -1885,6 +2081,11 @@ async function saveLog() {
 
 function updateCycleHistory(dateStr) {
   if (!state.cycleHistory) state.cycleHistory = [];
+
+  // Bleeding gap tolerance: if this flow date is within 1 day of an already-
+  // logged flow day, it belongs to the same menses — skip creating a new cycle.
+  if (isSameMenses(dateStr)) return;
+
   const hist = state.cycleHistory;
   if (hist.length > 0) {
     const last = hist[hist.length - 1];
@@ -1893,13 +2094,20 @@ function updateCycleHistory(dateStr) {
     if (len > 14 && len < 60) {
       hist[hist.length - 1].length = len;
       hist.push({ start: dateStr, length: state.cycleLength });
-      const lens = hist.filter((c) => c.length > 14).map((c) => c.length);
-      if (lens.length >= 2) {
-        state.cycleLength = Math.round(
-          lens.reduce((a, b) => a + b, 0) / lens.length
-        );
-        state.lastPeriodStart = dateStr;
+      // Use statistically-derived mean when ≥3 cycles are available;
+      // otherwise fall back to a simple running average.
+      const statsData = getStatisticalCycleData();
+      if (statsData) {
+        state.cycleLength = Math.round(statsData.mean);
+      } else {
+        const lens = hist.filter((c) => c.length > 14).map((c) => c.length);
+        if (lens.length >= 2) {
+          state.cycleLength = Math.round(
+            lens.reduce((a, b) => a + b, 0) / lens.length
+          );
+        }
       }
+      state.lastPeriodStart = dateStr;
     }
   } else {
     hist.push({ start: dateStr, length: state.cycleLength });
@@ -1907,31 +2115,9 @@ function updateCycleHistory(dateStr) {
   }
 }
 
-async function applySettings() {
-  const lp = document.getElementById("s-last-period").value;
-  const cl = parseInt(document.getElementById("s-cycle-len").value);
+async function savePeriodDuration() {
   const pd = parseInt(document.getElementById("s-period-dur").value);
-  if (!lp || !/^\d{4}-\d{2}-\d{2}$/.test(lp)) {
-    showModal({
-      icon: "📅",
-      title: t("invalid_date_title"),
-      msg: t("invalid_date_msg"),
-      cancelText: "",
-      confirmText: t("ok"),
-    });
-    return;
-  }
-  if (cl < 20 || cl > 45) {
-    showModal({
-      icon: "⚠️",
-      title: t("invalid_cycle_title"),
-      msg: t("invalid_cycle_msg"),
-      cancelText: "",
-      confirmText: t("ok"),
-    });
-    return;
-  }
-  if (pd < 1 || pd > 10) {
+  if (isNaN(pd) || pd < 1 || pd > 10) {
     showModal({
       icon: "⚠️",
       title: t("invalid_duration_title"),
@@ -1941,26 +2127,22 @@ async function applySettings() {
     });
     return;
   }
+  state.periodDuration = pd;
+  await save();
+  updateStatusCard();
+  renderCalendar();
+  updateInsights();
+  showToast(t("settings_saved_toast"));
+}
 
-  // Show confirmation modal before applying changes
-  showModal({
-    icon: "⚠️",
-    title: t("update_predictions_title"),
-    msg: t("update_predictions_msg"),
-    confirmText: t("update_predictions_confirm"),
-    cancelText: t("cancel"),
-    onConfirm: async () => {
-      state.lastPeriodStart = lp;
-      state.cycleLength = cl;
-      state.periodDuration = pd;
-      await save();
-      updateStatusCard();
-      renderCalendar();
-      updateInsights();
-      switchTab("calendar");
-      showToast(t("settings_saved_toast"));
-    },
-  });
+async function saveTolerance() {
+  const raw = document.getElementById("s-tolerance").value.trim();
+  const val = raw === "" ? null : parseInt(raw);
+  if (val !== null && (isNaN(val) || val < 0 || val > 5)) return;
+  state.toleranceDays = val;
+  await save();
+  renderCalendar();
+  showToast(t("settings_saved_toast"));
 }
 
 async function updateBackupStatus() {
@@ -1989,13 +2171,25 @@ async function updateBackupStatus() {
 }
 
 function loadSettingsFields() {
-  document.getElementById("s-last-period").value = state.lastPeriodStart || "";
-  document.getElementById("s-cycle-len").value = state.cycleLength;
-  document.getElementById("s-period-dur").value = state.periodDuration;
+  const pdInput = document.getElementById("s-period-dur");
+  if (pdInput) pdInput.value = state.periodDuration;
 
-  // Calculate and display storage usage
+  const tolInput = document.getElementById("s-tolerance");
+  if (tolInput) tolInput.value = state.toleranceDays != null ? state.toleranceDays : "";
+
+  const cbFertility = document.getElementById("s-show-fertility");
+  if (cbFertility) cbFertility.checked = state.showFertility !== false;
+
   calculateStorageUsage();
   updateBackupStatus();
+}
+
+function toggleFertility() {
+  const cb = document.getElementById("s-show-fertility");
+  if (!cb) return;
+  state.showFertility = cb.checked;
+  save();
+  renderCalendar();
 }
 
 async function exportData() {
@@ -2204,6 +2398,7 @@ async function importData() {
   });
   input.click();
 }
+
 
 async function calculateStorageUsage() {
   try {
@@ -2597,13 +2792,12 @@ if (document.readyState === "loading") {
 }
 
 function switchInsightTab(tabId) {
-  const tabs = ['chart', 'how', 'history'];
-  
+  const tabs = ['history', 'predictions', 'how'];
+
   tabs.forEach(tab => {
     const btn = document.getElementById('tab-btn-' + tab);
     const content = document.getElementById('insight-tab-' + tab);
     if (!btn || !content) return;
-    
     if (tab === tabId) {
       btn.classList.add('active');
       content.style.display = 'block';
@@ -2612,6 +2806,8 @@ function switchInsightTab(tabId) {
       content.style.display = 'none';
     }
   });
+
+  if (tabId === 'predictions') renderPredictionsTab();
 }
 
 function switchSettingsTab(tabId) {
@@ -2670,7 +2866,10 @@ window.downloadChart = downloadChart;
 window.setChartFilter = setChartFilter;
 window.updatePainChart = updatePainChart;
 window.updateNoteCount = updateNoteCount;
-window.applySettings = applySettings;
+window.savePeriodDuration = savePeriodDuration;
+window.saveTolerance = saveTolerance;
+window.toggleFertility = toggleFertility;
+window.showHistoryFullPage = showHistoryFullPage;
 window.showChangePinModal = showChangePinModal;
 window.exportData = exportData;
 window.importData = importData;

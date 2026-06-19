@@ -7,11 +7,56 @@ export function setState(stateObj) {
   state = stateObj;
 }
 
+/**
+ * Computes descriptive statistics from an array of cycle lengths.
+ * Uses corrected (sample) standard deviation.
+ */
+export function getCycleLengthStats(cycleLengths) {
+  if (!cycleLengths || cycleLengths.length === 0) return null;
+  const sorted = [...cycleLengths].sort((a, b) => a - b);
+  const min = sorted[0];
+  const max = sorted[sorted.length - 1];
+  const mean =
+    Math.round(
+      (cycleLengths.reduce((s, n) => s + n, 0) / cycleLengths.length) * 100
+    ) / 100;
+  const mid = cycleLengths.length / 2;
+  const median =
+    cycleLengths.length % 2 === 1
+      ? sorted[Math.floor(mid)]
+      : (sorted[mid - 1] + sorted[mid]) / 2;
+  let stdDeviation = null;
+  if (cycleLengths.length > 1) {
+    const sumSq = cycleLengths.reduce((s, n) => s + Math.pow(n - mean, 2), 0);
+    stdDeviation =
+      Math.round(Math.sqrt(sumSq / (cycleLengths.length - 1)) * 100) / 100;
+  }
+  return { mean, median, min, max, stdDeviation };
+}
+
+/**
+ * Derives statistical cycle data from the tracked history.
+ * Returns null if fewer than 3 valid cycles are recorded.
+ * variation: ±1 day if the cycle is regular (stdDev < 1.5), ±2 days otherwise.
+ */
+export function getStatisticalCycleData() {
+  if (!state || !state.cycleHistory) return null;
+  const validLengths = state.cycleHistory
+    .map((c) => c.length)
+    .filter((l) => typeof l === "number" && l > 14 && l < 60);
+  if (validLengths.length < 3) return null;
+  const stats = getCycleLengthStats(validLengths);
+  const variation =
+    stats.stdDeviation === null || stats.stdDeviation < 1.5 ? 1 : 2;
+  return { ...stats, variation, count: validLengths.length };
+}
+
 export function getCycleInfo() {
   if (!state.lastPeriodStart) return null;
 
   const todayD = fromISO(today());
-  const cl = state.cycleLength;
+  const statsData = getStatisticalCycleData();
+  const cl = statsData ? Math.round(statsData.mean) : state.cycleLength;
   const pd = state.periodDuration;
 
   // Always derive cycleStart from state.lastPeriodStart — the same source
@@ -70,9 +115,13 @@ export function getCycleInfo() {
 export function calculatePredictions() {
   if (!state || !state.lastPeriodStart) return [];
 
-  // state.lastPeriodStart is set by applySettings() when the user edits settings.
-  // Always read from it so predictions are consistent with getCycleInfo().
-  const cl = state.cycleLength;
+  const statsData = getStatisticalCycleData();
+  // Use statistically-derived mean cycle length when available (≥3 cycles);
+  // otherwise fall back to the user-set/running-average cycleLength.
+  const cl = statsData ? Math.round(statsData.mean) : state.cycleLength;
+  const variation = (state.toleranceDays != null)
+    ? parseInt(state.toleranceDays)
+    : (statsData ? statsData.variation : 0);
   const pd = state.periodDuration;
   const ovOffset = cl - 14;
   const fertStartOff = Math.max(8, cl - 18);
@@ -92,6 +141,7 @@ export function calculatePredictions() {
       ovulation,
       fertileStart,
       fertileEnd,
+      variation,
     });
   }
   return predictions;
@@ -104,12 +154,28 @@ export function getDayType(dateStr) {
   if (preds.length === 0) return "normal";
 
   const d = fromISO(dateStr);
+  const todayD = fromISO(today());
 
+  // First pass: hard types always take priority over the variation window.
   for (const p of preds) {
     if (d >= p.periodStart && d <= p.periodEnd) return "period";
     if (toISO(d) === toISO(p.ovulation)) return "ovulation";
     if (d >= p.fertileStart && d <= p.fertileEnd) return "fertile";
   }
+
+  // Second pass: variation window — only for future days when stats are available.
+  // Returns "predicted-period" (styled as a dashed hint) for days that fall
+  // within ±variation days of a predicted period window.
+  if (d > todayD) {
+    for (const p of preds) {
+      if (p.variation > 0) {
+        const varStart = addDays(p.periodStart, -p.variation);
+        const varEnd = addDays(p.periodEnd, p.variation);
+        if (d >= varStart && d <= varEnd) return "predicted-period";
+      }
+    }
+  }
+
   return "normal";
 }
 

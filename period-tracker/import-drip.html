@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Import from drip — Your Cycle Keeper</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 2rem 1rem; }
+    .tool-card { background: var(--card); border-radius: 1rem; padding: 1.75rem 1.5rem; max-width: 400px; width: 100%; }
+    .tool-card h1 { font-size: 1.4rem; margin: 0 0 0.5rem; }
+    .tool-card p { color: var(--muted, #888); font-size: 0.9rem; margin: 0 0 1rem; line-height: 1.55; }
+    .screen { display: none; }
+    .screen.active { display: block; }
+    .pin-row { display: flex; gap: 0.75rem; justify-content: center; margin: 1.25rem 0 0.25rem; }
+    .numpad { display: grid; grid-template-columns: repeat(3, 4.25rem); gap: 0.625rem; justify-content: center; margin: 0.75rem auto; }
+    .error-text { color: var(--rose, #e5455e); font-size: 0.85rem; text-align: center; min-height: 1.2rem; margin-bottom: 0.25rem; }
+    .summary-box { background: var(--bg); border-radius: 0.625rem; padding: 0.875rem 1rem; margin-bottom: 1.25rem; font-size: 0.9rem; line-height: 1.55; }
+    .btn-row { display: flex; flex-direction: column; gap: 0.625rem; }
+    .btn-outline { background: transparent; color: var(--rose, #e5455e); border: 2px solid var(--rose, #e5455e); border-radius: 0.75rem; padding: 0.75rem 1rem; font-size: 0.95rem; font-weight: 600; cursor: pointer; }
+    .btn-outline:hover { background: var(--rose-soft, #fce4e8); }
+    .center { text-align: center; }
+    .big-icon { font-size: 2.5rem; margin-bottom: 0.625rem; }
+    .done-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .done-msg { color: var(--muted, #888); font-size: 0.9rem; margin-bottom: 1.5rem; }
+    .back-link { color: var(--rose, #e5455e); text-decoration: none; font-size: 0.9rem; font-weight: 600; }
+    .back-link:hover { text-decoration: underline; }
+    .note { font-size: 0.8rem; color: var(--muted, #888); margin-top: 1rem; padding: 0.75rem; background: var(--bg); border-radius: 0.5rem; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <div class="tool-card">
+
+    <!-- Step 1: Pick CSV -->
+    <div id="s-csv" class="screen active">
+      <h1>Import from drip</h1>
+      <p>One-time migration tool. Select your drip CSV export to bring your cycle history into Your Cycle Keeper.</p>
+      <p><strong>Before you start:</strong> Make sure you have already opened Your Cycle Keeper and created a PIN. Then in drip, go to Menu → Export Data → Export as CSV.</p>
+      <button class="apply-btn" onclick="pickCsv()" style="margin-top:0.5rem">Choose drip CSV file</button>
+    </div>
+
+    <!-- Step 2: Enter PIN -->
+    <div id="s-pin" class="screen">
+      <h1>Enter your PIN</h1>
+      <p>Your Your Cycle Keeper PIN is needed to update your encrypted data.</p>
+      <div class="pin-row">
+        <div class="pin-dot" id="d0"></div>
+        <div class="pin-dot" id="d1"></div>
+        <div class="pin-dot" id="d2"></div>
+        <div class="pin-dot" id="d3"></div>
+      </div>
+      <div class="error-text" id="pin-err"></div>
+      <div class="numpad" id="numpad"></div>
+    </div>
+
+    <!-- Step 3: Merge or Replace -->
+    <div id="s-merge" class="screen">
+      <h1>How to import?</h1>
+      <div class="summary-box" id="merge-summary"></div>
+      <div class="btn-row">
+        <button class="apply-btn" onclick="applyImport(false)">Merge — keep my existing data</button>
+        <button class="btn-outline" onclick="applyImport(true)">Replace — use only drip data</button>
+      </div>
+    </div>
+
+    <!-- Step 4: Done -->
+    <div id="s-done" class="screen center">
+      <div class="big-icon">✅</div>
+      <div class="done-title">Import complete!</div>
+      <div class="done-msg" id="done-msg"></div>
+      <a href="index.html" class="back-link">Open Your Cycle Keeper →</a>
+    </div>
+
+    <!-- Step 5: Error -->
+    <div id="s-err" class="screen center">
+      <div class="big-icon">⚠️</div>
+      <div class="done-title" id="err-title">Something went wrong</div>
+      <div class="done-msg" id="err-msg"></div>
+      <button class="apply-btn" onclick="showScreen('s-csv')" style="margin-top:0.5rem">Try Again</button>
+    </div>
+
+  </div>
+
+  <script src="js/indexeddb-storage.js"></script>
+  <script type="module">
+    import { encryptData, decryptData, hashPin } from "./js/crypto.js";
+    import { parseDripCsv, buildCycleHistoryFromLogs } from "./js/import-drip.js";
+
+    const STORE_KEY   = "yourcyclekeeper_enc_v1";
+    const SALT_KEY    = "yourcyclekeeper_salt_v1";
+    const PINHASH_KEY = "yourcyclekeeper_ph_v1";
+
+    let _parsed  = null;
+    let _salt    = null;
+    let _state   = null;
+    let _pin     = "";
+    let _pinBuf  = "";
+
+    // ── screens ──────────────────────────────────────────────────────────────
+    function showScreen(id) {
+      document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+    }
+    window.showScreen = showScreen;
+
+    function showError(title, msg) {
+      document.getElementById("err-title").textContent = title;
+      document.getElementById("err-msg").textContent   = msg;
+      showScreen("s-err");
+    }
+
+    // ── PIN numpad ────────────────────────────────────────────────────────────
+    const pad = document.getElementById("numpad");
+    ["1","2","3","4","5","6","7","8","9","","0","⌫"].forEach(k => {
+      if (k === "") { pad.appendChild(document.createElement("div")); return; }
+      const btn = document.createElement("div");
+      btn.className = "num-btn";
+      btn.textContent = k;
+      btn.addEventListener("click", () => handlePinKey(k));
+      pad.appendChild(btn);
+    });
+
+    function updateDots(buf) {
+      for (let i = 0; i < 4; i++)
+        document.getElementById("d" + i).classList.toggle("filled", i < buf.length);
+    }
+
+    async function handlePinKey(k) {
+      if (k === "⌫") {
+        _pinBuf = _pinBuf.slice(0, -1);
+        updateDots(_pinBuf);
+        document.getElementById("pin-err").textContent = "";
+        return;
+      }
+      if (_pinBuf.length >= 4) return;
+      _pinBuf += k;
+      updateDots(_pinBuf);
+      if (_pinBuf.length === 4) await verifyPin(_pinBuf);
+    }
+
+    async function verifyPin(pin) {
+      try {
+        const saltB64 = await getFromDB(SALT_KEY);
+        if (!saltB64) throw new Error("No salt found — please open Your Cycle Keeper first.");
+        _salt = Uint8Array.from(atob(saltB64), c => c.charCodeAt(0));
+
+        const storedHash  = await getFromDB(PINHASH_KEY);
+        const attemptHash = await hashPin(pin, _salt);
+        if (attemptHash !== storedHash) {
+          document.getElementById("pin-err").textContent = "Incorrect PIN — try again.";
+          _pinBuf = "";
+          updateDots(_pinBuf);
+          return;
+        }
+        _pin = pin;
+
+        // Decrypt existing state
+        const enc = await getFromDB(STORE_KEY);
+        _state = enc
+          ? await decryptData(enc, _pin, _salt)
+          : { logs: {}, cycleHistory: [], lastPeriodStart: null, cycleLength: 28, periodDuration: 5 };
+
+        // Build merge-screen summary
+        const existingDays = Object.keys(_state.logs || {}).length;
+        const sumEl = document.getElementById("merge-summary");
+        sumEl.innerHTML =
+          `Found <strong>${_parsed.dayCount} days</strong> of drip data across ` +
+          `<strong>${_parsed.periodCount} period episodes</strong>.` +
+          (existingDays > 0
+            ? `<br><br>Your Cycle Keeper currently has <strong>${existingDays} days</strong> of data.`
+            : "");
+        showScreen("s-merge");
+      } catch (err) {
+        showError("Could not unlock data", err.message || "Unknown error.");
+      }
+    }
+
+    // ── Step 1: pick CSV ──────────────────────────────────────────────────────
+    window.pickCsv = function () {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = ".csv";
+      input.addEventListener("change", async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        try {
+          const text   = await file.text();
+          const parsed = parseDripCsv(text);
+          if (parsed.error) { showError("Could not read file", parsed.error); return; }
+          if (parsed.dayCount === 0) { showError("Empty file", "No cycle data found in this CSV."); return; }
+          _parsed = parsed;
+
+          // Make sure the app has been set up
+          const storedHash = await getFromDB(PINHASH_KEY);
+          if (!storedHash) {
+            showError(
+              "App not set up yet",
+              "Please open Your Cycle Keeper, create a PIN and enter your start date, then return here to import."
+            );
+            return;
+          }
+          _pinBuf = "";
+          updateDots(_pinBuf);
+          document.getElementById("pin-err").textContent = "";
+          showScreen("s-pin");
+        } catch (err) {
+          showError("Could not read file", err.message || "Unknown error.");
+        }
+      });
+      input.click();
+    };
+
+    // ── Step 3: apply import ──────────────────────────────────────────────────
+    window.applyImport = async function (replace) {
+      try {
+        const dripLogs = _parsed.logs;
+        // Merge: existing logs win on conflict so manual edits are preserved
+        const mergedLogs = replace
+          ? { ...dripLogs }
+          : { ...dripLogs, ...(_state.logs || {}) };
+
+        // Drop entries with no meaningful data
+        for (const date in mergedLogs) {
+          const l = mergedLogs[date];
+          if (!l.flow && !l.pain && l.mood == null && !(l.note && l.note.trim()))
+            delete mergedLogs[date];
+        }
+
+        const { cycleHistory, lastPeriodStart } = buildCycleHistoryFromLogs(
+          mergedLogs,
+          _state.cycleLength || 28
+        );
+
+        const validLengths = cycleHistory.map(c => c.length).filter(l => l > 14 && l < 60);
+        const newCycleLength = validLengths.length >= 2
+          ? Math.round(validLengths.reduce((a, b) => a + b, 0) / validLengths.length)
+          : (_state.cycleLength || 28);
+
+        const newState = { ..._state, logs: mergedLogs, cycleHistory, cycleLength: newCycleLength };
+        if (lastPeriodStart) newState.lastPeriodStart = lastPeriodStart;
+
+        const enc = await encryptData(newState, _pin, _salt);
+        await setInDB(STORE_KEY, enc);
+
+        document.getElementById("done-msg").textContent =
+          `${Object.keys(mergedLogs).length} days of data are now in Your Cycle Keeper.`;
+        showScreen("s-done");
+      } catch (err) {
+        showError("Import failed", err.message || "Please try again.");
+      }
+    };
+  </script>
+</body>
+</html>

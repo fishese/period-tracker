@@ -38,6 +38,8 @@ const ASSETS_TO_CACHE = [
   "/period-tracker/js/periodMarking.js",
   "/period-tracker/js/session.js",
   "/period-tracker/js/validators.js",
+  "/period-tracker/js/import-drip.js",
+  "/period-tracker/import-drip.html",
   "/icons/favicon-16x16.png",
   "/icons/favicon-32x32.png",
   "/icons/favicon-48x48.png",

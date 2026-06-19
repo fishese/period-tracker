@@ -156,6 +156,13 @@ const LOCALES = {
     subtitle_ovulation: "Peak fertility today",
     subtitle_other: "Next period in {n} days",
 
+    // Status card – period info
+    status_cycle_day_of: "Day {day} of your {total}-day cycle",
+    status_period_today: "Your period is expected today",
+    status_period_tomorrow: "Your period is expected tomorrow",
+    status_period_soon: "Your period may start today or in the next {n} days",
+    status_period_in: "Next period expected in {n} days",
+
     // Status card
     now: "Now",
     bar_day: "Day {n}",
@@ -243,6 +250,15 @@ const LOCALES = {
     calendar_day_ovulation: "ovulation day",
     calendar_day_fertile: "fertile day",
     calendar_day_regular: "regular day",
+    calendar_day_period_possible: "possible period day",
+
+    // Statistical cycle tracking (shown in Insights once 3+ cycles tracked)
+    stat_std_dev: "Std Deviation",
+    stat_range: "Cycle Range",
+    stat_prediction_window: "Prediction Window",
+    stat_regularity: "Regularity",
+    stat_regular: "Regular",
+    stat_variable: "Variable",
 
     // Phase badge labels (short, uppercase-safe)
     follicular: "Follicular",
@@ -267,10 +283,27 @@ const LOCALES = {
     settings_cycle_length: "Average cycle length (days)",
     settings_period_duration: "Period duration (days)",
     settings_update_btn: "Update Predictions",
+    settings_tolerance: "Prediction tolerance (days)",
+    settings_tolerance_hint: "Days shown before/after each predicted period in the calendar. Leave blank to use auto (based on your cycle regularity).",
+    save: "Save",
+    settings_show_fertility: "Show fertile window in calendar",
     settings_security_section: "Security & Privacy",
     settings_change_pin: "Change PIN",
     settings_export: "Export Encrypted Backup",
     settings_import: "Import Encrypted Backup",
+    settings_import_drip: "Import from drip (CSV)",
+
+    // drip CSV import flow
+    drip_import_title: "Import from drip",
+    drip_import_found: "Found {days} days of data including {periods} flow days. How would you like to import?",
+    drip_import_merge: "Merge (keep my data)",
+    drip_import_replace: "Replace (use drip data)",
+    drip_import_done_title: "Import Complete",
+    drip_import_done_msg: "{days} days imported successfully.",
+    drip_import_failed_title: "Import Failed",
+    drip_import_failed_msg: "Could not read the file. Make sure it is a drip CSV export.",
+    drip_import_empty_title: "Nothing to Import",
+    drip_import_empty_msg: "The file contained no usable data.",
     settings_storage_label: "Storage used:",
     settings_storage_calculating: "Calculating...",
     settings_erase: "Erase All Data",
@@ -321,6 +354,13 @@ const LOCALES = {
     no_cycle_history:
       "No cycle history yet. Log at least 2 periods to see history.",
     history_showing: "Showing last {shown} of {total} cycles",
+    predictions_tab: "Upcoming Periods",
+    predictions_empty: "Log at least one period start date to see predictions.",
+    history_col_start: "Start",
+    history_col_end: "End",
+    history_col_period: "Period",
+    history_col_cycle: "Cycle",
+    view_all_history: "View all",
 
     // History legend
     legend_short: "Short (<26d)",
