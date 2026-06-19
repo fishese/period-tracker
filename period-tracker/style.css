@@ -2028,10 +2028,12 @@ body {
   font-size: 0.8125rem;
 }
 .autofill-banner__link:hover { text-decoration: underline; }
-.autofill-banner__sep {
-  color: var(--text-muted);
-  font-size: 0.75rem;
+.autofill-banner__backup-wrap {
+  white-space: nowrap;
   flex-shrink: 0;
+}
+.autofill-banner__backup-pre {
+  color: var(--text);
 }
 .autofill-banner__close {
   background: none;

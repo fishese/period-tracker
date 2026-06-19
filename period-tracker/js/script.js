@@ -1071,7 +1071,7 @@ function updateStatusCard() {
   }[info.phase] || "luteal";
 
   // Period countdown message – show predicted date rather than day count
-  const predictedDate = info.nextPeriod.toLocaleDateString(undefined, { month: "long", day: "numeric" });
+  const predictedDate = info.nextPeriod.toLocaleDateString(getLanguage(), { month: "long", day: "numeric" });
   let periodMsg;
   if (info.phase === "Menstruation") {
     periodMsg = t("subtitle_menstruation", { day: info.cycleDay });

@@ -274,7 +274,8 @@ const LOCALES = {
     autofill_banner_msg_one: "Auto-filled {n} day ahead with light flow.",
     autofill_banner_msg_many: "Auto-filled {n} days ahead with light flow.",
     autofill_banner_settings: "Adjust in Settings",
-    autofill_banner_backup: "Back up",
+    autofill_banner_backup_pre: "Reminder to ",
+    autofill_banner_backup: "back up",
 
     // Language switcher
     language_label: "Language",
@@ -1405,7 +1406,8 @@ const LOCALES = {
     settings_autofill_hint: "生理初日の記録後、軽度の経血量で自動入力する日数。0で無効化。",
     autofill_banner_msg_many: "{n}日分を軽度の経血量で自動入力しました。",
     autofill_banner_settings: "設定で変更",
-    autofill_banner_backup: "バックアップ",
+    autofill_banner_backup_pre: "",
+    autofill_banner_backup: "バックアップをお忘れなく",
 
     language_label: "言語",
     lang_en: "English",
@@ -1724,7 +1726,8 @@ const LOCALES = {
     settings_autofill_hint: "記錄生理期第一天後，自動填入少量經血的天數。設為0可停用此功能。",
     autofill_banner_msg_many: "已自動填入{n}天的少量經血記錄。",
     autofill_banner_settings: "在設定中調整",
-    autofill_banner_backup: "立即備份",
+    autofill_banner_backup_pre: "",
+    autofill_banner_backup: "記得備份",
 
     language_label: "語言",
     lang_en: "English",
