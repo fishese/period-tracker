@@ -60,8 +60,8 @@ function setTheme(name) {
 }
 
 function loadTheme() {
-  let saved = "default";
-  try { saved = localStorage.getItem(THEME_KEY) || "default"; } catch (_) {}
+  let saved = "dark";
+  try { saved = localStorage.getItem(THEME_KEY) || "dark"; } catch (_) {}
   setTheme(saved);
 }
 
