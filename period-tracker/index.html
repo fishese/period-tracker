@@ -849,6 +849,9 @@
           <button id="tab-btn-settings-cycle" class="settings-tab-btn active" onclick="switchSettingsTab('cycle')">
             <span data-i18n="settings_cycle_tab">Cycle</span>
           </button>
+          <button id="tab-btn-settings-layout" class="settings-tab-btn" onclick="switchSettingsTab('layout')">
+            <span data-i18n="settings_layout_tab">Layout</span>
+          </button>
           <button id="tab-btn-settings-security" class="settings-tab-btn" onclick="switchSettingsTab('security')">
             <span data-i18n="settings_security_tab">Security & Privacy</span>
           </button>
@@ -886,13 +889,6 @@
             </div>
             <div class="field-hint" data-i18n="settings_tolerance_hint">Days shown before/after each predicted period in the calendar. Leave blank to use auto (based on your cycle regularity).</div>
 
-            <div class="toggle-row">
-              <label class="toggle-label">
-                <input type="checkbox" id="s-show-fertility" onchange="toggleFertility()" checked>
-                <span data-i18n="settings_show_fertility">Show fertile window in calendar</span>
-              </label>
-            </div>
-
             <div class="field-label" data-i18n="settings_autofill_label">Auto-fill period days</div>
             <div class="setting-row">
               <input
@@ -907,6 +903,19 @@
             </div>
             <div class="field-hint" data-i18n="settings_autofill_hint">Days to auto-fill with light flow after the first day of a new period. Set to 0 to disable.</div>
           </div>
+        </div>
+
+        <div id="settings-tab-layout" class="settings-tab-content">
+          <div class="settings-section">
+            <h3 data-i18n="settings_calendar_display">Calendar</h3>
+            <div class="toggle-row" style="margin-top:0">
+              <label class="toggle-label">
+                <input type="checkbox" id="s-show-fertility" onchange="toggleFertility()" checked>
+                <span data-i18n="settings_show_fertility">Show fertile window in calendar</span>
+              </label>
+            </div>
+          </div>
+
           <div class="settings-section">
             <h3 data-i18n="settings_theme_label">Theme</h3>
             <div class="theme-grid">

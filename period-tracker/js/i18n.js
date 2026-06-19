@@ -300,7 +300,9 @@ const LOCALES = {
 
     // Settings HTML labels
     settings_cycle_tab: "Cycle Settings",
+    settings_layout_tab: "Layout",
     settings_security_tab: "Security & Privacy",
+    settings_calendar_display: "Calendar",
     settings_cycle_section: "Cycle Settings",
     settings_last_period: "Last period start date",
     settings_cycle_length: "Average cycle length (days)",
@@ -614,7 +616,9 @@ const LOCALES = {
     lang_zh_tw: "繁體中文",
 
     settings_cycle_tab: "Настройки цикла",
+    settings_layout_tab: "Интерфейс",
     settings_security_tab: "Безопасность",
+    settings_calendar_display: "Календарь",
     settings_cycle_section: "Настройки цикла",
     settings_last_period: "Дата начала последней менструации",
     settings_cycle_length: "Средняя длина цикла (дни)",
@@ -853,7 +857,9 @@ const LOCALES = {
     lang_zh_tw: "繁體中文",
 
     settings_cycle_tab: "Налады цыкла",
+    settings_layout_tab: "Інтэрфейс",
     settings_security_tab: "Бяспека",
+    settings_calendar_display: "Каляндар",
     settings_cycle_section: "Налады цыкла",
     settings_last_period: "Дата пачатку апошняй менструацыі",
     settings_cycle_length: "Сярэдняя даўжыня цыкла (дні)",
@@ -1125,7 +1131,9 @@ const LOCALES = {
     nav_about: "Acerca de",
 
     settings_cycle_tab: "Configuración del ciclo",
+    settings_layout_tab: "Apariencia",
     settings_security_tab: "Seguridad",
+    settings_calendar_display: "Calendario",
     settings_cycle_section: "Configuración del ciclo",
     settings_last_period: "Fecha de inicio del último período",
     settings_cycle_length: "Longitud promedio del ciclo (días)",
@@ -1439,7 +1447,9 @@ const LOCALES = {
     nav_about: "About",
 
     settings_cycle_tab: "サイクル設定",
+    settings_layout_tab: "レイアウト",
     settings_security_tab: "セキュリティとプライバシー",
+    settings_calendar_display: "カレンダー",
     settings_cycle_section: "サイクル設定",
     settings_last_period: "最後の生理開始日",
     settings_cycle_length: "平均周期長（日）",
@@ -1766,7 +1776,9 @@ const LOCALES = {
     nav_about: "關於",
 
     settings_cycle_tab: "週期設定",
+    settings_layout_tab: "介面設定",
     settings_security_tab: "安全與隱私",
+    settings_calendar_display: "日曆",
     settings_cycle_section: "週期設定",
     settings_last_period: "上次生理期開始日期",
     settings_cycle_length: "平均週期長度（天）",

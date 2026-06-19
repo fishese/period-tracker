@@ -2934,7 +2934,7 @@ function switchInsightTab(tabId) {
 }
 
 function switchSettingsTab(tabId) {
-  const tabs = ['cycle', 'security'];
+  const tabs = ['cycle', 'layout', 'security'];
   tabs.forEach(tab => {
     const btn = document.getElementById('tab-btn-settings-' + tab);
     const content = document.getElementById('settings-tab-' + tab);
