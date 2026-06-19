@@ -47,7 +47,7 @@ const LOCALES = {
 
     support_title: "Support Development",
     support_info:
-      "My Cycle Keeper is free forever with no ads, no tracking, and no data collection. If you find it helpful and would like to support continued development, you can buy me a coffee! Your support helps keep this project maintained and ad-free for everyone. Thank you! 💜",
+      "Your Cycle Keeper — the original app this fork is based on — is free forever with no ads, no tracking, and no data collection. If you find it helpful, consider supporting the original developer! Your support helps keep the project maintained and ad-free. Thank you! 💜",
 
     disclaimer_title: "Medical Disclaimer",
     disclaimer_info:
@@ -402,7 +402,7 @@ const LOCALES = {
     about_info_html:
       'Your Cycle Keeper is free software built with care for privacy. Based on the <strong>Calendar Rhythm Method</strong> and <strong>Standard Days Method</strong> for cycle estimation. For informational purposes only.<br><br><strong>Version:</strong> 1.0.0-beta<br><strong>License:</strong> GNU General Public License v3.0<br><strong>Developer:</strong> <a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">pythonime-lab</a><br><br>Found a bug or have a suggestion? Visit our <a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">GitHub repository</a>.',
     support_info:
-      "My Cycle Keeper is <strong>free forever</strong> with no ads, no tracking, and no data collection. If you find it helpful and would like to support continued development, you can buy me a coffee!",
+      "This app is a fork of <strong>Your Cycle Keeper</strong> by pythonime-lab, which is <strong>free forever</strong> with no ads, no tracking, and no data collection. If you find it helpful, consider supporting the original developer!",
     support_via: "Support via",
     support_footer:
       "Your support helps keep this project maintained and ad-free for everyone. Thank you! 💜",
@@ -1209,7 +1209,7 @@ const LOCALES = {
     about_info_html:
       'Your Cycle Keeper es software libre creado con atención a la privacidad. Basado en el <strong>Método del Ritmo del Calendario</strong> y el <strong>Método de Días Estándar</strong> para la estimación del ciclo. Solo con fines informativos.<br><br><strong>Versión:</strong> 1.0.0-beta<br><strong>Licencia:</strong> GNU General Public License v3.0<br><strong>Desarrollador:</strong> <a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">pythonime-lab</a><br><br>¿Encontraste un error o tienes una sugerencia? Visita nuestro <a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">repositorio de GitHub</a>.',
     support_info:
-      "My Cycle Keeper es <strong>gratis para siempre</strong> sin anuncios, sin rastreo y sin recopilación de datos. Si lo encuentras útil y quieres apoyar el desarrollo continuo, ¡puedes invitarme un café!",
+      "Esta app es un fork de <strong>Your Cycle Keeper</strong> de pythonime-lab, que es <strong>gratis para siempre</strong> sin anuncios, sin rastreo y sin recopilación de datos. Si la encuentras útil, ¡considera apoyar al desarrollador original!",
     support_via: "Apoyar vía",
     support_footer:
       "Tu apoyo ayuda a mantener este proyecto sin anuncios para todos. ¡Gracias! 💜",
@@ -1237,7 +1237,7 @@ const LOCALES = {
       "Your Cycle Keeperはプライバシーへの配慮から作られた無料ソフトウェアです。カレンダーリズム法と標準日法に基づいたサイクル推定。情報提供のみを目的としています。バージョン：1.0.0-beta。ライセンス：GPL v3。開発者：pythonime-lab。バグや提案はGitHubリポジトリへ。",
     support_title: "開発を支援する",
     support_info:
-      "My Cycle Keeperは広告・追跡・データ収集なしで永久無料です。役に立てていただけましたら、コーヒーを一杯おごっていただけると嬉しいです！",
+      "このアプリはpythonime-labによるYour Cycle Keeperのフォークです。広告・追跡・データ収集なしで永久無料です。役に立てていただけましたら、元の開発者へのサポートをご検討ください！",
     disclaimer_title: "医療免責事項",
     disclaimer_info:
       "⚠️ このアプリは平均的な生物学的パターンに基づくサイクル推定を提供します。医療アドバイスではなく、専門医の診察の代替として使用してはいけません。My Cycle Keeperはパターンを追跡してサイクルを予測し、排卵タイミングを推定します。実際のサイクルは、ストレス・病気・薬などさまざまな要因で変動します。避妊や妊娠の保証としてこのアプリを使用しないでください。医療的な決定には必ず専門の医療従事者にご相談ください。",
@@ -1541,7 +1541,7 @@ const LOCALES = {
     about_info_html:
       'Your Cycle Keeperはプライバシーへの配慮から作られた無料ソフトウェアです。<strong>カレンダーリズム法</strong>と<strong>標準日法</strong>に基づいたサイクル推定。情報提供のみを目的としています。<br><br><strong>バージョン：</strong>1.0.0-beta<br><strong>ライセンス：</strong>GNU General Public License v3.0<br><strong>開発者：</strong><a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">pythonime-lab</a><br><br>バグや提案は<a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">GitHubリポジトリ</a>へ。',
     support_info:
-      "My Cycle Keeperは広告・追跡・データ収集なしで<strong>永久無料</strong>です。役に立てていただけましたら、コーヒーを一杯おごっていただけると嬉しいです！",
+      "このアプリはpythonime-labによる<strong>Your Cycle Keeper</strong>のフォークです。<strong>永久無料</strong>で広告・追跡・データ収集はありません。役に立てていただけましたら、元の開発者へのサポートをご検討ください！",
     support_via: "支援する",
     support_footer:
       "あなたのサポートがこのプロジェクトを維持し、みんなのために広告なしを実現します。ありがとうございます！💜",
@@ -1566,7 +1566,7 @@ const LOCALES = {
       "Your Cycle Keeper是一款注重隱私的免費軟體。基於日曆節奏法和標準日法進行週期估算。僅供參考。版本：1.0.0-beta。授權：GPL v3。開發者：pythonime-lab。有錯誤或建議？請造訪GitHub儲存庫。",
     support_title: "支持開發",
     support_info:
-      "My Cycle Keeper永久免費，無廣告、無追蹤、無資料收集。若您覺得有幫助，歡迎請我喝一杯咖啡！",
+      "此應用程式是pythonime-lab的Your Cycle Keeper的分支版本，永久免費，無廣告、無追蹤、無資料收集。若您覺得有幫助，歡迎支持原始開發者！",
     disclaimer_title: "醫療免責聲明",
     disclaimer_info:
       "⚠️ 本應用程式提供基於平均生物學模式的週期估算。這不是醫療建議，不能替代專業醫療諮詢。My Cycle Keeper透過追蹤模式預測您的週期並估算排卵時間。實際週期時間可能因壓力、疾病、藥物等多種因素而有所不同。請勿將本應用程式用作避孕或生育保證。醫療決定請務必諮詢合格的醫療專業人員。",
@@ -1870,7 +1870,7 @@ const LOCALES = {
     about_info_html:
       'Your Cycle Keeper是一款注重隱私的免費軟體。基於<strong>日曆節奏法</strong>和<strong>標準日法</strong>進行週期估算。僅供參考。<br><br><strong>版本：</strong>1.0.0-beta<br><strong>授權：</strong>GNU General Public License v3.0<br><strong>開發者：</strong><a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">pythonime-lab</a><br><br>有錯誤或建議？請造訪我們的<a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">GitHub儲存庫</a>。',
     support_info:
-      "My Cycle Keeper<strong>永久免費</strong>，無廣告、無追蹤、無資料收集。若您覺得有幫助，歡迎請我喝一杯咖啡！",
+      "此應用程式是pythonime-lab的<strong>Your Cycle Keeper</strong>的分支版本，<strong>永久免費</strong>，無廣告、無追蹤、無資料收集。若您覺得有幫助，歡迎支持原始開發者！",
     support_via: "透過以下方式支持",
     support_footer:
       "您的支持幫助維持此專案並讓所有人免受廣告困擾。謝謝！💜",
