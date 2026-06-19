@@ -2359,6 +2359,26 @@ async function exportData() {
 
 let _importPinBuffer = "";
 
+function _restoreModalBox() {
+  const box = document.querySelector("#modal-overlay .modal-box");
+  if (!box) return;
+  const icon = document.createElement("div");
+  icon.className = "modal-icon"; icon.id = "modal-icon"; icon.textContent = "⚠️";
+  const title = document.createElement("div");
+  title.className = "modal-title"; title.id = "modal-title";
+  const msg = document.createElement("div");
+  msg.className = "modal-msg"; msg.id = "modal-msg";
+  const btns = document.createElement("div");
+  btns.className = "modal-btns";
+  const cancelBtn = document.createElement("button");
+  cancelBtn.className = "modal-btn secondary"; cancelBtn.id = "modal-cancel";
+  const confirmBtn = document.createElement("button");
+  confirmBtn.className = "modal-btn primary"; confirmBtn.id = "modal-confirm";
+  btns.appendChild(cancelBtn);
+  btns.appendChild(confirmBtn);
+  box.replaceChildren(icon, title, msg, btns);
+}
+
 function _showImportPinModal(bundle, backupSalt) {
   _importPinBuffer = "";
   const overlay = document.getElementById("modal-overlay");
@@ -2410,9 +2430,10 @@ function _showImportPinModal(bundle, backupSalt) {
   const cancelBtn = document.createElement("button");
   cancelBtn.className = "modal-btn secondary";
   cancelBtn.textContent = t("cancel");
-  cancelBtn.addEventListener("click", () =>
-    overlay.classList.remove("visible")
-  );
+  cancelBtn.addEventListener("click", () => {
+    overlay.classList.remove("visible");
+    _restoreModalBox();
+  });
   btnsDiv.appendChild(cancelBtn);
 
   box.replaceChildren(iconEl, titleEl, msgEl, dotsWrap, padWrap, btnsDiv);
@@ -2462,6 +2483,7 @@ async function _submitImportPin(bundle, backupSalt) {
     setPeriodMarkingState(state);
     await save(); // re-encrypts with current sessionPin + current salt
     document.getElementById("modal-overlay").classList.remove("visible");
+    _restoreModalBox();
     renderCalendar();
     updateStatusCard();
     updateInsights();
@@ -2630,9 +2652,10 @@ function _renderChangePinModal() {
   const cancelBtn = document.createElement("button");
   cancelBtn.className = "modal-btn secondary";
   cancelBtn.textContent = t("cancel");
-  cancelBtn.addEventListener("click", () =>
-    document.getElementById("modal-overlay").classList.remove("visible")
-  );
+  cancelBtn.addEventListener("click", () => {
+    document.getElementById("modal-overlay").classList.remove("visible");
+    _restoreModalBox();
+  });
   btnsDiv.appendChild(cancelBtn);
 
   box.replaceChildren(iconEl, titleEl, msgEl, dotsWrap, padWrap, btnsDiv);
@@ -2687,6 +2710,7 @@ async function _submitChangePinStep() {
       sessionPin = newPin;
       await save(); // re-encrypts all data with new PIN
       document.getElementById("modal-overlay").classList.remove("visible");
+      _restoreModalBox();
       showModal({
         icon: "✅",
         title: t("pin_changed_title"),
