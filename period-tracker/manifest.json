@@ -1,9 +1,9 @@
 {
   "name": "My Cycle Keeper — Private Period & Cycle Tracker",
-  "short_name": "Cycle Keeper",
+  "short_name": "My Cycle Keeper",
   "description": "Private, AES-encrypted period and cycle tracker. Zero data collection. Forever free.",
-  "start_url": "/period-tracker/",
-  "scope": "/period-tracker/",
+  "start_url": "/period-tracker/period-tracker/",
+  "scope": "/period-tracker/period-tracker/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#120818",
@@ -14,55 +14,25 @@
   ],
   "icons": [
     {
-      "src": "../icons/favicon-48x48.png",
+      "src": "icons/favicon-48x48.png",
       "sizes": "48x48",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "../icons/favicon-72x72.png",
-      "sizes": "72x72",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "../icons/favicon-96x96.png",
-      "sizes": "96x96",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "../icons/favicon-128x128.png",
-      "sizes": "128x128",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "../icons/favicon-144x144.png",
-      "sizes": "144x144",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "../icons/favicon-192x192.png",
+      "src": "icons/android-chrome-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "../icons/favicon-256x256.png",
-      "sizes": "256x256",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "../icons/favicon-512x512.png",
+      "src": "icons/android-chrome-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "../icons/favicon-512x512.png",
+      "src": "icons/android-chrome-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
