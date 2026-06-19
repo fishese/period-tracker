@@ -913,6 +913,20 @@
                 <span data-i18n="settings_show_fertility">Show fertile window in calendar</span>
               </label>
             </div>
+
+            <div class="field-label" data-i18n="settings_autofill_label">Auto-fill period days</div>
+            <div class="setting-row">
+              <input
+                class="field-input"
+                type="number"
+                id="s-autofill-days"
+                min="0"
+                max="10"
+                autocomplete="off"
+              />
+              <button class="setting-save-btn" onclick="saveAutoFillDays()" data-i18n="save">Save</button>
+            </div>
+            <div class="field-hint" data-i18n="settings_autofill_hint">Days to auto-fill with light flow after the first day of a new period. Set to 0 to disable.</div>
           </div>
           <div class="settings-section">
             <h3 data-i18n="language_label">Language</h3>
@@ -971,6 +985,13 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Auto-fill info banner (shown after first flow day of new period) -->
+    <div id="autofill-banner" class="autofill-banner hidden" role="status" aria-live="polite">
+      <span class="autofill-banner__msg" id="autofill-banner-msg"></span>
+      <a href="#" class="autofill-banner__link" id="autofill-banner-settings-link" data-i18n="autofill_banner_settings">Adjust in Settings</a>
+      <button class="autofill-banner__close" onclick="dismissAutoFillBanner()" aria-label="Dismiss">&#x2715;</button>
     </div>
   </body>
 </html>

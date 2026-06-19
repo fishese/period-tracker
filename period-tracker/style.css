@@ -1312,6 +1312,10 @@ body {
   outline: none;
   margin-bottom: 0.875rem;
 }
+.field-input option {
+  background: var(--card);
+  color: var(--text);
+}
 .field-input:focus {
   border-color: rgba(255, 61, 107, 0.5);
 }
@@ -1984,3 +1988,49 @@ body {
 }
 
 /* ── Log panel sticky header: already defined above, properties merged ───────── */
+
+/* ── Auto-fill info banner ───────────────────────────────────────────────────── */
+.autofill-banner {
+  position: fixed;
+  bottom: calc(3.75rem + env(safe-area-inset-bottom, 0px) + 0.625rem);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(100% - 2rem), 30rem);
+  background: var(--card);
+  border: 0.0625rem solid rgba(167, 139, 250, 0.45);
+  border-radius: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  z-index: 150;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+  animation: bannerSlideUp 0.2s ease;
+}
+@keyframes bannerSlideUp {
+  from { opacity: 0; transform: translateX(-50%) translateY(0.5rem); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.autofill-banner__msg {
+  flex: 1;
+  color: var(--text);
+  line-height: 1.4;
+}
+.autofill-banner__link {
+  color: var(--lavender);
+  text-decoration: none;
+  white-space: nowrap;
+  font-size: 0.8125rem;
+}
+.autofill-banner__link:hover { text-decoration: underline; }
+.autofill-banner__close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.125rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 0 0 0.125rem;
+  flex-shrink: 0;
+}

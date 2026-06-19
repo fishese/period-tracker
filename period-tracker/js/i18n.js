@@ -269,6 +269,13 @@ const LOCALES = {
     // Phase badge labels (short, uppercase-safe)
     follicular: "Follicular",
 
+    // Auto-fill setting
+    settings_autofill_label: "Auto-fill period days",
+    settings_autofill_hint: "Days to auto-fill with light flow after the first day of a new period. Set to 0 to disable.",
+    autofill_banner_msg_one: "Auto-filled {n} day ahead with light flow.",
+    autofill_banner_msg_many: "Auto-filled {n} days ahead with light flow.",
+    autofill_banner_settings: "Adjust in Settings",
+
     // Language switcher
     language_label: "Language",
     lang_en: "English",
@@ -1395,6 +1402,11 @@ const LOCALES = {
 
     follicular: "卵胞期",
 
+    settings_autofill_label: "生理日の自動入力",
+    settings_autofill_hint: "生理初日の記録後、軽度の経血量で自動入力する日数。0で無効化。",
+    autofill_banner_msg_many: "{n}日分を軽度の経血量で自動入力しました。",
+    autofill_banner_settings: "設定で変更",
+
     language_label: "言語",
     lang_en: "English",
     lang_ru: "Русский",
@@ -1708,6 +1720,11 @@ const LOCALES = {
     stat_variable: "不規律",
 
     follicular: "卵泡期",
+
+    settings_autofill_label: "自動填入生理期天數",
+    settings_autofill_hint: "記錄生理期第一天後，自動填入少量經血的天數。設為0可停用此功能。",
+    autofill_banner_msg_many: "已自動填入{n}天的少量經血記錄。",
+    autofill_banner_settings: "在設定中調整",
 
     language_label: "語言",
     lang_en: "English",

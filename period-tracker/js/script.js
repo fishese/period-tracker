@@ -69,6 +69,7 @@ let state = {
   cycleLength: 28,
   periodDuration: 5,
   toleranceDays: null,
+  autoFillDays: 5,
   logs: {},
   cycleHistory: [],
 };
@@ -248,6 +249,8 @@ async function submitPin() {
     if (blob) {
       try {
         state = await decryptData(blob, pin, salt);
+        // Default fields added in later versions (migration from older saves)
+        state.autoFillDays = state.autoFillDays ?? 5;
         // Re-initialize module state references after loading encrypted data
         setCyclesState(state);
         setPeriodMarkingState(state);
@@ -282,6 +285,7 @@ function lockApp() {
     cycleLength: 28,
     periodDuration: 5,
     toleranceDays: null,
+    autoFillDays: 5,
     logs: {},
     cycleHistory: [],
   };
@@ -341,6 +345,7 @@ async function _executeForgotPinReset() {
       cycleLength: 28,
       periodDuration: 5,
       toleranceDays: null,
+      autoFillDays: 5,
       logs: {},
       cycleHistory: [],
     };
@@ -2057,18 +2062,20 @@ async function saveLog() {
   state.logs[selectedDate] = log;
   if (log.flow) updateCycleHistory(selectedDate);
 
-  // When marking a new period start, pre-fill the following 5 days with light
+  // When marking a new period start, pre-fill the following N days with light
   // flow so the user doesn't have to return each day during their period.
   // Only triggers on the first day of a new episode (no flow in prior 2 days).
   // Never overwrites a day that already has flow logged.
-  if (log.flow && !isSameMenses(selectedDate)) {
+  const fillDays = state.autoFillDays ?? 5;
+  if (log.flow && fillDays > 0 && !isSameMenses(selectedDate)) {
     const start = fromISO(selectedDate);
-    for (let i = 1; i <= 5; i++) {
+    for (let i = 1; i <= fillDays; i++) {
       const next = toISO(addDays(start, i));
       if (!state.logs[next]?.flow) {
         state.logs[next] = { ...(state.logs[next] || {}), flow: 1 };
       }
     }
+    showAutoFillBanner(fillDays);
   }
 
   cleanupEmptyLogs();
@@ -2181,6 +2188,9 @@ function loadSettingsFields() {
   const cbFertility = document.getElementById("s-show-fertility");
   if (cbFertility) cbFertility.checked = state.showFertility !== false;
 
+  const afInput = document.getElementById("s-autofill-days");
+  if (afInput) afInput.value = state.autoFillDays ?? 5;
+
   calculateStorageUsage();
   updateBackupStatus();
 }
@@ -2191,6 +2201,43 @@ function toggleFertility() {
   state.showFertility = cb.checked;
   save();
   renderCalendar();
+}
+
+async function saveAutoFillDays() {
+  const input = document.getElementById("s-autofill-days");
+  const val = parseInt(input?.value ?? "");
+  if (isNaN(val) || val < 0 || val > 10) return;
+  state.autoFillDays = val;
+  await save();
+  showToast(t("settings_saved_toast"));
+}
+
+let _autoFillBannerDismiss = null;
+
+function showAutoFillBanner(n) {
+  const banner = document.getElementById("autofill-banner");
+  const msg = document.getElementById("autofill-banner-msg");
+  const link = document.getElementById("autofill-banner-settings-link");
+  if (!banner || !msg) return;
+  msg.textContent = tp("autofill_banner_msg", n);
+  link.onclick = (e) => { e.preventDefault(); dismissAutoFillBanner(); switchTab("settings"); };
+  banner.classList.remove("hidden");
+  // Dismiss when clicking anywhere outside the banner
+  setTimeout(() => {
+    _autoFillBannerDismiss = (e) => {
+      if (!banner.contains(e.target)) dismissAutoFillBanner();
+    };
+    document.addEventListener("click", _autoFillBannerDismiss);
+  }, 0);
+}
+
+function dismissAutoFillBanner() {
+  const banner = document.getElementById("autofill-banner");
+  if (banner) banner.classList.add("hidden");
+  if (_autoFillBannerDismiss) {
+    document.removeEventListener("click", _autoFillBannerDismiss);
+    _autoFillBannerDismiss = null;
+  }
 }
 
 function exportToDrip() {
@@ -2906,6 +2953,8 @@ window.updateNoteCount = updateNoteCount;
 window.savePeriodDuration = savePeriodDuration;
 window.saveTolerance = saveTolerance;
 window.toggleFertility = toggleFertility;
+window.saveAutoFillDays = saveAutoFillDays;
+window.dismissAutoFillBanner = dismissAutoFillBanner;
 window.showHistoryFullPage = showHistoryFullPage;
 window.showChangePinModal = showChangePinModal;
 window.exportToDrip = exportToDrip;
