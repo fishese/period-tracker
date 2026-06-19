@@ -989,6 +989,13 @@
               Zero data is sent to any server. No accounts. No analytics.
             </div>
             <button
+              id="btn-install-pwa"
+              class="apply-btn btn--install hidden"
+              onclick="triggerInstall()"
+            >
+              ⬇ Install App
+            </button>
+            <button
               class="apply-btn btn--change-pin"
               onclick="showChangePinModal()"
               data-i18n="settings_change_pin"

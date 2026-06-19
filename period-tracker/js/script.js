@@ -2966,6 +2966,32 @@ function switchAboutTab(tabId) {
   });
 }
 
+// ── PWA install prompt ───────────────────────────────────────────────────────
+let deferredInstallPrompt = null;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  const btn = document.getElementById("btn-install-pwa");
+  if (btn) btn.classList.remove("hidden");
+});
+
+window.addEventListener("appinstalled", () => {
+  deferredInstallPrompt = null;
+  const btn = document.getElementById("btn-install-pwa");
+  if (btn) btn.classList.add("hidden");
+});
+
+function triggerInstall() {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  deferredInstallPrompt.userChoice.then(() => {
+    deferredInstallPrompt = null;
+    const btn = document.getElementById("btn-install-pwa");
+    if (btn) btn.classList.add("hidden");
+  });
+}
+
 // Expose functions to window for HTML onclick handlers
 window.switchInsightTab = switchInsightTab;
 window.switchSettingsTab = switchSettingsTab;
@@ -2997,6 +3023,7 @@ window.dismissAutoFillBanner = dismissAutoFillBanner;
 window.showHistoryFullPage = showHistoryFullPage;
 window.showChangePinModal = showChangePinModal;
 window.exportToDrip = exportToDrip;
+window.triggerInstall = triggerInstall;
 window.exportData = exportData;
 window.importData = importData;
 window.confirmClear = confirmClear;
