@@ -1990,6 +1990,9 @@ body {
 /* ── Log panel sticky header: already defined above, properties merged ───────── */
 
 /* ── Auto-fill info banner ───────────────────────────────────────────────────── */
+.autofill-banner.hidden {
+  display: none;
+}
 .autofill-banner {
   position: fixed;
   bottom: calc(3.75rem + env(safe-area-inset-bottom, 0px) + 0.625rem);

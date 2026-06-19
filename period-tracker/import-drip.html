@@ -194,7 +194,7 @@
     window.pickCsv = function () {
       const input = document.createElement("input");
       input.type = "file";
-      input.accept = ".csv";
+      input.accept = ".csv,text/csv,text/comma-separated-values,text/plain";
       input.addEventListener("change", async (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
