@@ -26,10 +26,21 @@
     .back-link { color: var(--rose, #e5455e); text-decoration: none; font-size: 0.9rem; font-weight: 600; }
     .back-link:hover { text-decoration: underline; }
     .note { font-size: 0.8rem; color: var(--muted, #888); margin-top: 1rem; padding: 0.75rem; background: var(--bg); border-radius: 0.5rem; line-height: 1.5; }
+    .converter-link-block { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border, rgba(167,139,250,0.2)); }
+    .converter-link-label { font-size: 0.8rem; color: var(--text-muted, #c4b5fd); margin-bottom: 0.5rem; }
+    .converter-link-btn {
+      display: block; width: 100%; text-align: center; text-decoration: none;
+      background: rgba(167,139,250,0.1); color: var(--lavender, #a78bfa);
+      border: 1px solid rgba(167,139,250,0.3); border-radius: 0.75rem;
+      padding: 0.75rem 1rem; font-size: 0.9rem; font-weight: 600;
+      transition: all 0.15s;
+    }
+    .converter-link-btn:hover { background: rgba(167,139,250,0.2); border-color: rgba(167,139,250,0.5); }
   </style>
 </head>
 <body>
   <div class="tool-card">
+    <a href="index.html" class="back-link" style="display:inline-block;margin-bottom:1rem">← Back to Your Cycle Keeper</a>
 
     <!-- Step 1: Pick CSV -->
     <div id="s-csv" class="screen active">
@@ -37,6 +48,10 @@
       <p>One-time migration tool. Select your drip CSV export to bring your cycle history into Your Cycle Keeper.</p>
       <p><strong>Before you start:</strong> Make sure you have already opened Your Cycle Keeper and created a PIN. Then in drip, go to Menu → Export Data → Export as CSV.</p>
       <button class="apply-btn" onclick="pickCsv()" style="margin-top:0.5rem">Choose drip CSV file</button>
+      <div class="converter-link-block">
+        <p class="converter-link-label">Using My Calendar instead of drip?</p>
+        <a href="mycalendar-to-drip.html" class="converter-link-btn">Convert My Calendar to drip →</a>
+      </div>
     </div>
 
     <!-- Step 2: Enter PIN -->

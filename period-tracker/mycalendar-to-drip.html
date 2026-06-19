@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Calendar → drip Converter — Your Cycle Keeper</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 2rem 1rem 3rem;
+  }
+  .wrap { max-width: 560px; width: 100%; }
+
+  .page-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+    margin-bottom: 1.25rem;
+  }
+  .page-back:hover { color: var(--text); }
+
+  h1 { font-size: 1.35rem; margin: 0 0 0.35rem; color: var(--text); }
+  .sub { color: var(--text-muted); font-size: 0.875rem; margin: 0 0 1.5rem; line-height: 1.55; }
+
+  .step-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    padding: 1.25rem 1.25rem 1.375rem;
+    margin-bottom: 1rem;
+  }
+  .step-card h2 {
+    font-size: 0.975rem;
+    margin: 0 0 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text);
+  }
+  .step-badge {
+    background: linear-gradient(135deg, var(--rose), #c82050);
+    color: #fff;
+    width: 1.375rem;
+    height: 1.375rem;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .field-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 0.375rem;
+  }
+  .hint {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    margin: 0.375rem 0 0;
+    line-height: 1.5;
+  }
+  .hint code {
+    background: rgba(167,139,250,0.15);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 0.82em;
+    color: var(--lavender);
+  }
+
+  textarea, input[type=text] {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 0.625rem;
+    padding: 0.75rem 0.875rem;
+    font-size: 0.875rem;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+    resize: vertical;
+  }
+  textarea { min-height: 120px; }
+  input[type=text] { font-family: inherit; }
+  textarea:focus, input[type=text]:focus { border-color: rgba(230,35,59,0.5); }
+  input[type=file] { font-size: 0.875rem; color: var(--text-muted); }
+
+  .pattern-input-row { margin-top: 0.75rem; }
+
+  .preset-btns {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.75rem;
+  }
+  .preset-btn {
+    background: rgba(167,139,250,0.12);
+    color: var(--lavender);
+    border: 1px solid rgba(167,139,250,0.3);
+    border-radius: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .preset-btn:hover {
+    background: rgba(167,139,250,0.22);
+    border-color: rgba(167,139,250,0.5);
+  }
+
+  .pattern-preview {
+    display: flex;
+    gap: 0.375rem;
+    flex-wrap: wrap;
+    margin-top: 0.75rem;
+  }
+  .chip {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 1.25rem;
+    font-weight: 600;
+    color: #fff;
+  }
+  .chip-light  { background: rgba(230,35,59,0.35); color: var(--rose-pale, #ffe8ee); }
+  .chip-medium { background: rgba(230,35,59,0.65); }
+  .chip-heavy  { background: var(--rose); }
+  .chip-err    { background: rgba(230,35,59,0.8); }
+
+  .actions {
+    display: flex;
+    gap: 0.625rem;
+    flex-wrap: wrap;
+    margin-top: 0.25rem;
+  }
+  .actions .apply-btn { flex: 1; min-width: 140px; }
+  .btn-outline {
+    flex: 1;
+    min-width: 120px;
+    background: transparent;
+    color: var(--rose-light, #ff5a6e);
+    border: 1px solid var(--rose);
+    border-radius: 0.875rem;
+    padding: 0.8125rem;
+    font-family: inherit;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-outline:hover { background: rgba(230,35,59,0.1); }
+  .btn-outline:active { transform: scale(0.97); }
+  .btn-outline:disabled { opacity: 0.4; cursor: not-allowed; }
+  .apply-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .msg {
+    font-size: 0.85rem;
+    margin-top: 0.75rem;
+    padding: 0.625rem 0.875rem;
+    border-radius: 0.625rem;
+    display: none;
+    line-height: 1.5;
+  }
+  .msg.ok  { background: rgba(52,211,153,0.12); color: var(--success, #34d399); display: block; }
+  .msg.err { background: rgba(230,35,59,0.12);  color: var(--danger, #e6233b);  display: block; }
+
+  details { margin-top: 0.875rem; }
+  summary {
+    cursor: pointer;
+    color: var(--lavender);
+    font-size: 0.85rem;
+    user-select: none;
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.82rem;
+    margin-top: 0.625rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.375rem 0.625rem;
+    border-bottom: 1px solid var(--border);
+  }
+  th { color: var(--text-muted); font-weight: 600; }
+  td { color: var(--text); }
+
+  .dot {
+    display: inline-block;
+    width: 0.625rem;
+    height: 0.625rem;
+    border-radius: 50%;
+    margin-right: 0.375rem;
+    vertical-align: middle;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="import-drip.html" class="page-back">← Back to Import</a>
+
+  <h1>My Calendar → drip Converter</h1>
+  <p class="sub">Convert a <strong>My Calendar</strong> period export into a <strong>drip</strong>-compatible CSV. Only period days get a bleeding value (1 = light, 2 = medium, 3 = heavy).</p>
+
+  <div class="step-card">
+    <h2><span class="step-badge">1</span> Load your My Calendar export</h2>
+    <label class="field-label">Upload file (.txt / .csv)</label>
+    <input type="file" id="fileInput" accept=".txt,.csv,text/plain">
+    <p class="hint">Or paste the contents below. Each line should look like <code>Mar 4, 2014&nbsp;&nbsp;Period Starts</code></p>
+    <textarea id="inputText" placeholder="Mar 4, 2014&#9;Period Starts&#10;Mar 9, 2014&#9;Period Ends&#10;..." style="margin-top:0.625rem"></textarea>
+  </div>
+
+  <div class="step-card">
+    <h2><span class="step-badge">2</span> Set the bleed pattern</h2>
+    <div class="pattern-input-row">
+      <label class="field-label" for="patternInput">Pattern for every cycle</label>
+      <input type="text" id="patternInput" value="2,3,3,1">
+      <p class="hint">Comma-separated values (1 = light, 2 = medium, 3 = heavy), one per day from the start of each period. If a period lasts longer than the pattern, the last value repeats.</p>
+    </div>
+    <div class="preset-btns">
+      <button type="button" class="preset-btn" data-preset="2,3,3,1">Default (2,3,3,1)</button>
+      <button type="button" class="preset-btn" data-preset="1,2,3,2,1">Build &amp; taper</button>
+      <button type="button" class="preset-btn" data-preset="2">All medium</button>
+      <button type="button" class="preset-btn" data-preset="3">All heavy</button>
+    </div>
+    <div class="pattern-preview" id="patternPreview"></div>
+  </div>
+
+  <div class="step-card">
+    <h2><span class="step-badge">3</span> Convert</h2>
+    <div class="actions">
+      <button id="convertBtn" class="apply-btn">Convert →</button>
+      <button id="downloadBtn" class="btn-outline" disabled>Download drip CSV</button>
+      <button id="copyBtn" class="btn-outline" disabled>Copy CSV</button>
+    </div>
+    <div class="msg" id="msg"></div>
+    <div id="resultArea"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // drip export column order (must match drip's import format exactly)
+  var HEADER = ["date","temperature.value","temperature.exclude","temperature.time","temperature.note","bleeding.value","bleeding.exclude","mucus.feeling","mucus.texture","mucus.value","mucus.exclude","cervix.opening","cervix.firmness","cervix.position","cervix.exclude","note.value","desire.value","sex.solo","sex.partner","sex.condom","sex.pill","sex.iud","sex.patch","sex.ring","sex.implant","sex.diaphragm","sex.none","sex.other","sex.note","pain.cramps","pain.ovulationPain","pain.headache","pain.backache","pain.nausea","pain.tenderBreasts","pain.migraine","pain.other","pain.note","mood.happy","mood.sad","mood.stressed","mood.balanced","mood.fine","mood.anxious","mood.energetic","mood.fatigue","mood.angry","mood.other","mood.note"];
+
+  var MONTHS = {jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+  var LABELS = {1:"Light",2:"Medium",3:"Heavy"};
+
+  var $ = function (id) { return document.getElementById(id); };
+  var lastCSV = "";
+
+  function pad(n) { return n < 10 ? "0" + n : "" + n; }
+  function toISO(d) { return d.getUTCFullYear() + "-" + pad(d.getUTCMonth() + 1) + "-" + pad(d.getUTCDate()); }
+
+  function parseMyCalDate(str) {
+    var m = str.trim().match(/^([A-Za-z]+)\.?\s+(\d{1,2}),?\s+(\d{4})$/);
+    if (m) {
+      var mon = MONTHS[m[1].slice(0, 3).toLowerCase()];
+      if (mon === undefined) return null;
+      return new Date(Date.UTC(parseInt(m[3], 10), mon, parseInt(m[2], 10)));
+    }
+    var iso = str.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (iso) return new Date(Date.UTC(+iso[1], +iso[2] - 1, +iso[3]));
+    return null;
+  }
+
+  function parsePeriods(text) {
+    var lines = text.split(/\r?\n/);
+    var events = [];
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if (!line) continue;
+      var typeMatch = line.match(/Period\s+(Starts?|Ends?)/i);
+      if (!typeMatch) continue;
+      var dateStr = line.replace(/Period\s+(Starts?|Ends?)/i, "").replace(/\t/g, " ").trim();
+      dateStr = dateStr.replace(/[,\t]+$/, "").trim();
+      var d = parseMyCalDate(dateStr);
+      if (!d) continue;
+      var type = /start/i.test(typeMatch[1]) ? "start" : "end";
+      events.push({ date: d, type: type });
+    }
+    events.sort(function (a, b) { return a.date - b.date; });
+
+    var periods = [];
+    var openStart = null;
+    for (var j = 0; j < events.length; j++) {
+      var ev = events[j];
+      if (ev.type === "start") {
+        if (openStart) periods.push({ start: openStart, end: openStart });
+        openStart = ev.date;
+      } else {
+        if (openStart) {
+          periods.push({ start: openStart, end: ev.date });
+          openStart = null;
+        } else {
+          periods.push({ start: ev.date, end: ev.date });
+        }
+      }
+    }
+    if (openStart) periods.push({ start: openStart, end: openStart });
+    return periods;
+  }
+
+  function parsePattern(str) {
+    var vals = str.split(",").map(function (s) { return s.trim(); }).filter(function (s) { return s.length; });
+    if (!vals.length) return { error: "Pattern is empty." };
+    var out = [];
+    for (var i = 0; i < vals.length; i++) {
+      var n = parseInt(vals[i], 10);
+      if (isNaN(n) || n < 1 || n > 3 || String(n) !== vals[i]) {
+        return { error: "Pattern values must be 1, 2 or 3. Got \"" + vals[i] + "\"." };
+      }
+      out.push(n);
+    }
+    return { pattern: out };
+  }
+
+  function buildDays(periods, pattern) {
+    var days = [];
+    for (var i = 0; i < periods.length; i++) {
+      var p = periods[i];
+      var cur = new Date(p.start.getTime());
+      var offset = 0;
+      var endTime = p.end.getTime();
+      if (endTime < p.start.getTime()) endTime = p.start.getTime();
+      while (cur.getTime() <= endTime) {
+        var val = pattern[Math.min(offset, pattern.length - 1)];
+        days.push({ date: toISO(cur), value: val, periodIndex: i });
+        cur.setUTCDate(cur.getUTCDate() + 1);
+        offset++;
+        if (offset > 60) break;
+      }
+    }
+    return days;
+  }
+
+  function buildCSV(days) {
+    var sorted = days.slice().sort(function (a, b) { return a.date < b.date ? 1 : a.date > b.date ? -1 : 0; });
+    var blankCols = HEADER.length;
+    var rows = [HEADER.join(",")];
+    for (var i = 0; i < sorted.length; i++) {
+      var arr = new Array(blankCols).fill("");
+      arr[0] = sorted[i].date;
+      arr[5] = String(sorted[i].value);
+      arr[6] = "false";
+      rows.push(arr.join(","));
+    }
+    return rows.join("\n");
+  }
+
+  function chipClass(v) { return v === 1 ? "chip chip-light" : v === 2 ? "chip chip-medium" : "chip chip-heavy"; }
+
+  function renderPatternPreview() {
+    var res = parsePattern($("patternInput").value);
+    var box = $("patternPreview");
+    box.innerHTML = "";
+    if (res.error) {
+      var e = document.createElement("span");
+      e.className = "chip chip-err"; e.textContent = res.error;
+      box.appendChild(e);
+      return;
+    }
+    res.pattern.forEach(function (v, i) {
+      var c = document.createElement("span");
+      c.className = chipClass(v);
+      c.textContent = "Day " + (i + 1) + ": " + LABELS[v];
+      box.appendChild(c);
+    });
+    var last = res.pattern[res.pattern.length - 1];
+    var more = document.createElement("span");
+    more.className = chipClass(last);
+    more.textContent = "Day " + (res.pattern.length + 1) + "+: " + LABELS[last] + " (repeats)";
+    box.appendChild(more);
+  }
+
+  function showMsg(text, ok) {
+    var m = $("msg");
+    m.textContent = text;
+    m.className = "msg " + (ok ? "ok" : "err");
+  }
+
+  function renderResult(days, periods) {
+    var area = $("resultArea");
+    if (!days.length) { area.innerHTML = ""; return; }
+    var html = '<details open><summary>Preview (' + days.length + ' period days across ' + periods.length + ' cycles)</summary>';
+    html += '<table><thead><tr><th>Date</th><th>bleeding.value</th><th>Intensity</th></tr></thead><tbody>';
+    var sorted = days.slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; });
+    var DOT_COLOR = { 1: "rgba(230,35,59,0.4)", 2: "rgba(230,35,59,0.7)", 3: "var(--rose)" };
+    for (var i = 0; i < sorted.length; i++) {
+      var d = sorted[i];
+      html += '<tr><td>' + d.date + '</td><td>' + d.value + '</td><td><span class="dot" style="background:' + DOT_COLOR[d.value] + '"></span>' + LABELS[d.value] + '</td></tr>';
+    }
+    html += '</tbody></table></details>';
+    area.innerHTML = html;
+  }
+
+  function convert() {
+    var text = $("inputText").value;
+    if (!text.trim()) { showMsg("Please upload or paste your My Calendar data first.", false); return; }
+    var pat = parsePattern($("patternInput").value);
+    if (pat.error) { showMsg(pat.error, false); return; }
+
+    var periods = parsePeriods(text);
+    if (!periods.length) {
+      showMsg("No periods found. Each line needs a date and \"Period Starts\" or \"Period Ends\".", false);
+      $("downloadBtn").disabled = true; $("copyBtn").disabled = true;
+      $("resultArea").innerHTML = "";
+      return;
+    }
+    var days = buildDays(periods, pat.pattern);
+    lastCSV = buildCSV(days);
+    $("downloadBtn").disabled = false;
+    $("copyBtn").disabled = false;
+    showMsg("Converted " + periods.length + " cycles into " + days.length + " period days. Ready to download.", true);
+    renderResult(days, periods);
+  }
+
+  function download() {
+    if (!lastCSV) return;
+    var blob = new Blob([lastCSV], { type: "text/csv" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "drip-data.csv";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function copy() {
+    if (!lastCSV) return;
+    navigator.clipboard.writeText(lastCSV).then(function () {
+      showMsg("CSV copied to clipboard.", true);
+    }, function () {
+      showMsg("Could not copy automatically — use Download instead.", false);
+    });
+  }
+
+  $("fileInput").addEventListener("change", function (e) {
+    var f = e.target.files[0];
+    if (!f) return;
+    var reader = new FileReader();
+    reader.onload = function (ev) { $("inputText").value = ev.target.result; showMsg("Loaded \"" + f.name + "\". Click Convert.", true); };
+    reader.readAsText(f);
+  });
+  $("convertBtn").addEventListener("click", convert);
+  $("downloadBtn").addEventListener("click", download);
+  $("copyBtn").addEventListener("click", copy);
+  $("patternInput").addEventListener("input", renderPatternPreview);
+  Array.prototype.forEach.call(document.querySelectorAll(".preset-btn"), function (btn) {
+    btn.addEventListener("click", function () { $("patternInput").value = btn.getAttribute("data-preset"); renderPatternPreview(); });
+  });
+
+  renderPatternPreview();
+})();
+</script>
+</body>
+</html>
