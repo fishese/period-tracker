@@ -34,12 +34,12 @@
   --bg3: #d8d8d5;
   --card: #ffffff;
   --text: #1a1a1a;
-  --text-muted: #6b7280;
-  --border: rgba(0, 0, 0, 0.1);
+  --text-muted: #4b5563;
+  --border: rgba(0, 0, 0, 0.18);
   --rose: #374151;
   --rose-light: #4b5563;
   --rose-pale: #f3f4f6;
-  --lavender: #1a1a1a;
+  --lavender: #374151;
   --deep-purple: #374151;
   --amber: #92400e;
   --coral: #b45309;
@@ -73,27 +73,27 @@
   --status-card-bg: linear-gradient(135deg, #1f2937 0%, #111827 100%);
 }
 
-/* ── Kawaii 🌸 ──────────────────────────────────────────────────────────────── */
+/* ── Pink Power 🌸 ──────────────────────────────────────────────────────────── */
 [data-theme="kawaii"] {
   --bg: #fff0f7;
   --bg2: #ffe4f0;
   --bg3: #ffd6e8;
   --card: #fff8fc;
   --text: #3d1040;
-  --text-muted: #a855f7;
-  --border: rgba(244, 63, 142, 0.25);
-  --rose: #f43f8e;
-  --rose-light: #fb7185;
+  --text-muted: #7e22ce;
+  --border: rgba(244, 63, 142, 0.3);
+  --rose: #db2777;
+  --rose-light: #ec4899;
   --rose-pale: #ffe4f0;
-  --lavender: #c084fc;
+  --lavender: #9333ea;
   --deep-purple: #7c3aed;
-  --amber: #f9a8d4;
-  --coral: #fb7185;
-  --fertile-green: #86efac;
-  --ovulation: #fde68a;
-  --teal: #67e8f9;
-  --danger: #f43f8e;
-  --success: #86efac;
+  --amber: #be185d;
+  --coral: #ec4899;
+  --fertile-green: #15803d;
+  --ovulation: #d97706;
+  --teal: #0891b2;
+  --danger: #db2777;
+  --success: #15803d;
   --status-card-bg: linear-gradient(135deg, #ffd6e8 0%, #fff0f7 100%);
 }
 
@@ -1621,21 +1621,11 @@ body {
 }
 
 /* Legend Dot Colors */
-.legend-dot--rose {
-  background: var(--rose);
-}
-
-.legend-dot--fertile {
-  background: var(--fertile-green);
-}
-
-.legend-dot--ovulation {
-  background: var(--ovulation);
-}
-
-.legend-dot--lavender {
-  background: var(--lavender);
-}
+/* Legend dots are hardcoded to match the cycle bar's hardcoded gradients */
+.legend-dot--rose     { background: #FF3D6B; }
+.legend-dot--fertile  { background: #34D399; }
+.legend-dot--ovulation{ background: #F59E0B; }
+.legend-dot--lavender { background: #A78BFA; }
 
 /* Calendar Empty State */
 .calendar-empty-text {
@@ -2058,8 +2048,14 @@ body {
 .theme-swatch__name {
   font-size: 0.78rem;
   font-weight: 600;
+  /* default; overridden per swatch below so text is always legible */
   color: var(--text);
 }
+/* Hardcoded text colours so each swatch reads correctly in any active theme */
+.ts-default-bg .theme-swatch__name { color: #f9f0ff; }
+.ts-dark-bg    .theme-swatch__name { color: #f9fafb; }
+.ts-light-bg   .theme-swatch__name { color: #1a1a1a; }
+.ts-kawaii-bg  .theme-swatch__name { color: #3d1040; }
 
 /* Swatch palette colours (hard-coded so they look right in any active theme) */
 .ts-default  { background: #120818; }
