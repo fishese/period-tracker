@@ -432,19 +432,6 @@ function setupPinDelete() {
 }
 
 async function startApp() {
-  const lp = document.getElementById("ob-last-period").value;
-  const cl = parseInt(document.getElementById("ob-cycle-len").value);
-  const pd = parseInt(document.getElementById("ob-period-dur").value);
-  if (!lp) {
-    showModal({
-      icon: "📅",
-      title: t("missing_date_title"),
-      msg: t("missing_date_msg"),
-      cancelText: "",
-      confirmText: t("ok"),
-    });
-    return;
-  }
   if (setupPin.length < 4) {
     showModal({
       icon: "🔢",
@@ -457,10 +444,7 @@ async function startApp() {
   }
 
   try {
-    state.lastPeriodStart = lp;
-    state.cycleLength = cl || 28;
-    state.periodDuration = pd || 5;
-    state.cycleHistory = [{ start: lp, length: cl || 28 }];
+    // state stays at defaults — user will build their history by logging periods
     sessionPin = setupPin;
 
     const salt = await getOrCreateSalt();
@@ -1036,6 +1020,14 @@ function updateStatusCard() {
   const info = getCycleInfo();
   const emptyHint = document.getElementById("status-empty-hint");
   if (!info) {
+    safeText("status-phase-text", "");
+    safeText("status-title", "");
+    safeText("status-subtitle", "");
+    safeText("cycle-day", "—");
+    safeText("days-until-next", "—");
+    safeText("cycle-len-disp", "—");
+    const reminderBanner = document.getElementById("reminder-banner");
+    if (reminderBanner) reminderBanner.style.display = "none";
     if (emptyHint) {
       emptyHint.textContent = t("status_no_data_hint");
       emptyHint.classList.remove("hidden");
@@ -2809,11 +2801,6 @@ async function init() {
         "Service Worker skipped (running on file:// protocol - use http:// or https:// for production)"
       );
     }
-
-    // Set sensible default date in onboarding
-    document.getElementById("ob-last-period").value = toISO(
-      addDays(new Date(), -14)
-    );
 
     if (hasData && hasSalt && hasPinHash) {
       // Returning user: show lock screen

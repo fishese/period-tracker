@@ -353,7 +353,7 @@ const LOCALES = {
     // Toast messages
     settings_saved_toast: "Settings saved",
     status_no_data_hint:
-      "Set your last period date in Settings to get cycle predictions.",
+      "Start recording your period to see statistics.",
 
     // Storage full error
     storage_full_title: "Storage Full",
@@ -649,7 +649,7 @@ const LOCALES = {
     // Toast messages
     settings_saved_toast: "Настройки сохранены",
     status_no_data_hint:
-      "Укажите дату последней менструации в настройках для получения прогнозов.",
+      "Начните записывать менструацию, чтобы увидеть статистику.",
 
     // Storage full error
     storage_full_title: "Хранилище заполнено",
@@ -887,7 +887,7 @@ const LOCALES = {
     // Toast messages
     settings_saved_toast: "Налады захаваны",
     status_no_data_hint:
-      "Усталюйце дату апошняй менструацыі ў налатах для атрымання прагнозаў.",
+      "Пачніце запісваць цыкл, каб убачыць статыстыку.",
 
     // Storage full error
     storage_full_title: "Сховішча запоўнена",
@@ -1158,7 +1158,7 @@ const LOCALES = {
     // Toast messages
     settings_saved_toast: "Ajustes guardados",
     status_no_data_hint:
-      "Configura la fecha de tu último período en Ajustes para obtener predicciones.",
+      "Empieza a registrar tu período para ver estadísticas.",
 
     // Storage full error
     storage_full_title: "Almacenamiento lleno",
@@ -1480,7 +1480,7 @@ const LOCALES = {
 
     settings_saved_toast: "設定が保存されました",
     status_no_data_hint:
-      "設定で最後の生理日を入力すると、周期予測が表示されます。",
+      "生理を記録すると統計が表示されます。",
 
     storage_full_title: "ストレージ満杯",
     storage_full_msg:
@@ -1800,7 +1800,7 @@ const LOCALES = {
 
     settings_saved_toast: "設定已儲存",
     status_no_data_hint:
-      "在設定中設定上次生理期日期以獲取週期預測。",
+      "開始記錄生理期以顯示統計資料。",
 
     storage_full_title: "儲存空間已滿",
     storage_full_msg:
