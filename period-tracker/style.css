@@ -1864,6 +1864,9 @@ body {
 }
 
 .btn--import-drip {
+  display: block;
+  text-align: center;
+  text-decoration: none;
   background: transparent;
   color: var(--rose);
   border: 2px solid var(--rose);
