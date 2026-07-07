@@ -102,9 +102,14 @@ let state = {
   periodDuration: 5,
   toleranceDays: null,
   autoFillDays: null,
+  showFertility: false,
   logs: {},
   cycleHistory: [],
 };
+
+function isFertilityVisible() {
+  return state.showFertility === true;
+}
 
 // Initialize modular state references
 setCyclesState(state);
@@ -325,6 +330,7 @@ function lockApp() {
     periodDuration: 5,
     toleranceDays: null,
     autoFillDays: null,
+    showFertility: false,
     logs: {},
     cycleHistory: [],
   };
@@ -385,6 +391,7 @@ async function _executeForgotPinReset() {
       periodDuration: 5,
       toleranceDays: null,
       autoFillDays: null,
+      showFertility: false,
       logs: {},
       cycleHistory: [],
     };
@@ -1156,6 +1163,33 @@ function showMoodModal() {
   }, 0);
 }
 
+function getStatusPhaseLabel(info) {
+  let phase = info.phase;
+  if (
+    !isFertilityVisible() &&
+    (phase === "Fertile Window" || phase === "Ovulation Day")
+  ) {
+    phase = info.cycleDay <= info.ovulationDay ? "Follicular" : "Luteal";
+  }
+
+  const phaseNum = {
+    Menstruation: 1,
+    Follicular: 2,
+    "Fertile Window": 3,
+    "Ovulation Day": 3,
+    Luteal: 4,
+  }[phase] ?? "—";
+  const phaseNameKey = {
+    Menstruation: "period_short",
+    Follicular: "follicular",
+    "Fertile Window": "fertile",
+    "Ovulation Day": "ovulation_short",
+    Luteal: "luteal",
+  }[phase] || "luteal";
+
+  return { phaseNum, phaseNameKey };
+}
+
 function updateStatusCard() {
   const info = getCycleInfo();
   const emptyHint = document.getElementById("status-empty-hint");
@@ -1211,15 +1245,7 @@ function updateStatusCard() {
       t("status_cycle_day_of", { day: info.cycleDay, total: info.cl })
     );
 
-    // Phase number + name
-    const phaseNum = { Menstruation: 1, Follicular: 2, "Fertile Window": 3, "Ovulation Day": 3, Luteal: 4 }[info.phase] ?? "—";
-    const phaseNameKey = {
-      Menstruation: "period_short",
-      Follicular: "follicular",
-      "Fertile Window": "fertile",
-      "Ovulation Day": "ovulation_short",
-      Luteal: "luteal",
-    }[info.phase] || "luteal";
+    const { phaseNum, phaseNameKey } = getStatusPhaseLabel(info);
 
     const predictedDate = info.nextPeriod.toLocaleDateString(getLanguage(), { month: "long", day: "numeric" });
     let periodMsg;
@@ -2205,8 +2231,8 @@ function renderCalendar() {
     let cls = "cal-day";
     if (dayType === "period") cls += " period";
     else if (dayType === "predicted-period") cls += " predicted-period";
-    else if (dayType === "ovulation" && state.showFertility !== false) cls += " ovulation";
-    else if (dayType === "fertile" && state.showFertility !== false) cls += " fertile";
+    else if (dayType === "ovulation" && isFertilityVisible()) cls += " ovulation";
+    else if (dayType === "fertile" && isFertilityVisible()) cls += " fertile";
     if (dateStr === todayStr) cls += " today";
     if (dateStr === selectedDate) cls += " selected-log";
     if (state.logs[dateStr]) cls += " has-log";
@@ -2220,9 +2246,9 @@ function renderCalendar() {
       `${d}, ${
         dayType === "period"
           ? t("calendar_day_period")
-          : dayType === "ovulation"
+          : dayType === "ovulation" && isFertilityVisible()
           ? t("calendar_day_ovulation")
-          : dayType === "fertile"
+          : dayType === "fertile" && isFertilityVisible()
           ? t("calendar_day_fertile")
           : dayType === "predicted-period"
           ? t("calendar_day_period_possible")
@@ -2238,13 +2264,6 @@ function renderCalendar() {
     });
     grid.appendChild(cell);
   }
-
-  // Sync legend visibility with fertility toggle
-  const showFertility = state.showFertility !== false;
-  const fertileLegend = document.querySelector(".legend-dot--fertile")?.closest(".legend-item");
-  const ovulationLegend = document.querySelector(".legend-dot--ovulation")?.closest(".legend-item");
-  if (fertileLegend) fertileLegend.style.display = showFertility ? "" : "none";
-  if (ovulationLegend) ovulationLegend.style.display = showFertility ? "" : "none";
 }
 
 function changeMonth(dir) {
@@ -2470,7 +2489,7 @@ function loadSettingsFields() {
   if (tolInput) tolInput.value = state.toleranceDays != null ? state.toleranceDays : "";
 
   const cbFertility = document.getElementById("s-show-fertility");
-  if (cbFertility) cbFertility.checked = state.showFertility !== false;
+  if (cbFertility) cbFertility.checked = isFertilityVisible();
 
   const afInput = document.getElementById("s-autofill-days");
   if (afInput) {
@@ -2489,6 +2508,7 @@ function toggleFertility() {
   state.showFertility = cb.checked;
   save();
   renderCalendar();
+  updateStatusCard();
 }
 
 async function saveAutoFillDays() {
