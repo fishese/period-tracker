@@ -41,13 +41,13 @@ const LOCALES = {
     privacy_info:
       "My Cycle Keeper collects zero data. This app: Stores all data locally on your device only; Has no servers, no accounts, no cloud storage; Has no analytics, no tracking, no telemetry; Has no ads, no third-party code; Never transmits any data anywhere; Is encrypted with your PIN via AES-256-GCM. Your health data is yours alone.",
 
-    about_title: "About Your Cycle Keeper",
+    about_title: "About My Cycle Keeper",
     about_info:
-      "Your Cycle Keeper is free software built with care for privacy. Based on the Calendar Rhythm Method and Standard Days Method for cycle estimation. For informational purposes only. Version: 1.0.0-beta. License: GPL v3 License. Developer: pythonime-lab. Found a bug or have a suggestion? Visit our GitHub repository.",
+      "My Cycle Keeper is a personal fork of Your Cycle Keeper, the open-source period tracker by pythonime-lab. Based on the Calendar Rhythm Method and Standard Days Method for cycle estimation. For informational purposes only. Version: 1.0.0-beta. License: GPL v3 License.",
 
     support_title: "Support Development",
     support_info:
-      "Your Cycle Keeper — the original app this fork is based on — is free forever with no ads, no tracking, and no data collection. If you find it helpful, consider supporting the original developer! Your support helps keep the project maintained and ad-free. Thank you! 💜",
+      "This app is a fork of Your Cycle Keeper by pythonime-lab, which is free forever with no ads, no tracking, and no data collection. If you find it helpful, consider supporting the original developer!",
 
     disclaimer_title: "Medical Disclaimer",
     disclaimer_info:
@@ -59,6 +59,8 @@ const LOCALES = {
 
     cycle_stats: "Cycle Stats",
     avg_length: "Avg Length",
+    avg_length_rolling: "6-Mo Avg",
+    avg_length_overall: "All-Time Avg",
     cycles_logged: "Cycles Logged",
     avg_period: "Avg Period",
     fertile_days: "Fertile Days",
@@ -70,7 +72,7 @@ const LOCALES = {
     mood: "Mood",
     how_it_works: "How it Works",
     how_it_works_p1:
-      "My Cycle Keeper estimates your fertile window by tracking cycle patterns. Ovulation is estimated ~14 days before your next period. Fertile days are calculated as day 8 through (cycle length − 11).",
+      "My Cycle Keeper estimates your fertile window by tracking cycle patterns. Predictions use a rolling 6-month average of your logged cycles. Cycles that differ from this average by more than 3 days are flagged. If your shortest and longest cycles in that window differ by more than 7 days (or more than 9 days, which may indicate irregular cycles per Cleveland Clinic guidance), you'll see a variability notice. Ovulation is estimated ~14 days before your next period. Fertile days are calculated as day 8 through (cycle length − 11).",
     how_it_works_p2:
       "For regular 28-day cycles, this means days 8–17 are typically fertile, with ovulation around day 14.",
     disclaimer: "Disclaimer",
@@ -167,6 +169,10 @@ const LOCALES = {
     status_period_today: "Your period is expected today",
     status_period_soon_date: "May start today or around {date}",
     status_period_in_date: "Next period expected around {date}",
+    status_period_late_one: "Your period is 1 day late",
+    status_period_late_many: "Your period is {n} days late",
+    status_period_expected_on:
+      "Based on past records, your period was expected to begin on {date}",
 
     // Status card
     now: "Now",
@@ -264,13 +270,32 @@ const LOCALES = {
     stat_regularity: "Regularity",
     stat_regular: "Regular",
     stat_variable: "Variable",
+    stat_rolling_title: "Last 6 Months",
+    stat_rolling_hint: "Used for predictions",
+    stat_overall_title: "All Time",
+    stat_cycles_count: "Cycles",
+    cycle_shift_longer:
+      "Last cycle was {days} days longer than your 6-month average",
+    cycle_shift_shorter:
+      "Last cycle was {days} days shorter than your 6-month average",
+    cycle_shift_tooltip: "{days} days from 6-month average",
+    cycle_spread_caution:
+      "Cycle length varies by {spread} days in the last 6 months ({min}–{max}d). Slight variation is normal.",
+    cycle_spread_irregular:
+      "Cycle length varies by {spread} days in the last 6 months ({min}–{max}d). Changes of more than 9 days between cycles may be irregular.",
+    cycle_spread_caution_short: "Variable cycles: {spread}d spread (last 6 months)",
+    cycle_spread_irregular_short: "Irregular pattern: {spread}d spread (last 6 months)",
+    history_current: "In progress",
+    legend_shifted: "Shifted (>3d from 6-mo avg)",
 
     // Phase badge labels (short, uppercase-safe)
     follicular: "Follicular",
 
     // Auto-fill setting
     settings_autofill_label: "Auto-fill period days",
-    settings_autofill_hint: "Days to auto-fill with light flow after the first day of a new period. Set to 0 to disable.",
+    settings_autofill_hint:
+      "Leave blank for auto (avg period length from your last 6 months of logs). Set to 0 to disable.",
+    settings_autofill_auto: "auto",
     autofill_banner_msg_one: "Auto-filled {n} day ahead with light flow.",
     autofill_banner_msg_many: "Auto-filled {n} days ahead with light flow.",
     autofill_banner_settings: "Adjust in Settings",
@@ -320,6 +345,13 @@ const LOCALES = {
 
     // drip CSV import flow
     drip_import_title: "Import from drip",
+    drip_import_panel_intro:
+      "Import cycle history from a drip-compatible CSV file. In drip, go to Menu → Export Data → Export as CSV.",
+    drip_import_panel_before:
+      "You can also convert data from other apps first — see the converter tool below.",
+    drip_import_choose_csv: "Choose CSV file",
+    drip_import_mycalendar_label: "Using My Calendar instead of drip?",
+    drip_import_mycalendar_link: "Convert My Calendar to drip →",
     drip_import_found: "Found {days} days of data including {periods} flow days. How would you like to import?",
     drip_import_merge: "Merge (keep my data)",
     drip_import_replace: "Replace (use drip data)",
@@ -343,6 +375,11 @@ const LOCALES = {
     ob_last_period: "First day of your last period",
     ob_cycle_len: "Average cycle length (days)",
     ob_period_dur: "Average period duration (days)",
+    ob_setup_title: "Set up your cycle",
+    ob_setup_hint:
+      "Add your last period for immediate predictions, or import existing data. You can also skip the date and start logging.",
+    ob_continue_btn: "Continue →",
+    ob_back_btn: "← Back",
     pin_setup_title: "🔒 Set a 4-digit PIN",
     pin_setup_sub_1: "Your PIN encrypts all data locally.",
     pin_setup_sub_2: "My Cycle Keeper never sends data anywhere.",
@@ -392,6 +429,8 @@ const LOCALES = {
     legend_short: "Short (<26d)",
     legend_normal: "Normal (26–32d)",
     legend_long: "Long (>32d)",
+    legend_shifted: "Shifted (>3d from 6-mo avg)",
+    history_current: "In progress",
 
     // Hardcoded HTML sections
     flow_question: "What's your flow today? 🌊",
@@ -400,12 +439,12 @@ const LOCALES = {
     data_persistence:
       '⚠️ <strong>Data Persistence:</strong> Your data is stored in IndexedDB. Clearing browser cache is safe, but clearing "site data" or "cookies and site data" in your browser settings WILL erase all your cycle data. Always export a backup first!',
     about_info_html:
-      'Your Cycle Keeper is free software built with care for privacy. Based on the <strong>Calendar Rhythm Method</strong> and <strong>Standard Days Method</strong> for cycle estimation. For informational purposes only.<br><br><strong>Version:</strong> 1.0.0-beta<br><strong>License:</strong> GNU General Public License v3.0<br><strong>Developer:</strong> <a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">pythonime-lab</a><br><br>Found a bug or have a suggestion? Visit our <a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">GitHub repository</a>.',
+      '<strong>My Cycle Keeper</strong> is a personal fork of <a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">Your Cycle Keeper</a>, the open-source period tracker by <a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">pythonime-lab</a>. Based on the <strong>Calendar Rhythm Method</strong> and <strong>Standard Days Method</strong> for cycle estimation. For informational purposes only.<br><br><strong>Version:</strong> 1.0.0-beta<br><strong>License:</strong> GNU General Public License v3.0',
     support_info:
       "This app is a fork of <strong>Your Cycle Keeper</strong> by pythonime-lab, which is <strong>free forever</strong> with no ads, no tracking, and no data collection. If you find it helpful, consider supporting the original developer!",
     support_via: "Support via",
     support_footer:
-      "Your support helps keep this project maintained and ad-free for everyone. Thank you! 💜",
+      "Your support helps keep the original Your Cycle Keeper project maintained and ad-free. Thank you! 💜",
     privacy_info_html:
       "My Cycle Keeper collects <strong>zero data</strong>. This app:<br>&nbsp;• Stores all data locally on your device only<br>&nbsp;• Has no servers, no accounts, no cloud storage<br>&nbsp;• Has no analytics, no tracking, no telemetry<br>&nbsp;• Has no ads, no third-party code<br>&nbsp;• Never transmits any data anywhere<br>&nbsp;• Is encrypted with your PIN via AES-256-GCM<br><br>Your health data is yours alone.",
     disclaimer_info_html:

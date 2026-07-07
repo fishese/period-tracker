@@ -6,7 +6,7 @@
 
 "use strict";
 
-const DB_NAME = "yourcyclekeeper";
+const DB_NAME = "mycyclekeeper";
 const DB_VERSION = 1;
 const STORE_NAME = "appdata";
 

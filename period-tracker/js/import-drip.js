@@ -3,7 +3,7 @@
 // ─── Value converters ─────────────────────────────────────────────────────────
 
 // drip bleeding.value: 0=spotting, 1=light, 2=medium, 3=heavy
-// yourcyclekeeper flow:                      1=light,  2=medium, 3=heavy
+// My Cycle Keeper flow:                      1=light,  2=medium, 3=heavy
 function dripBleedingToFlow(value) {
   if (value === 0) return 1;
   if (value === 1) return 1;
@@ -12,7 +12,7 @@ function dripBleedingToFlow(value) {
   return null;
 }
 
-// drip pain: up to 8 boolean flags → yourcyclekeeper pain 1–10
+// drip pain: up to 8 boolean flags → My Cycle Keeper pain 1–10
 // More flags present = higher severity.
 function dripPainToPainValue(pain) {
   if (!pain) return null;
@@ -24,7 +24,7 @@ function dripPainToPainValue(pain) {
   return Math.min(10, Math.round(count * 1.3 + 1.5));
 }
 
-// drip mood: positive and negative boolean flags → yourcyclekeeper mood 0–100
+// drip mood: positive and negative boolean flags → My Cycle Keeper mood 0–100
 // Baseline 50; each positive flag +15, each negative flag -15.
 function dripMoodToMoodValue(mood) {
   if (!mood) return null;

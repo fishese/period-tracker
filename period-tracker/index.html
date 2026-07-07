@@ -215,7 +215,7 @@
         </div>
       </div>
       <div class="desktop column-right">
-        <div class="onboard-form">
+        <div class="onboard-form" id="onboard-step-pin">
           <div class="pin-setup-title">🔒 Set a 4-digit PIN</div>
             <div class="pin-setup-sub">
               Your PIN encrypts all data locally.
@@ -244,19 +244,75 @@
             </div>
             <button
               class="onboard-start"
-              id="onboard-start-btn"
-              onclick="startApp()"
+              id="onboard-continue-btn"
+              onclick="proceedToOnboardSetup()"
               disabled
+              data-i18n="ob_continue_btn"
             >
-              Start Tracking ✨
+              Continue →
             </button>
           </div>
           <p class="privacy-note">
             🔒 <span>AES-256-GCM encrypted.</span> Data never leaves your device. No
             accounts, no tracking, forever free.
           </p>
-          </div>
         </div>
+    </div>
+
+    <!-- Onboarding step 2: cycle setup panel (overlay) -->
+    <div
+      id="onboard-setup-overlay"
+      class="onboard-setup-overlay hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="ob-setup-title"
+    >
+      <div class="onboard-setup-panel">
+        <button
+          type="button"
+          class="onboard-setup-back"
+          onclick="backToOnboardPin()"
+          data-i18n="ob_back_btn"
+        >
+          ← Back
+        </button>
+        <div class="pin-setup-title" id="ob-setup-title" data-i18n="ob_setup_title">
+          Set up your cycle
+        </div>
+        <p class="onboard-setup-hint" data-i18n="ob_setup_hint">
+          Add your last period for immediate predictions, or import existing data. You can also skip the date and start logging.
+        </p>
+        <label for="ob-last-period" data-i18n="ob_last_period">First day of your last period</label>
+        <input type="date" id="ob-last-period" />
+        <label for="ob-cycle-len" data-i18n="ob_cycle_len">Average cycle length (days)</label>
+        <input type="number" id="ob-cycle-len" value="28" min="20" max="45" />
+        <label for="ob-period-dur" data-i18n="ob_period_dur">Average period duration (days)</label>
+        <input type="number" id="ob-period-dur" value="5" min="1" max="10" />
+        <button
+          class="onboard-start"
+          id="onboard-start-btn"
+          onclick="startApp()"
+          data-i18n="onboard_start_btn"
+        >
+          Start Tracking ✨
+        </button>
+        <button
+          type="button"
+          class="onboard-import-btn"
+          onclick="importDataOnboarding()"
+          data-i18n="settings_import"
+        >
+          Import Encrypted Backup
+        </button>
+        <button
+          type="button"
+          class="onboard-import-btn"
+          onclick="importDripCsvOnboarding()"
+          data-i18n="settings_import_drip"
+        >
+          Import from drip (CSV)
+        </button>
+      </div>
     </div>
 
     <!-- MAIN APP -->
@@ -389,6 +445,12 @@
             <div id="reminder-banner" class="reminder-banner">
               ⏰ <span id="reminder-text">Your period is expected soon</span>
             </div>
+            <div id="shift-banner" class="shift-banner">
+              ⚠️ <span id="shift-text"></span>
+            </div>
+            <div id="spread-banner" class="spread-banner">
+              📊 <span id="spread-text"></span>
+            </div>
             <div class="status-row">
               <div class="status-pill">
                 <div class="val" id="cycle-day">—</div>
@@ -400,7 +462,7 @@
               </div>
               <div class="status-pill">
                 <div class="val" id="cycle-len-disp">—</div>
-                <div class="lbl" data-i18n="avg_length_short">Avg Length</div>
+                <div class="lbl" data-i18n="avg_length_rolling">6-Mo Avg</div>
               </div>
             </div>
           </div>
@@ -534,12 +596,12 @@
           <h3 data-i18n="cycle_stats">Cycle Stats</h3>
           <div class="stat-grid">
             <div class="stat-box">
-              <div class="big stat-color--rose" id="avg-cycle">—</div>
-              <div class="sm" data-i18n="avg_length">Avg Length</div>
+              <div class="big stat-color--rose" id="avg-cycle-rolling">—</div>
+              <div class="sm" data-i18n="avg_length_rolling">6-Mo Avg</div>
             </div>
             <div class="stat-box">
-              <div class="big stat-color--lavender" id="avg-period">—</div>
-              <div class="sm" data-i18n="avg_period">Avg Period</div>
+              <div class="big stat-color--lavender" id="avg-cycle-overall">—</div>
+              <div class="sm" data-i18n="avg_length_overall">All-Time Avg</div>
             </div>
             <div class="stat-box">
               <div class="big stat-color--teal" id="tracked-cycles">—</div>
@@ -549,24 +611,68 @@
               <div class="big stat-color--fertile" id="fertile-window">—</div>
               <div class="sm" data-i18n="fertile_days">Fertile Days</div>
             </div>
+            <div class="stat-box">
+              <div class="big stat-color--rose" id="avg-period">—</div>
+              <div class="sm" data-i18n="avg_period">Avg Period</div>
+            </div>
           </div>
-          <!-- Statistical detail panel — shown once 3+ cycles are tracked -->
+          <!-- Statistical detail — rolling window + all-time -->
           <div id="cycle-stats-panel" class="cycle-stats-panel" style="display:none;">
-            <div class="stats-row">
-              <span data-i18n="stat_std_dev">Std Deviation</span>
-              <span id="stat-std-dev">—</span>
+            <div id="rolling-stats-block" class="stats-section">
+              <h4 class="stats-section-title" data-i18n="stat_rolling_title">Last 6 Months</h4>
+              <p class="stats-section-hint" data-i18n="stat_rolling_hint">Used for predictions</p>
+              <div class="stats-row">
+                <span data-i18n="stat_cycles_count">Cycles</span>
+                <span id="rolling-count">—</span>
+              </div>
+              <div class="stats-row">
+                <span data-i18n="avg_length">Avg Length</span>
+                <span id="rolling-mean">—</span>
+              </div>
+              <div class="stats-row">
+                <span data-i18n="stat_std_dev">Std Deviation</span>
+                <span id="rolling-std-dev">—</span>
+              </div>
+              <div class="stats-row">
+                <span data-i18n="stat_range">Cycle Range</span>
+                <span id="rolling-range">—</span>
+              </div>
+              <div class="stats-row">
+                <span data-i18n="stat_prediction_window">Prediction Window</span>
+                <span id="rolling-variation">—</span>
+              </div>
+              <div class="stats-row">
+                <span data-i18n="stat_regularity">Regularity</span>
+                <span id="rolling-regularity">—</span>
+              </div>
+              <div id="rolling-spread-flag" class="stats-flag" style="display:none;"></div>
             </div>
-            <div class="stats-row">
-              <span data-i18n="stat_range">Cycle Range</span>
-              <span id="stat-min-max">—</span>
-            </div>
-            <div class="stats-row">
-              <span data-i18n="stat_prediction_window">Prediction Window</span>
-              <span id="stat-variation">—</span>
-            </div>
-            <div class="stats-row">
-              <span data-i18n="stat_regularity">Regularity</span>
-              <span id="stat-regularity">—</span>
+            <div id="overall-stats-block" class="stats-section stats-section--overall">
+              <h4 class="stats-section-title" data-i18n="stat_overall_title">All Time</h4>
+              <div class="stats-row">
+                <span data-i18n="stat_cycles_count">Cycles</span>
+                <span id="overall-count">—</span>
+              </div>
+              <div class="stats-row">
+                <span data-i18n="avg_length">Avg Length</span>
+                <span id="overall-mean">—</span>
+              </div>
+              <div class="stats-row">
+                <span data-i18n="stat_std_dev">Std Deviation</span>
+                <span id="overall-std-dev">—</span>
+              </div>
+              <div class="stats-row">
+                <span data-i18n="stat_range">Cycle Range</span>
+                <span id="overall-range">—</span>
+              </div>
+              <div class="stats-row">
+                <span data-i18n="stat_prediction_window">Prediction Window</span>
+                <span id="overall-variation">—</span>
+              </div>
+              <div class="stats-row">
+                <span data-i18n="stat_regularity">Regularity</span>
+                <span id="overall-regularity">—</span>
+              </div>
             </div>
           </div>
         </div>
@@ -608,6 +714,7 @@
               <span class="legend-item"><span class="legend-dot" style="background:var(--fertile-green)"></span><span data-i18n="legend_short">Short (&lt;26d)</span></span>
               <span class="legend-item"><span class="legend-dot" style="background:var(--lavender)"></span><span data-i18n="legend_normal">Normal (26–32d)</span></span>
               <span class="legend-item"><span class="legend-dot" style="background:var(--rose)"></span><span data-i18n="legend_long">Long (&gt;32d)</span></span>
+              <span class="legend-item"><span class="legend-dot legend-dot--shifted"></span><span data-i18n="legend_shifted">Shifted (&gt;3d from 6-mo avg)</span></span>
             </div>
           </div>
           <div id="insight-tab-how" class="insight-tab-content" style="display: none;"><!-- how -->
@@ -641,18 +748,16 @@
         <!-- Developer Tab content content -->
         <div id="about-tab-developer" class="settings-tab-content active">
           <div class="settings-section" id="about-core-section">
-            <h3 data-i18n="about_title">About Your Cycle Keeper</h3>
+            <h3 data-i18n="about_title">About My Cycle Keeper</h3>
             <div class="info-box" data-i18n-html="about_info_html">
-              Your Cycle Keeper is free software built with care for privacy.
-              Based on the <strong>Calendar Rhythm Method</strong> and
+              <strong>My Cycle Keeper</strong> is a personal fork of
+              <a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">Your Cycle Keeper</a>,
+              the open-source period tracker by pythonime-lab. Based on the
+              <strong>Calendar Rhythm Method</strong> and
               <strong>Standard Days Method</strong> for cycle estimation. For
               informational purposes only.<br /><br />
               <strong>Version:</strong> 1.0.0-beta<br />
-              <strong>License:</strong> GNU General Public License v3.0<br />
-              <strong>Developer:</strong>
-              <a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">pythonime-lab</a><br /><br />
-              Found a bug or have a suggestion? Visit our
-              <a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">GitHub repository</a>.
+              <strong>License:</strong> GNU General Public License v3.0
             </div>
           </div>
           <div class="settings-section" id="support-section">
@@ -834,11 +939,13 @@
                 id="s-autofill-days"
                 min="0"
                 max="10"
+                placeholder="auto"
+                data-i18n-placeholder="settings_autofill_auto"
                 autocomplete="off"
               />
               <button class="setting-save-btn" onclick="saveAutoFillDays()" data-i18n="save">Save</button>
             </div>
-            <div class="field-hint" data-i18n="settings_autofill_hint">Days to auto-fill with light flow after the first day of a new period. Set to 0 to disable.</div>
+            <div class="field-hint" data-i18n="settings_autofill_hint">Leave blank for auto (avg period length from your last 6 months of logs). Set to 0 to disable.</div>
           </div>
         </div>
 
@@ -945,9 +1052,14 @@
             <button class="apply-btn btn--import" onclick="importData()" data-i18n="settings_import">
               Import Encrypted Backup
             </button>
-            <a class="apply-btn btn--import-drip" href="import-drip.html" data-i18n="settings_import_drip">
-              Import from Drip
-            </a>
+            <button
+              type="button"
+              class="apply-btn btn--import-drip"
+              onclick="importDripCsv()"
+              data-i18n="settings_import_drip"
+            >
+              Import from drip (CSV)
+            </button>
             <button class="apply-btn btn--export-drip" onclick="exportToDrip()">
               Export to drip CSV
             </button>
@@ -965,6 +1077,59 @@
               Erase All Data
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    </div>
+
+    <!-- CSV import panel (drip format + My Calendar converter link) -->
+    <div
+      id="csv-import-overlay"
+      class="csv-import-overlay hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="csv-import-title"
+    >
+      <div class="csv-import-panel">
+        <button
+          type="button"
+          class="csv-import-close"
+          onclick="closeCsvImportPanel()"
+          aria-label="Close"
+        >
+          ✕
+        </button>
+        <h2 class="csv-import-title" id="csv-import-title" data-i18n="drip_import_title">
+          Import from drip
+        </h2>
+        <p class="csv-import-intro" data-i18n="drip_import_panel_intro">
+          Import cycle history from a drip-compatible CSV file. In drip, go to Menu → Export Data → Export as CSV.
+        </p>
+        <p class="csv-import-note" data-i18n="drip_import_panel_before">
+          You can also convert data from other apps first — see the converter tool below.
+        </p>
+        <button
+          type="button"
+          class="apply-btn csv-import-choose-btn"
+          onclick="chooseCsvImportFile()"
+          data-i18n="drip_import_choose_csv"
+        >
+          Choose CSV file
+        </button>
+        <div class="csv-import-converter-block">
+          <p class="csv-import-converter-label" data-i18n="drip_import_mycalendar_label">
+            Using My Calendar instead of drip?
+          </p>
+          <a
+            href="mycalendar-to-drip.html"
+            class="csv-import-converter-link"
+            target="_blank"
+            rel="noopener"
+            data-i18n="drip_import_mycalendar_link"
+          >
+            Convert My Calendar to drip →
+          </a>
         </div>
       </div>
     </div>

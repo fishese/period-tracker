@@ -19,8 +19,8 @@ const IS_DEV =
   self.location.hostname === "localhost" ||
   self.location.hostname === "127.0.0.1";
 
-const CACHE_VERSION = "v20260619j";
-const CACHE_NAME = `yourcyclekeeper-${CACHE_VERSION}`;
+const CACHE_VERSION = "v20260708a";
+const CACHE_NAME = `mycyclekeeper-${CACHE_VERSION}`;
 
 // Derive base path from the SW's own URL so this works on both localhost
 // (/period-tracker/) and GitHub Pages (/period-tracker/period-tracker/).
@@ -180,7 +180,7 @@ self.addEventListener("notificationclick", (event) => {
     clients.matchAll({ type: "window" }).then((clientList) => {
       // Focus existing window if open
       for (let client of clientList) {
-        if (client.url === "/" || client.url.includes("yourcyclekeeper"))
+        if (client.url === "/" || client.url.includes("mycyclekeeper"))
           return client.focus();
       }
       // Open new window if not already open

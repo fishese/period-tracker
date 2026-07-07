@@ -416,6 +416,165 @@ body {
   opacity: 0.4;
   cursor: not-allowed;
 }
+.onboard-step.hidden {
+  display: none;
+}
+.onboard-setup-hint {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0 0 1rem;
+}
+.onboard-import-btn {
+  display: block;
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  border: 0.0625rem solid var(--border);
+  background: transparent;
+  color: var(--rose-light, #ff6b8a);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+.onboard-import-btn:hover {
+  background: rgba(255, 107, 138, 0.08);
+}
+
+.onboard-setup-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 250;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  padding-top: calc(env(safe-area-inset-top) + 1rem);
+  padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);
+  background: rgba(8, 4, 12, 0.88);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  overflow-y: auto;
+}
+.onboard-setup-overlay.hidden {
+  display: none;
+}
+.onboard-setup-panel {
+  width: 100%;
+  max-width: 22rem;
+  max-height: min(92vh, 40rem);
+  overflow-y: auto;
+  background: var(--card, #1a1020);
+  border: 0.0625rem solid var(--border);
+  border-radius: 1rem;
+  padding: 1.25rem 1.25rem 1.5rem;
+  text-align: left;
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.45);
+}
+.onboard-setup-back {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0;
+  margin-bottom: 0.75rem;
+  cursor: pointer;
+}
+.onboard-setup-back:hover {
+  color: var(--rose-light, #ff6b8a);
+}
+
+.csv-import-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 260;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  padding-top: calc(env(safe-area-inset-top) + 1rem);
+  padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);
+  background: rgba(8, 4, 12, 0.88);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  overflow-y: auto;
+}
+.csv-import-overlay.hidden {
+  display: none;
+}
+.csv-import-panel {
+  position: relative;
+  width: 100%;
+  max-width: 24rem;
+  background: var(--card, #1a1020);
+  border: 0.0625rem solid var(--border);
+  border-radius: 1rem;
+  padding: 1.5rem 1.25rem 1.25rem;
+  text-align: left;
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.45);
+}
+.csv-import-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0.25rem;
+}
+.csv-import-close:hover {
+  color: var(--text);
+}
+.csv-import-title {
+  margin: 0 2rem 0.75rem 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.csv-import-intro,
+.csv-import-note {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+  margin: 0 0 0.75rem;
+}
+.csv-import-choose-btn {
+  width: 100%;
+  margin-top: 0.25rem;
+}
+.csv-import-converter-block {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 0.0625rem solid var(--border);
+}
+.csv-import-converter-label {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin: 0 0 0.5rem;
+}
+.csv-import-converter-link {
+  display: block;
+  width: 100%;
+  text-align: center;
+  text-decoration: none;
+  background: rgba(167, 139, 250, 0.1);
+  color: var(--lavender, #a78bfa);
+  border: 0.0625rem solid rgba(167, 139, 250, 0.3);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: background 0.15s, border-color 0.15s;
+}
+.csv-import-converter-link:hover {
+  background: rgba(167, 139, 250, 0.2);
+  border-color: rgba(167, 139, 250, 0.5);
+}
 .privacy-note {
   font-size: 0.6875rem;
   color: var(--text-muted);
@@ -1192,6 +1351,80 @@ body {
   padding-top: 0.75rem;
   border-top: 0.0625rem solid var(--border);
 }
+.stats-section {
+  margin-bottom: 0.75rem;
+}
+.stats-section--overall {
+  padding-top: 0.75rem;
+  border-top: 0.0625rem solid var(--border);
+}
+.stats-section-title {
+  margin: 0 0 0.25rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.stats-section-hint {
+  margin: 0 0 0.5rem;
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+}
+.stats-flag {
+  margin-top: 0.5rem;
+  padding: 0.375rem 0.625rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.stats-flag--caution {
+  background: rgba(245, 158, 11, 0.1);
+  border: 0.0625rem solid rgba(245, 158, 11, 0.3);
+  color: var(--amber);
+}
+.stats-flag--irregular {
+  background: rgba(255, 107, 74, 0.1);
+  border: 0.0625rem solid rgba(255, 107, 74, 0.3);
+  color: var(--rose);
+}
+.history-row--shifted .history-len {
+  box-shadow: inset 0 0 0 0.0625rem rgba(245, 158, 11, 0.5);
+}
+.shift-banner {
+  display: none;
+  background: rgba(255, 107, 74, 0.1);
+  border: 0.0625rem solid rgba(255, 107, 74, 0.3);
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.625rem;
+  margin: 0 0 0.75rem;
+  color: var(--rose);
+  font-weight: 500;
+  font-size: 0.75rem;
+  width: fit-content;
+  align-items: center;
+  gap: 0.375rem;
+}
+.spread-banner {
+  display: none;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.625rem;
+  margin: 0 0 1rem;
+  font-weight: 500;
+  font-size: 0.75rem;
+  width: fit-content;
+  align-items: center;
+  gap: 0.375rem;
+}
+.spread-banner--caution {
+  background: rgba(245, 158, 11, 0.1);
+  border: 0.0625rem solid rgba(245, 158, 11, 0.3);
+  color: var(--amber);
+}
+.spread-banner--irregular {
+  background: rgba(255, 107, 74, 0.1);
+  border: 0.0625rem solid rgba(255, 107, 74, 0.3);
+  color: var(--rose);
+}
 .stats-row {
   display: flex;
   justify-content: space-between;
@@ -1629,6 +1862,10 @@ body {
 
 /* Legend Dot Colors */
 /* Legend dots are hardcoded to match the cycle bar's hardcoded gradients */
+.legend-dot--shifted {
+  background: var(--amber);
+  box-shadow: 0 0 0 0.0625rem rgba(245, 158, 11, 0.5);
+}
 .legend-dot--rose     { background: #FF3D6B; }
 .legend-dot--fertile  { background: #34D399; }
 .legend-dot--ovulation{ background: #F59E0B; }

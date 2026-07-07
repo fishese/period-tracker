@@ -17,6 +17,12 @@ export function addDays(date, n) {
   return d;
 }
 
+export function addMonths(date, n) {
+  const d = new Date(date);
+  d.setMonth(d.getMonth() + n);
+  return d;
+}
+
 export function diffDays(a, b) {
   return Math.round((b - a) / 86400000);
 }
