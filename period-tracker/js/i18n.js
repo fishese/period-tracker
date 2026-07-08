@@ -311,7 +311,7 @@ const LOCALES = {
     theme_default: "YCK Classic",
     theme_light: "Newsroom Light",
     theme_dark: "Newsroom Dark",
-    theme_kawaii: "Pink Power 🌸",
+    theme_kawaii: "Pink Power",
 
     // Language switcher
     language_label: "Language",
@@ -1537,7 +1537,7 @@ const LOCALES = {
     theme_default: "YCK クラシック",
     theme_light: "ニュースルーム ライト",
     theme_dark: "ニュースルーム ダーク",
-    theme_kawaii: "ピンクパワー 🌸",
+    theme_kawaii: "ピンクパワー",
 
     nav_calendar: "カレンダー",
     nav_insights: "インサイト",
@@ -1884,10 +1884,10 @@ const LOCALES = {
     theme_default: "YCK 經典",
     theme_light: "新聞室 淺色",
     theme_dark: "新聞室 深色",
-    theme_kawaii: "粉紅力量 🌸",
+    theme_kawaii: "粉紅力量",
 
     nav_calendar: "日曆",
-    nav_insights: "洞察",
+    nav_insights: "分析",
     nav_settings: "設定",
     nav_about: "關於",
 
