@@ -43,11 +43,14 @@ const LOCALES = {
 
     about_title: "About My Cycle Keeper",
     about_info:
-      "My Cycle Keeper is a personal fork of Your Cycle Keeper, the open-source period tracker by pythonime-lab. Based on the Calendar Rhythm Method and Standard Days Method for cycle estimation. For informational purposes only. Version: 1.0.0-beta. License: GPL v3 License.",
+      "My Cycle Keeper is a personal fork of Your Cycle Keeper, the open-source period tracker by pythonime-lab, with changes applied for personal preferences. If you find it helpful, consider supporting the original developer. Both projects are free forever with no ads, no tracking, and no data collection. Estimates are for personal information only — not for contraception.",
+    fork_title: "About This Fork",
+    fork_info:
+      "This personal fork adds rolling 6-month predictions, drip CSV import/export, auto-fill, late-period messaging, themes, and compact history sharing. Some upstream features were removed. Use at your own risk.",
 
     support_title: "Support Development",
     support_info:
-      "This app is a fork of Your Cycle Keeper by pythonime-lab, which is free forever with no ads, no tracking, and no data collection. If you find it helpful, consider supporting the original developer!",
+      "This app is a fork of Your Cycle Keeper by pythonime-lab. If you find it helpful, consider supporting the original developer!",
 
     disclaimer_title: "Medical Disclaimer",
     disclaimer_info:
@@ -173,6 +176,7 @@ const LOCALES = {
     status_period_late_many: "Your period is {n} days late",
     status_period_expected_on:
       "Based on past records, your period was expected to begin on {date}",
+    status_phase_line: "Phase {num} — {phase}  ·  {detail}",
 
     // Status card
     now: "Now",
@@ -421,9 +425,14 @@ const LOCALES = {
     predictions_empty: "Log at least one period start date to see predictions.",
     history_col_start: "Start",
     history_col_end: "End",
+    history_col_dates: "Dates",
     history_col_period: "Period",
     history_col_cycle: "Cycle",
     view_all_history: "View all",
+    share_history: "Share",
+    share_history_subject: "My recent period dates",
+    share_history_intro: "Last 6 periods (start–end):",
+    share_history_empty: "No period history to share yet.",
 
     // History legend
     legend_short: "Short (<26d)",
@@ -439,9 +448,12 @@ const LOCALES = {
     data_persistence:
       '⚠️ <strong>Data Persistence:</strong> Your data is stored in IndexedDB. Clearing browser cache is safe, but clearing "site data" or "cookies and site data" in your browser settings WILL erase all your cycle data. Always export a backup first!',
     about_info_html:
-      '<strong>My Cycle Keeper</strong> is a personal fork of <a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">Your Cycle Keeper</a>, the open-source period tracker by <a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">pythonime-lab</a>. Based on the <strong>Calendar Rhythm Method</strong> and <strong>Standard Days Method</strong> for cycle estimation. For informational purposes only.<br><br><strong>Version:</strong> 1.0.0-beta<br><strong>License:</strong> GNU General Public License v3.0',
+      '<strong>My Cycle Keeper</strong> is a personal fork of <a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">Your Cycle Keeper</a>, the open-source period tracker by <a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">pythonime-lab</a>, with changes applied for personal preferences.<br><br>If you find it helpful, consider supporting the original developer on <a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">GitHub</a>.<br><br>Both Your Cycle Keeper and this fork are free forever — no ads, no tracking, and no data collection. Estimates are for personal information only. Not for contraception. Stress, illness, and medications can shift timing.<br><br><strong>Version:</strong> 1.0.0-beta<br><strong>License:</strong> GNU General Public License v3.0',
+    fork_title: "About This Fork",
+    fork_info_html:
+      'This personal fork adds rolling 6-month cycle predictions, drip CSV import/export (plus a My Calendar converter), auto-fill for period days, late-period status messaging, themes/layout options, and compact cycle history with email sharing.<br><br>Some upstream features were removed; prediction ideas and CSV format were informed by <a href="https://gitlab.com/bloodyhealth/drip" target="_blank" rel="noopener" class="accessibility-link">drip</a> by bloodyhealth. Built with AI-assisted coding — <strong>use at your own risk.</strong><br><br><small style="color: var(--text-muted)"><a href="https://fishese.github.io/tools/" target="_blank" rel="noopener" class="accessibility-link">0oo.fish.oo0</a></small>',
     support_info:
-      "This app is a fork of <strong>Your Cycle Keeper</strong> by pythonime-lab, which is <strong>free forever</strong> with no ads, no tracking, and no data collection. If you find it helpful, consider supporting the original developer!",
+      "This app is a fork of <strong>Your Cycle Keeper</strong> by pythonime-lab. If you find it helpful, consider supporting the original developer!",
     support_via: "Support via",
     support_footer:
       "Your support helps keep the original Your Cycle Keeper project maintained and ad-free. Thank you! 💜",
@@ -554,6 +566,17 @@ const LOCALES = {
     subtitle_fertile: "Дни {start}–{end} — фертильные",
     subtitle_ovulation: "Пик фертильности сегодня",
     subtitle_other: "До следующей менструации {n} дней",
+
+    status_cycle_day_of: "День {day} вашего {total}-дневного цикла",
+    status_period_today: "Менструация ожидается сегодня",
+    status_period_soon_date: "Может начаться сегодня или около {date}",
+    status_period_in_date: "Следующая менструация ожидается около {date}",
+    status_period_late_one: "Ваша менструация задерживается на 1 день",
+    status_period_late_few: "Ваша менструация задерживается на {n} дня",
+    status_period_late_many: "Ваша менструация задерживается на {n} дней",
+    status_period_expected_on:
+      "По прошлым записям менструация должна была начаться {date}",
+    status_phase_line: "Фаза {num} — {phase}  ·  {detail}",
 
     now: "Сейчас",
     bar_day: "День {n}",
@@ -795,6 +818,17 @@ const LOCALES = {
     subtitle_ovulation: "Пік фертыльнасці сёння",
     subtitle_other: "Да наступнай менструацыі {n} дзён",
 
+    status_cycle_day_of: "Дзень {day} вашага {total}-дзённага цыкла",
+    status_period_today: "Менструацыя чакаецца сёння",
+    status_period_soon_date: "Можа пачацца сёння або каля {date}",
+    status_period_in_date: "Наступная менструацыя чакаецца каля {date}",
+    status_period_late_one: "Ваша менструацыя затрымліваецца на 1 дзень",
+    status_period_late_few: "Ваша менструацыя затрымліваецца на {n} дні",
+    status_period_late_many: "Ваша менструацыя затрымліваецца на {n} дзён",
+    status_period_expected_on:
+      "Па мінулых запісах менструацыя павінна была пачацца {date}",
+    status_phase_line: "Фаза {num} — {phase}  ·  {detail}",
+
     now: "Зараз",
     bar_day: "Дзень {n}",
 
@@ -974,6 +1008,8 @@ const LOCALES = {
     db_error_title: "Error de base de datos",
     cycle_stats: "Estadísticas del ciclo",
     avg_length: "Longitud promedio",
+    avg_length_rolling: "Prom. 6 m",
+    avg_length_overall: "Prom. total",
     cycles_logged: "Ciclos registrados",
     avg_period: "Período promedio",
     fertile_days: "Días fértiles",
@@ -1069,6 +1105,16 @@ const LOCALES = {
     subtitle_fertile: "Los días {start}–{end} son fértiles",
     subtitle_ovulation: "Pico de fertilidad hoy",
     subtitle_other: "Próximo período en {n} días",
+
+    status_cycle_day_of: "Día {day} de tu ciclo de {total} días",
+    status_period_today: "Tu período se espera hoy",
+    status_period_soon_date: "Puede empezar hoy o alrededor del {date}",
+    status_period_in_date: "Próximo período esperado alrededor del {date}",
+    status_period_late_one: "Tu período llega 1 día de retraso",
+    status_period_late_many: "Tu período llega {n} días de retraso",
+    status_period_expected_on:
+      "Según tus registros, el período debía comenzar el {date}",
+    status_phase_line: "Fase {num} — {phase}  ·  {detail}",
 
     now: "Ahora",
     bar_day: "Día {n}",
@@ -1246,9 +1292,12 @@ const LOCALES = {
     data_persistence:
       '⚠️ <strong>Persistencia de datos:</strong> Tus datos se almacenan en IndexedDB. Limpiar el caché del navegador es seguro, pero limpiar los "datos del sitio" o "cookies y datos del sitio" en la configuración del navegador BORRARÁ todos tus datos del ciclo. ¡Siempre exporta una copia de seguridad primero!',
     about_info_html:
-      'Your Cycle Keeper es software libre creado con atención a la privacidad. Basado en el <strong>Método del Ritmo del Calendario</strong> y el <strong>Método de Días Estándar</strong> para la estimación del ciclo. Solo con fines informativos.<br><br><strong>Versión:</strong> 1.0.0-beta<br><strong>Licencia:</strong> GNU General Public License v3.0<br><strong>Desarrollador:</strong> <a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">pythonime-lab</a><br><br>¿Encontraste un error o tienes una sugerencia? Visita nuestro <a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">repositorio de GitHub</a>.',
+      '<strong>My Cycle Keeper</strong> es un fork personal de <a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">Your Cycle Keeper</a>, el rastreador de períodos de código abierto de <a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">pythonime-lab</a>, con cambios según preferencias personales.<br><br>Si te resulta útil, considera apoyar al desarrollador original en <a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">GitHub</a>.<br><br>Tanto Your Cycle Keeper como este fork son gratis para siempre: sin anuncios, sin rastreo y sin recopilación de datos. Las estimaciones son solo informativas. No usar como anticonceptivo. El estrés, las enfermedades y los medicamentos pueden alterar el ciclo.<br><br><strong>Versión:</strong> 1.0.0-beta<br><strong>Licencia:</strong> GNU General Public License v3.0',
+    fork_title: "Sobre este fork",
+    fork_info_html:
+      'Este fork personal añade predicciones rodantes de 6 meses, importación/exportación CSV de drip (y un convertidor de My Calendar), autocompletado de días de período, mensajes de retraso, temas/diseño, e historial compacto con compartir por correo.<br><br>Se quitaron algunas funciones originales; las ideas de predicción y el formato CSV se inspiraron en <a href="https://gitlab.com/bloodyhealth/drip" target="_blank" rel="noopener" class="accessibility-link">drip</a> de bloodyhealth. Hecho con ayuda de IA — <strong>úsalo bajo tu propio riesgo.</strong><br><br><small style="color: var(--text-muted)"><a href="https://fishese.github.io/tools/" target="_blank" rel="noopener" class="accessibility-link">0oo.fish.oo0</a></small>',
     support_info:
-      "Esta app es un fork de <strong>Your Cycle Keeper</strong> de pythonime-lab, que es <strong>gratis para siempre</strong> sin anuncios, sin rastreo y sin recopilación de datos. Si la encuentras útil, ¡considera apoyar al desarrollador original!",
+      "Esta app es un fork de <strong>Your Cycle Keeper</strong> de pythonime-lab. Si la encuentras útil, ¡considera apoyar al desarrollador original!",
     support_via: "Apoyar vía",
     support_footer:
       "Tu apoyo ayuda a mantener este proyecto sin anuncios para todos. ¡Gracias! 💜",
@@ -1271,12 +1320,15 @@ const LOCALES = {
     privacy_title: "プライバシー保証",
     privacy_info:
       "My Cycle Keeperはデータを一切収集しません。このアプリは：デバイス上にのみデータをローカル保存します；サーバー・アカウント・クラウドストレージはありません；分析・追跡・テレメトリーはありません；広告・サードパーティコードはありません；データを外部に送信しません；AES-256-GCMによりPINで暗号化されています。あなたの健康データはあなただけのものです。",
-    about_title: "Your Cycle Keeperについて",
+    about_title: "My Cycle Keeperについて",
     about_info:
-      "Your Cycle Keeperはプライバシーへの配慮から作られた無料ソフトウェアです。カレンダーリズム法と標準日法に基づいたサイクル推定。情報提供のみを目的としています。バージョン：1.0.0-beta。ライセンス：GPL v3。開発者：pythonime-lab。バグや提案はGitHubリポジトリへ。",
+      "My Cycle Keeperは、pythonime-labによるオープンソースの生理トラッカー Your Cycle Keeper の個人用フォークです。役に立った場合は、元の開発者をサポートすることをご検討ください。両方とも広告・追跡・データ収集なしで永久無料です。推定は個人の参考のみ。避妊目的ではありません。",
+    fork_title: "このフォークについて",
+    fork_info:
+      "この個人用フォークには、6か月ローリング予測、drip CSVの読み書き、自動入力、遅れ表示、テーマ、履歴の共有などが含まれます。一部の元機能は削除されています。自己責任でご利用ください。",
     support_title: "開発を支援する",
     support_info:
-      "このアプリはpythonime-labによるYour Cycle Keeperのフォークです。広告・追跡・データ収集なしで永久無料です。役に立てていただけましたら、元の開発者へのサポートをご検討ください！",
+      "このアプリはpythonime-labによるYour Cycle Keeperのフォークです。役に立てていただけましたら、元の開発者へのサポートをご検討ください！",
     disclaimer_title: "医療免責事項",
     disclaimer_info:
       "⚠️ このアプリは平均的な生物学的パターンに基づくサイクル推定を提供します。医療アドバイスではなく、専門医の診察の代替として使用してはいけません。My Cycle Keeperはパターンを追跡してサイクルを予測し、排卵タイミングを推定します。実際のサイクルは、ストレス・病気・薬などさまざまな要因で変動します。避妊や妊娠の保証としてこのアプリを使用しないでください。医療的な決定には必ず専門の医療従事者にご相談ください。",
@@ -1286,6 +1338,8 @@ const LOCALES = {
 
     cycle_stats: "サイクル統計",
     avg_length: "平均周期",
+    avg_length_rolling: "直近平均",
+    avg_length_overall: "全期間平均",
     cycles_logged: "記録済みサイクル",
     avg_period: "平均生理期間",
     fertile_days: "妊娠可能日",
@@ -1378,6 +1432,11 @@ const LOCALES = {
     status_period_today: "今日生理が来る予定です",
     status_period_soon_date: "今日または{date}頃に生理が来る可能性があります",
     status_period_in_date: "次の生理は{date}頃の予定です",
+    status_period_late_one: "生理が1日遅れています",
+    status_period_late_many: "生理が{n}日遅れています",
+    status_period_expected_on:
+      "過去の記録では、生理は{date}に始まる予定でした",
+    status_phase_line: "フェーズ {num} — {phase}  ·  {detail}",
     now: "現在",
     bar_day: "{n}日目",
 
@@ -1564,9 +1623,14 @@ const LOCALES = {
     predictions_empty: "予測を表示するには、少なくとも1回の生理開始日を記録してください。",
     history_col_start: "開始",
     history_col_end: "終了",
+    history_col_dates: "日付",
     history_col_period: "生理",
     history_col_cycle: "周期",
     view_all_history: "すべて表示",
+    share_history: "共有",
+    share_history_subject: "最近の生理日",
+    share_history_intro: "直近6回の生理（開始–終了）:",
+    share_history_empty: "共有できる生理履歴がまだありません。",
 
     legend_short: "短い（26日未満）",
     legend_normal: "普通（26〜32日）",
@@ -1578,9 +1642,12 @@ const LOCALES = {
     data_persistence:
       '⚠️ <strong>データの永続性：</strong>データはIndexedDBに保存されています。ブラウザのキャッシュをクリアしても安全ですが、ブラウザ設定で「サイトデータ」や「Cookieとサイトデータ」をクリアすると、すべてのサイクルデータが削除されます。必ず先にバックアップをエクスポートしてください！',
     about_info_html:
-      'Your Cycle Keeperはプライバシーへの配慮から作られた無料ソフトウェアです。<strong>カレンダーリズム法</strong>と<strong>標準日法</strong>に基づいたサイクル推定。情報提供のみを目的としています。<br><br><strong>バージョン：</strong>1.0.0-beta<br><strong>ライセンス：</strong>GNU General Public License v3.0<br><strong>開発者：</strong><a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">pythonime-lab</a><br><br>バグや提案は<a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">GitHubリポジトリ</a>へ。',
+      '<strong>My Cycle Keeper</strong>は、<a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">Your Cycle Keeper</a>（<a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">pythonime-lab</a>によるオープンソースの生理トラッカー）の個人用フォークで、個人の好みに合わせて変更しています。<br><br>役に立った場合は、元の開発者を<a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">GitHub</a>でサポートすることをご検討ください。<br><br>Your Cycle Keeper とこのフォークはどちらも永久無料です（広告・追跡・データ収集なし）。推定は個人の参考のみ。避妊目的ではありません。ストレス・病気・薬でタイミングがずれることがあります。<br><br><strong>バージョン：</strong>1.0.0-beta<br><strong>ライセンス：</strong>GNU General Public License v3.0',
+    fork_title: "このフォークについて",
+    fork_info_html:
+      'この個人用フォークには、6か月ローリング予測、drip CSVの読み書き（My Calendar変換ツール付き）、生理日の自動入力、遅れ表示、テーマ／レイアウト、履歴のメール共有などが含まれます。<br><br>一部の元機能は削除しています。予測の考え方とCSV形式は bloodyhealth の <a href="https://gitlab.com/bloodyhealth/drip" target="_blank" rel="noopener" class="accessibility-link">drip</a> を参考にしました。AI支援で作成 — <strong>自己責任でご利用ください。</strong><br><br><small style="color: var(--text-muted)"><a href="https://fishese.github.io/tools/" target="_blank" rel="noopener" class="accessibility-link">0oo.fish.oo0</a></small>',
     support_info:
-      "このアプリはpythonime-labによる<strong>Your Cycle Keeper</strong>のフォークです。<strong>永久無料</strong>で広告・追跡・データ収集はありません。役に立てていただけましたら、元の開発者へのサポートをご検討ください！",
+      "このアプリはpythonime-labによる<strong>Your Cycle Keeper</strong>のフォークです。役に立てていただけましたら、元の開発者へのサポートをご検討ください！",
     support_via: "支援する",
     support_footer:
       "あなたのサポートがこのプロジェクトを維持し、みんなのために広告なしを実現します。ありがとうございます！💜",
@@ -1600,12 +1667,15 @@ const LOCALES = {
     privacy_title: "隱私保障",
     privacy_info:
       "My Cycle Keeper不收集任何資料。本應用程式：僅在您的裝置上本地儲存資料；無伺服器、帳戶或雲端儲存；無分析、追蹤或遙測；無廣告、無第三方程式碼；不向任何地方傳輸資料；使用AES-256-GCM透過PIN加密。您的健康資料僅屬於您。",
-    about_title: "關於Your Cycle Keeper",
+    about_title: "關於 My Cycle Keeper",
     about_info:
-      "Your Cycle Keeper是一款注重隱私的免費軟體。基於日曆節奏法和標準日法進行週期估算。僅供參考。版本：1.0.0-beta。授權：GPL v3。開發者：pythonime-lab。有錯誤或建議？請造訪GitHub儲存庫。",
+      "My Cycle Keeper 是 Your Cycle Keeper（pythonime-lab 的開源經期追蹤器）的個人分支，依個人偏好調整。若覺得有幫助，歡迎支持原始開發者。兩個專案皆永久免費、無廣告、無追蹤、無資料收集。估算僅供個人參考，不可用於避孕。",
+    fork_title: "關於此分支",
+    fork_info:
+      "此個人分支新增 6 個月滾動預測、drip CSV 匯入／匯出、自動填入、晚來提示、主題，以及可分享的週期歷史。部分上游功能已移除。請自行承擔使用風險。",
     support_title: "支持開發",
     support_info:
-      "此應用程式是pythonime-lab的Your Cycle Keeper的分支版本，永久免費，無廣告、無追蹤、無資料收集。若您覺得有幫助，歡迎支持原始開發者！",
+      "此應用程式是 pythonime-lab 的 Your Cycle Keeper 的分支版本。若覺得有幫助，歡迎支持原始開發者！",
     disclaimer_title: "醫療免責聲明",
     disclaimer_info:
       "⚠️ 本應用程式提供基於平均生物學模式的週期估算。這不是醫療建議，不能替代專業醫療諮詢。My Cycle Keeper透過追蹤模式預測您的週期並估算排卵時間。實際週期時間可能因壓力、疾病、藥物等多種因素而有所不同。請勿將本應用程式用作避孕或生育保證。醫療決定請務必諮詢合格的醫療專業人員。",
@@ -1615,18 +1685,20 @@ const LOCALES = {
 
     cycle_stats: "週期統計",
     avg_length: "平均週期",
+    avg_length_rolling: "近期平均",
+    avg_length_overall: "全部平均",
     cycles_logged: "已記錄週期",
-    avg_period: "平均生理期",
+    avg_period: "平均經期",
     fertile_days: "可孕期",
     symptom_tracking: "症狀追蹤",
-    period: "生理期",
+    period: "經期",
     ovulation: "排卵",
     flow: "經血量",
     pain: "疼痛",
     mood: "心情",
     how_it_works: "運作原理",
     how_it_works_p1:
-      "My Cycle Keeper透過追蹤週期模式來估算您的可孕期。排卵估計在下次生理期前約14天。可孕期計算為第8天至（週期長度－11）天。",
+      "My Cycle Keeper透過追蹤週期模式來估算您的可孕期。排卵估計在下次經期前約14天。可孕期計算為第8天至（週期長度－11）天。",
     how_it_works_p2:
       "對於規律的28天週期，第8至17天通常為可孕期，排卵約在第14天。",
     disclaimer: "免責聲明",
@@ -1639,7 +1711,7 @@ const LOCALES = {
     until_next: "距下次",
     day_1: "第1天",
     avg_length_short: "平均週期",
-    period_short: "生理期",
+    period_short: "經期",
     fertile: "可孕期",
     ovulation_short: "排卵",
     luteal: "黃體期",
@@ -1669,7 +1741,7 @@ const LOCALES = {
     save_failed_title: "儲存失敗",
     save_failed_msg: "無法儲存您的資料。請再試一次。",
     missing_date_title: "缺少日期",
-    missing_date_msg: "請輸入上次生理期的第一天。",
+    missing_date_msg: "請輸入上次經期的第一天。",
     set_pin_title: "設定PIN",
     set_pin_msg: "輸入4位數PIN以保護您的資料。",
     setup_error_title: "設定錯誤",
@@ -1690,27 +1762,32 @@ const LOCALES = {
     mood_neutral: "普通",
     set_mood: "設定心情",
 
-    period_expected_in_many: "預計{n}天後來生理期",
+    period_expected_in_many: "預計{n}天後來月經",
 
-    phase_menstruation: "生理期 🩸",
+    phase_menstruation: "經期 🩸",
     phase_follicular: "卵泡期 ✨",
     phase_fertile: "可孕期 🌿",
     phase_ovulation: "排卵日 🌟",
     phase_luteal: "黃體期 🌙",
 
-    subtitle_menstruation: "生理期第{day}天",
+    subtitle_menstruation: "經期第{day}天",
     subtitle_fertile: "第{start}至{end}天為可孕期",
     subtitle_ovulation: "今日受孕機率最高",
-    subtitle_other: "距下次生理期{n}天",
+    subtitle_other: "距下次經期{n}天",
 
     status_cycle_day_of: "{total}天週期的第{day}天",
-    status_period_today: "預計今天來生理期",
-    status_period_soon_date: "生理期可能今天或{date}左右開始",
-    status_period_in_date: "預計{date}左右來生理期",
+    status_period_today: "預計今天來月經",
+    status_period_soon_date: "經期可能今天或{date}左右開始",
+    status_period_in_date: "預計{date}左右來月經",
+    status_period_late_one: "經期晚了1天",
+    status_period_late_many: "經期晚了{n}天",
+    status_period_expected_on:
+      "依過去紀錄，經期預計於{date}開始",
+    status_phase_line: "階段 {num} — {phase}  ·  {detail}",
     now: "現在",
     bar_day: "第{n}天",
 
-    cycle_history_empty: "記錄至少2個生理期開始日期以查看週期歷史。",
+    cycle_history_empty: "記錄至少2個經期開始日期以查看週期歷史。",
     history_days_many: "{n}天",
     no_data_yet: "尚未記錄任何追蹤資料",
 
@@ -1721,11 +1798,11 @@ const LOCALES = {
     download_failed_msg: "無法下載圖表。請再試一次。",
 
     invalid_date_title: "無效日期",
-    invalid_date_msg: "請輸入有效的上次生理期日期。",
+    invalid_date_msg: "請輸入有效的上次經期日期。",
     invalid_cycle_title: "無效週期長度",
     invalid_cycle_msg: "週期長度必須在20至45天之間。",
     invalid_duration_title: "無效期間",
-    invalid_duration_msg: "生理期間必須在1至10天之間。",
+    invalid_duration_msg: "經期天數必須在1至10天之間。",
     update_predictions_title: "更新預測？",
     update_predictions_msg:
       "這將根據您的新設定重新計算所有週期預測。已記錄的症狀和備註將保持不變。繼續嗎？",
@@ -1774,11 +1851,11 @@ const LOCALES = {
     pin_change_failed_title: "PIN更改失敗",
     pin_change_failed_msg: "無法更新PIN。請再試一次。",
 
-    calendar_day_period: "生理期日",
+    calendar_day_period: "經期日",
     calendar_day_ovulation: "排卵日",
     calendar_day_fertile: "可孕期日",
     calendar_day_regular: "一般日",
-    calendar_day_period_possible: "可能的生理期日",
+    calendar_day_period_possible: "可能的經期日",
 
     stat_std_dev: "標準差",
     stat_range: "週期範圍",
@@ -1789,8 +1866,8 @@ const LOCALES = {
 
     follicular: "卵泡期",
 
-    settings_autofill_label: "自動填入生理期天數",
-    settings_autofill_hint: "記錄生理期第一天後，自動填入少量經血的天數。設為0可停用此功能。",
+    settings_autofill_label: "自動填入經期天數",
+    settings_autofill_hint: "記錄經期第一天後，自動填入少量經血的天數。設為0可停用此功能。",
     autofill_banner_msg_many: "已自動填入{n}天的少量經血記錄。",
     autofill_banner_settings: "在設定中調整",
     autofill_banner_backup_pre: "",
@@ -1819,13 +1896,13 @@ const LOCALES = {
     settings_security_tab: "安全與隱私",
     settings_calendar_display: "日曆",
     settings_cycle_section: "週期設定",
-    settings_last_period: "上次生理期開始日期",
+    settings_last_period: "上次經期開始日期",
     settings_cycle_length: "平均週期長度（天）",
-    settings_period_duration: "生理期間（天）",
+    settings_period_duration: "經期天數",
     settings_update_btn: "更新預測",
     settings_tolerance: "預測容差（天）",
     settings_tolerance_hint:
-      "日曆中每個預測生理期前後顯示的天數。留空則自動（根據您的週期規律性）。",
+      "日曆中每個預測經期前後顯示的天數。留空則自動（根據您的週期規律性）。",
     save: "儲存",
     settings_show_fertility: "在日曆中顯示可孕期",
     settings_security_section: "安全與隱私",
@@ -1849,15 +1926,15 @@ const LOCALES = {
     settings_storage_calculating: "計算中...",
     settings_erase: "刪除所有資料",
 
-    onboard_sub: "私密追蹤您的生理期和週期",
+    onboard_sub: "私密追蹤您的經期和週期",
     onboard_tagline:
       "在您的裝置上追蹤經血量、心情和症狀。免費、無廣告、完全隱私。",
     beta_label: "測試版",
     beta_warning_text:
       "本應用程式目前正在積極開發中。功能可能會變更，可能會出現錯誤。",
-    ob_last_period: "上次生理期的第一天",
+    ob_last_period: "上次經期的第一天",
     ob_cycle_len: "平均週期長度（天）",
-    ob_period_dur: "平均生理期間（天）",
+    ob_period_dur: "平均經期天數",
     pin_setup_title: "🔒 設定4位數PIN",
     pin_setup_sub_1: "您的PIN在本地加密所有資料。",
     pin_setup_sub_2: "My Cycle Keeper從不向任何地方傳送資料。",
@@ -1875,7 +1952,7 @@ const LOCALES = {
 
     settings_saved_toast: "設定已儲存",
     status_no_data_hint:
-      "開始記錄生理期以顯示統計資料。",
+      "開始記錄經期以顯示統計資料。",
     status_import_hint: "或匯入您的資料",
 
     storage_full_title: "儲存空間已滿",
@@ -1884,18 +1961,23 @@ const LOCALES = {
 
     forgot_pin_confirm2_title: "最後警告",
     forgot_pin_confirm2_msg:
-      "所有您的生理期追蹤資料將被永久刪除，無法恢復。此操作無法撤銷。",
+      "所有您的經期追蹤資料將被永久刪除，無法恢復。此操作無法撤銷。",
     forgot_pin_confirm2_btn: "是的，刪除所有內容",
 
-    no_cycle_history: "尚無週期歷史。請記錄至少2個生理期以查看歷史。",
+    no_cycle_history: "尚無週期歷史。請記錄至少2個經期以查看歷史。",
     history_showing: "顯示{total}個週期中的最後{shown}個",
-    predictions_tab: "即將到來的生理期",
-    predictions_empty: "請記錄至少一個生理期開始日期以查看預測。",
+    predictions_tab: "即將到來的經期",
+    predictions_empty: "請記錄至少一個經期開始日期以查看預測。",
     history_col_start: "開始",
     history_col_end: "結束",
-    history_col_period: "生理期",
+    history_col_dates: "日期",
+    history_col_period: "經期",
     history_col_cycle: "週期",
     view_all_history: "查看全部",
+    share_history: "分享",
+    share_history_subject: "近期經期日期",
+    share_history_intro: "最近6次經期（開始–結束）：",
+    share_history_empty: "尚無可分享的經期歷史。",
 
     legend_short: "短（< 26天）",
     legend_normal: "正常（26–32天）",
@@ -1907,9 +1989,12 @@ const LOCALES = {
     data_persistence:
       '⚠️ <strong>資料持久性：</strong>您的資料儲存在IndexedDB中。清除瀏覽器快取是安全的，但在瀏覽器設定中清除「網站資料」或「Cookie和網站資料」將會清除所有週期資料。請務必先匯出備份！',
     about_info_html:
-      'Your Cycle Keeper是一款注重隱私的免費軟體。基於<strong>日曆節奏法</strong>和<strong>標準日法</strong>進行週期估算。僅供參考。<br><br><strong>版本：</strong>1.0.0-beta<br><strong>授權：</strong>GNU General Public License v3.0<br><strong>開發者：</strong><a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">pythonime-lab</a><br><br>有錯誤或建議？請造訪我們的<a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">GitHub儲存庫</a>。',
+      '<strong>My Cycle Keeper</strong> 是 <a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">Your Cycle Keeper</a>（由 <a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">pythonime-lab</a> 開發的開源經期追蹤器）的個人分支，並依個人偏好調整。<br><br>若覺得有幫助，歡迎在 <a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">GitHub</a> 支持原始開發者。<br><br>Your Cycle Keeper 與本分支皆永久免費——無廣告、無追蹤、無資料收集。估算僅供個人參考，不可用於避孕。壓力、疾病與藥物可能改變週期時間。<br><br><strong>版本：</strong>1.0.0-beta<br><strong>授權：</strong>GNU General Public License v3.0',
+    fork_title: "關於此分支",
+    fork_info_html:
+      '此個人分支新增 6 個月滾動週期預測、drip CSV 匯入／匯出（含 My Calendar 轉換工具）、經期日期自動填入、晚來提示、主題／介面選項，以及精簡的週期歷史郵件分享。<br><br>部分上游功能已移除；預測概念與 CSV 格式參考 bloodyhealth 的 <a href="https://gitlab.com/bloodyhealth/drip" target="_blank" rel="noopener" class="accessibility-link">drip</a>。以 AI 輔助完成——<strong>請自行承擔使用風險。</strong><br><br><small style="color: var(--text-muted)"><a href="https://fishese.github.io/tools/" target="_blank" rel="noopener" class="accessibility-link">0oo.fish.oo0</a></small>',
     support_info:
-      "此應用程式是pythonime-lab的<strong>Your Cycle Keeper</strong>的分支版本，<strong>永久免費</strong>，無廣告、無追蹤、無資料收集。若您覺得有幫助，歡迎支持原始開發者！",
+      "此應用程式是pythonime-lab的<strong>Your Cycle Keeper</strong>的分支版本。若您覺得有幫助，歡迎支持原始開發者！",
     support_via: "透過以下方式支持",
     support_footer:
       "您的支持幫助維持此專案並讓所有人免受廣告困擾。謝謝！💜",

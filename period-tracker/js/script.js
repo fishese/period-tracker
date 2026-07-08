@@ -1220,7 +1220,7 @@ function updateStatusCard() {
   // Date line
   const phaseEl = document.getElementById("status-phase");
   if (phaseEl) phaseEl.style.color = "";
-  const dateLabel = new Date().toLocaleDateString(undefined, {
+  const dateLabel = new Date().toLocaleDateString(getLanguage(), {
     month: "long",
     day: "numeric",
     year: "numeric",
@@ -1259,7 +1259,14 @@ function updateStatusCard() {
       periodMsg = t("status_period_in_date", { date: predictedDate });
     }
 
-    safeText("status-subtitle", `Phase ${phaseNum} — ${t(phaseNameKey)}  ·  ${periodMsg}`);
+    safeText(
+      "status-subtitle",
+      t("status_phase_line", {
+        num: phaseNum,
+        phase: t(phaseNameKey),
+        detail: periodMsg,
+      })
+    );
   }
 
   safeText("cycle-day", info.isLate ? info.daysLate : info.cycleDay);
@@ -1435,6 +1442,24 @@ function renderPredictionsTab() {
   }
 }
 
+function formatPeriodDateRange(startIso, endIso) {
+  const start = fromISO(startIso);
+  const end = fromISO(endIso);
+  const lang = getLanguage();
+  const monthDay = { month: "short", day: "numeric" };
+  const startLabel = start.toLocaleDateString(lang, monthDay);
+  const endLabel = end.toLocaleDateString(lang, monthDay);
+  const year = end.getFullYear();
+
+  if (toISO(start) === toISO(end)) {
+    return `${startLabel}, ${year}`;
+  }
+  if (start.getFullYear() === end.getFullYear()) {
+    return `${startLabel}–${endLabel}, ${year}`;
+  }
+  return `${startLabel}, ${start.getFullYear()}–${endLabel}, ${year}`;
+}
+
 function getPeriodEndDate(startDateStr) {
   const start = fromISO(startDateStr);
   let hasFlow = false;
@@ -1466,9 +1491,9 @@ function buildHistoryRow(c, options = {}) {
   const endStr = getPeriodEndDate(c.start);
   const durDays = diffDays(fromISO(c.start), fromISO(endStr)) + 1;
 
-  const startEl = document.createElement("span");
-  startEl.className = "history-date";
-    startEl.textContent = formatDateLocale(c.start);
+  const dateEl = document.createElement("span");
+  dateEl.className = "history-date";
+  dateEl.textContent = formatPeriodDateRange(c.start, endStr);
 
   const durEl = document.createElement("span");
   durEl.className = "history-dur";
@@ -1486,7 +1511,7 @@ function buildHistoryRow(c, options = {}) {
     lenEl.title = tp("cycle_shift_tooltip", shiftDays, { days: shiftDays });
   }
 
-  row.appendChild(startEl);
+  row.appendChild(dateEl);
   row.appendChild(durEl);
   row.appendChild(lenEl);
   return row;
@@ -1524,7 +1549,7 @@ function showHistoryFullPage() {
   // Column labels pinned at the top of the scrollable body
   const subheader = document.createElement("div");
   subheader.className = "history-fullpage-subheader";
-  [t("history_col_start"), t("history_col_period"), t("history_col_cycle")].forEach((label) => {
+  [t("history_col_dates"), t("history_col_period"), t("history_col_cycle")].forEach((label) => {
     const s = document.createElement("span");
     s.textContent = label;
     subheader.appendChild(s);
@@ -1556,6 +1581,29 @@ function showHistoryFullPage() {
   overlay.appendChild(header);
   overlay.appendChild(body);
   document.body.appendChild(overlay);
+}
+
+function shareRecentPeriodHistory() {
+  if (!state.cycleHistory?.length) {
+    showToast(t("share_history_empty"));
+    return;
+  }
+
+  const rows = [...state.cycleHistory]
+    .slice(-6)
+    .reverse()
+    .map((c) => {
+      const end = getPeriodEndDate(c.start);
+      const dur = diffDays(fromISO(c.start), fromISO(end)) + 1;
+      return `${formatPeriodDateRange(c.start, end)}  (${dur}d)`;
+    });
+
+  const subject = t("share_history_subject");
+  const body = [t("share_history_intro"), "", ...rows].join("\n");
+  const mailto = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+  // Keep mailto URLs under common client limits (~2000 chars is plenty for 6 rows).
+  window.location.href = mailto;
 }
 
 function fillStatsBlock(prefix, statsData) {
@@ -1636,6 +1684,7 @@ function updateInsights() {
 
   const hist = document.getElementById("cycle-history");
   const histCount = document.getElementById("history-count");
+  const shareBtn = document.getElementById("history-share-btn");
   if (!state.cycleHistory || state.cycleHistory.length === 0) {
     hist.innerHTML = "";
     const p = document.createElement("p");
@@ -1643,6 +1692,7 @@ function updateInsights() {
     p.textContent = t("no_cycle_history");
     hist.appendChild(p);
     if (histCount) histCount.textContent = "";
+    if (shareBtn) shareBtn.hidden = true;
     return;
   }
   hist.innerHTML = "";
@@ -1665,7 +1715,12 @@ function updateInsights() {
       )
     );
   if (histCount) {
-    histCount.textContent = total > 6 ? t("history_showing", { shown, total }) : "";
+    histCount.textContent = t("history_showing", { shown, total });
+  }
+  if (shareBtn) {
+    shareBtn.hidden = false;
+    shareBtn.setAttribute("aria-label", t("share_history"));
+    shareBtn.title = t("share_history");
   }
 
   renderPredictionsTab();
@@ -3522,6 +3577,7 @@ window.toggleFertility = toggleFertility;
 window.saveAutoFillDays = saveAutoFillDays;
 window.dismissAutoFillBanner = dismissAutoFillBanner;
 window.showHistoryFullPage = showHistoryFullPage;
+window.shareRecentPeriodHistory = shareRecentPeriodHistory;
 window.showChangePinModal = showChangePinModal;
 window.exportToDrip = exportToDrip;
 window.triggerInstall = triggerInstall;
