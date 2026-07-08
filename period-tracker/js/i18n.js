@@ -296,9 +296,9 @@ const LOCALES = {
     follicular: "Follicular",
 
     // Auto-fill setting
-    settings_autofill_label: "Auto-fill period days",
+    settings_autofill_label: "Auto-fill expected period days ahead",
     settings_autofill_hint:
-      "Leave blank for auto (avg period length from your last 6 months of logs). Set to 0 to disable.",
+      "Fills this many days after the period start day with light flow (e.g. 5 = start day + 5 more days = 6 days total). Leave blank for auto (avg period length from your last 6 months of logs). Set to 0 to disable.",
     settings_autofill_auto: "auto",
     autofill_banner_msg_one: "Auto-filled {n} day ahead with light flow.",
     autofill_banner_msg_many: "Auto-filled {n} days ahead with light flow.",
@@ -368,6 +368,15 @@ const LOCALES = {
     settings_storage_label: "Storage used:",
     settings_storage_calculating: "Calculating...",
     settings_erase: "Erase All Data",
+    settings_recalc_section: "Cycle History Maintenance",
+    settings_recalc_hint:
+      "Rebuilds your cycle history and predictions from your logged flow days. Use this if history or predictions ever look out of sync — it's safe and doesn't touch your logs.",
+    settings_recalc_btn: "Recalculate Cycle History",
+    settings_recalc_confirm_title: "Recalculate cycle history?",
+    settings_recalc_confirm_msg:
+      "This rebuilds your cycle history and predictions from your logged flow days. Your logs themselves won't be changed.",
+    settings_recalc_confirm_btn: "Recalculate",
+    settings_recalc_done_toast: "Cycle history recalculated",
 
     // Onboarding
     onboard_sub: "Track Your Period and Cycle Privately",
@@ -433,6 +442,18 @@ const LOCALES = {
     share_history_subject: "My recent period dates",
     share_history_intro: "Last 6 periods (start–end):",
     share_history_empty: "No period history to share yet.",
+    print_summary: "Print summary",
+    print_summary_title: "My Cycle Keeper — Cycle Summary",
+    print_summary_generated: "Generated on {date}",
+    print_summary_stats_title: "Summary",
+    print_summary_next_period: "Next Predicted Period",
+    print_summary_col_symptoms: "Notes",
+    print_summary_avg_pain: "Avg pain {value}/10",
+    print_summary_avg_mood: "Avg mood {value}/100",
+    print_summary_notes_count_one: "{n} note",
+    print_summary_notes_count_many: "{n} notes",
+    print_summary_disclaimer:
+      "Generated from self-reported data for personal reference only. This is not medical advice — please consult a qualified healthcare professional for clinical decisions.",
 
     // History legend
     legend_short: "Short (<26d)",
@@ -443,6 +464,9 @@ const LOCALES = {
 
     // Hardcoded HTML sections
     flow_question: "What's your flow today? 🌊",
+    log_force_new_cycle: "This is a new period, not a continuation",
+    log_force_new_cycle_hint:
+      "Only applies if Flow is set. Use this to split off a new period the app would otherwise group with a recent one.",
     security_info:
       "All data is encrypted with your PIN before being stored. Cycle Keeper uses the <strong>Web Crypto API</strong> — the same standard used by browsers for HTTPS.<br><br>Zero data is sent to any server. No accounts. No analytics.",
     data_persistence:
@@ -1231,6 +1255,18 @@ const LOCALES = {
     settings_storage_label: "Almacenamiento usado:",
     settings_storage_calculating: "Calculando...",
     settings_erase: "Borrar todos los datos",
+    settings_recalc_section: "Mantenimiento del historial de ciclos",
+    settings_recalc_hint:
+      "Reconstruye tu historial de ciclos y predicciones a partir de tus días de flujo registrados. Úsalo si el historial o las predicciones parecen desincronizados — es seguro y no afecta tus registros.",
+    settings_recalc_btn: "Recalcular historial de ciclos",
+    settings_recalc_confirm_title: "¿Recalcular historial de ciclos?",
+    settings_recalc_confirm_msg:
+      "Esto reconstruirá tu historial de ciclos y predicciones a partir de tus días de flujo registrados. Tus registros no se modificarán.",
+    settings_recalc_confirm_btn: "Recalcular",
+    settings_recalc_done_toast: "Historial de ciclos recalculado",
+    settings_autofill_label: "Autocompletar días de período previstos",
+    settings_autofill_hint:
+      "Rellena esta cantidad de días después del día de inicio del período con flujo leve (p. ej. 5 = día de inicio + 5 días más = 6 días en total). Deja en blanco para automático (duración promedio de tus últimos 6 meses). Pon 0 para desactivar.",
 
     // Onboarding
     onboard_sub: "Rastrea tu período y ciclo de forma privada",
@@ -1287,6 +1323,21 @@ const LOCALES = {
 
     // Hardcoded HTML sections
     flow_question: "¿Cómo es tu flujo hoy? 🌊",
+    log_force_new_cycle: "Este es un periodo nuevo, no una continuación",
+    log_force_new_cycle_hint:
+      "Solo aplica si se registra el Flujo. Úsalo para separar un periodo nuevo que la app agruparía con uno reciente.",
+    print_summary: "Imprimir resumen",
+    print_summary_title: "My Cycle Keeper — Resumen de ciclos",
+    print_summary_generated: "Generado el {date}",
+    print_summary_stats_title: "Resumen",
+    print_summary_next_period: "Próximo período previsto",
+    print_summary_col_symptoms: "Notas",
+    print_summary_avg_pain: "Dolor prom. {value}/10",
+    print_summary_avg_mood: "Ánimo prom. {value}/100",
+    print_summary_notes_count_one: "{n} nota",
+    print_summary_notes_count_many: "{n} notas",
+    print_summary_disclaimer:
+      "Generado a partir de datos autoinformados, solo para referencia personal. Esto no es consejo médico — consulta a un profesional de la salud cualificado para decisiones clínicas.",
     security_info:
       "Todos los datos se cifran con tu PIN antes de guardarse. Cycle Keeper usa la <strong>Web Crypto API</strong> — el mismo estándar que los navegadores usan para HTTPS.<br><br>No se envía ningún dato a ningún servidor. Sin cuentas. Sin analíticas.",
     data_persistence:
@@ -1519,8 +1570,9 @@ const LOCALES = {
 
     follicular: "卵胞期",
 
-    settings_autofill_label: "生理日の自動入力",
-    settings_autofill_hint: "生理初日の記録後、軽度の経血量で自動入力する日数。0で無効化。",
+    settings_autofill_label: "自動入力日数（開始日以降）",
+    settings_autofill_hint:
+      "生理開始日の翌日から、この日数分を軽度の経血量で自動入力します（例：5に設定すると開始日+5日、合計6日分）。空欄で自動（直近6か月の平均生理日数）。0で無効化。",
     autofill_banner_msg_many: "{n}日分を軽度の経血量で自動入力しました。",
     autofill_banner_settings: "設定で変更",
     autofill_banner_backup_pre: "",
@@ -1578,6 +1630,15 @@ const LOCALES = {
     settings_storage_label: "使用ストレージ：",
     settings_storage_calculating: "計算中...",
     settings_erase: "すべてのデータを削除",
+    settings_recalc_section: "周期履歴のメンテナンス",
+    settings_recalc_hint:
+      "記録した経血日から周期履歴と予測を再構築します。履歴や予測がずれていると感じたときに使用してください。記録内容自体は変更されません。",
+    settings_recalc_btn: "周期履歴を再計算",
+    settings_recalc_confirm_title: "周期履歴を再計算しますか？",
+    settings_recalc_confirm_msg:
+      "記録した経血日から周期履歴と予測を再構築します。記録内容自体は変更されません。",
+    settings_recalc_confirm_btn: "再計算",
+    settings_recalc_done_toast: "周期履歴を再計算しました",
 
     onboard_sub: "生理とサイクルをプライベートに記録",
     onboard_tagline:
@@ -1631,12 +1692,26 @@ const LOCALES = {
     share_history_subject: "最近の生理日",
     share_history_intro: "直近6回の生理（開始–終了）:",
     share_history_empty: "共有できる生理履歴がまだありません。",
+    print_summary: "サマリーを印刷",
+    print_summary_title: "My Cycle Keeper — 周期サマリー",
+    print_summary_generated: "{date}に生成",
+    print_summary_stats_title: "サマリー",
+    print_summary_next_period: "次回予測日",
+    print_summary_col_symptoms: "メモ",
+    print_summary_avg_pain: "平均痛み {value}/10",
+    print_summary_avg_mood: "平均気分 {value}/100",
+    print_summary_notes_count_many: "メモ{n}件",
+    print_summary_disclaimer:
+      "自己申告データから生成された個人用の参考情報です。医療アドバイスではありません。診療上の判断については資格のある医療専門家にご相談ください。",
 
     legend_short: "短い（26日未満）",
     legend_normal: "普通（26〜32日）",
     legend_long: "長い（32日超）",
 
     flow_question: "今日の経血量は？ 🌊",
+    log_force_new_cycle: "これは新しい生理です（続きではありません）",
+    log_force_new_cycle_hint:
+      "経血量を設定した場合のみ適用されます。アプリが直近の記録とまとめてしまう新しい生理を分けたいときに使用してください。",
     security_info:
       "すべてのデータはPINで暗号化されてから保存されます。Cycle KeeperはHTTPSと同じ標準である<strong>Web Crypto API</strong>を使用しています。<br><br>サーバーへのデータ送信はゼロです。アカウント不要。分析なし。",
     data_persistence:
@@ -1866,8 +1941,9 @@ const LOCALES = {
 
     follicular: "卵泡期",
 
-    settings_autofill_label: "自動填入經期天數",
-    settings_autofill_hint: "記錄經期第一天後，自動填入少量經血的天數。設為0可停用此功能。",
+    settings_autofill_label: "自動填入天數（經期開始日之後）",
+    settings_autofill_hint:
+      "記錄經期第一天後，自動填入此天數的少量經血記錄（例如設為5，即開始日+5天，共6天）。留空則自動（依您最近6個月的平均經期天數）。設為0可停用此功能。",
     autofill_banner_msg_many: "已自動填入{n}天的少量經血記錄。",
     autofill_banner_settings: "在設定中調整",
     autofill_banner_backup_pre: "",
@@ -1925,6 +2001,15 @@ const LOCALES = {
     settings_storage_label: "已使用儲存空間：",
     settings_storage_calculating: "計算中...",
     settings_erase: "刪除所有資料",
+    settings_recalc_section: "週期歷史維護",
+    settings_recalc_hint:
+      "根據您記錄的經期天數重建週期歷史與預測。若歷史或預測看起來不同步，可使用此功能——這是安全的操作，不會更動您的紀錄。",
+    settings_recalc_btn: "重新計算週期歷史",
+    settings_recalc_confirm_title: "要重新計算週期歷史嗎？",
+    settings_recalc_confirm_msg:
+      "這將根據您記錄的經期天數重建週期歷史與預測。您的紀錄本身不會被更動。",
+    settings_recalc_confirm_btn: "重新計算",
+    settings_recalc_done_toast: "週期歷史已重新計算",
 
     onboard_sub: "私密追蹤您的經期和週期",
     onboard_tagline:
@@ -1978,12 +2063,26 @@ const LOCALES = {
     share_history_subject: "近期經期日期",
     share_history_intro: "最近6次經期（開始–結束）：",
     share_history_empty: "尚無可分享的經期歷史。",
+    print_summary: "列印摘要",
+    print_summary_title: "My Cycle Keeper — 週期摘要",
+    print_summary_generated: "產生於{date}",
+    print_summary_stats_title: "摘要",
+    print_summary_next_period: "下次預測經期",
+    print_summary_col_symptoms: "備註",
+    print_summary_avg_pain: "平均疼痛 {value}/10",
+    print_summary_avg_mood: "平均心情 {value}/100",
+    print_summary_notes_count_many: "{n}則備註",
+    print_summary_disclaimer:
+      "此摘要根據自我回報的資料產生，僅供個人參考。這不是醫療建議——臨床決策請諮詢合格的醫療專業人員。",
 
     legend_short: "短（< 26天）",
     legend_normal: "正常（26–32天）",
     legend_long: "長（> 32天）",
 
     flow_question: "今天的經血量如何？ 🌊",
+    log_force_new_cycle: "這是新的一次經期，不是延續",
+    log_force_new_cycle_hint:
+      "僅在有設定經期時生效。用於將應用程式原本會歸類為同一次的最近紀錄，拆分成新的一次經期。",
     security_info:
       "所有資料在儲存前都以您的PIN加密。Cycle Keeper使用與HTTPS相同標準的<strong>Web Crypto API</strong>。<br><br>零資料傳送至任何伺服器。無帳戶。無分析。",
     data_persistence:

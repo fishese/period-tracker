@@ -50,7 +50,7 @@ mycyclekeeper/                    # Git repo root (landing page + Firebase confi
     ├── docs/
     │   ├── HANDOFF.md            # ← this file
     │   └── google-drive-sync-plan.md
-    └── service-worker.js         # CACHE_VERSION currently v20260708d
+    └── service-worker.js         # CACHE_VERSION currently v20260708e
 ```
 
 ---
