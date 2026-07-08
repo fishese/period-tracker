@@ -30,6 +30,7 @@ export function cleanupEmptyLogs() {
     const log = state.logs[dateStr];
     const empty =
       !log.flow &&
+      !log.spotting &&
       !log.pain &&
       (log.mood === undefined || log.mood === null) &&
       !(log.note && log.note.trim());

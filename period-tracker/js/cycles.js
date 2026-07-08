@@ -25,6 +25,19 @@ function isValidCycleLength(len) {
   return typeof len === "number" && len > 14 && len < 60;
 }
 
+/**
+ * Fertile-window day offsets from cycle start (Calendar Rhythm / Standard
+ * Days Method). `fertileEnd` is clamped to never fall before `fertileStart`
+ * — for very short cycles (cl < 19) the raw formula would otherwise invert
+ * (e.g. cl=17 gives start=8, end=6), silently hiding the fertile window.
+ */
+function getFertileWindowOffsets(cl) {
+  const fertileStart = Math.max(8, cl - 18);
+  const fertileEnd = Math.max(fertileStart, cl - 11);
+  const ovulationDay = cl - 14;
+  return { fertileStart, fertileEnd, ovulationDay };
+}
+
 /** Completed cycles exclude the current (ongoing) cycle — the last history entry. */
 export function getCompletedCycles(hist) {
   if (!hist || hist.length <= 1) return [];
@@ -70,8 +83,13 @@ function buildStatisticalData(cycles, requireMin = 3) {
   if (validLengths.length < requireMin) return null;
 
   const stats = getCycleLengthStats(validLengths);
+  // Prediction-window padding in days, derived from actual cycle-length
+  // variability rather than a coarse regular/irregular flag. Clamped to the
+  // same 0–5 range users can pick manually in Settings (toleranceDays).
   const variation =
-    stats.stdDeviation === null || stats.stdDeviation < 1.5 ? 1 : 2;
+    stats.stdDeviation === null
+      ? 1
+      : Math.max(1, Math.min(5, Math.round(stats.stdDeviation)));
   const spread = stats.max - stats.min;
   let spreadLevel = null;
   if (spread > SPREAD_IRREGULAR_DAYS) spreadLevel = "irregular";
@@ -351,9 +369,7 @@ export function getCycleInfo() {
   const nextPeriod = addDays(cycleStart, cl);
   const daysUntilNext = diffDays(todayD, nextPeriod);
 
-  const fertileStart = Math.max(8, cl - 18);
-  const fertileEnd = cl - 11;
-  const ovulationDay = cl - 14;
+  const { fertileStart, fertileEnd, ovulationDay } = getFertileWindowOffsets(cl);
 
   let phase = "Luteal";
   let phaseColor = "var(--lavender)";
@@ -407,9 +423,11 @@ export function calculatePredictions() {
       ? parseInt(state.toleranceDays)
       : getPredictionVariation();
   const pd = getPredictionPeriodDuration();
-  const ovOffset = cl - 14;
-  const fertStartOff = Math.max(8, cl - 18);
-  const fertEndOff = cl - 11;
+  const {
+    fertileStart: fertStartOff,
+    fertileEnd: fertEndOff,
+    ovulationDay: ovOffset,
+  } = getFertileWindowOffsets(cl);
   const predictions = [];
 
   for (let i = 0; i < 6; i++) {

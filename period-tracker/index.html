@@ -565,6 +565,13 @@
                   <span class="icon" id="log-mood-icon">😐</span><span data-i18n="mood">Mood</span>
                 </div>
               </div>
+              <div class="toggle-row log-new-cycle-row" id="log-new-cycle-row" style="display:none">
+                <label class="toggle-label">
+                  <input type="checkbox" id="log-force-new-cycle">
+                  <span data-i18n="log_force_new_cycle">This is a new period, not a continuation</span>
+                </label>
+              </div>
+              <div class="field-hint log-new-cycle-hint" id="log-new-cycle-hint" style="display:none" data-i18n="log_force_new_cycle_hint">Only applies if Flow is set. Use this to split off a new period the app would otherwise group with a recent one.</div>
               <textarea
                 class="log-note"
                 id="log-note"
@@ -710,23 +717,40 @@
             </div>
             <div class="history-footer-row">
               <span id="history-count" class="history-count-text"></span>
-              <button
-                type="button"
-                class="history-share-icon-btn"
-                id="history-share-btn"
-                onclick="shareRecentPeriodHistory()"
-                data-i18n-aria="share_history"
-                aria-label="Share"
-                title="Share"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <circle cx="18" cy="5" r="3"></circle>
-                  <circle cx="6" cy="12" r="3"></circle>
-                  <circle cx="18" cy="19" r="3"></circle>
-                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                </svg>
-              </button>
+              <div class="history-footer-actions">
+                <button
+                  type="button"
+                  class="history-share-icon-btn"
+                  id="history-print-btn"
+                  onclick="printCycleSummary()"
+                  data-i18n-aria="print_summary"
+                  aria-label="Print summary"
+                  title="Print summary"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                    <rect x="6" y="14" width="12" height="8"></rect>
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="history-share-icon-btn"
+                  id="history-share-btn"
+                  onclick="shareRecentPeriodHistory()"
+                  data-i18n-aria="share_history"
+                  aria-label="Share"
+                  title="Share"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="18" cy="5" r="3"></circle>
+                    <circle cx="6" cy="12" r="3"></circle>
+                    <circle cx="18" cy="19" r="3"></circle>
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                  </svg>
+                </button>
+              </div>
             </div>
             <button class="history-expand-btn" onclick="showHistoryFullPage()" data-i18n="view_all_history" style="margin-top:0.75rem">View all</button>
             <div class="history-legend">
@@ -900,7 +924,7 @@
             </div>
             <div class="field-hint" data-i18n="settings_tolerance_hint">Days shown before/after each predicted period in the calendar. Leave blank to use auto (based on your cycle regularity).</div>
 
-            <div class="field-label" data-i18n="settings_autofill_label">Auto-fill period days</div>
+            <div class="field-label" data-i18n="settings_autofill_label">Auto-fill expected period days ahead</div>
             <div class="setting-row">
               <input
                 class="field-input"
@@ -914,7 +938,15 @@
               />
               <button class="setting-save-btn" onclick="saveAutoFillDays()" data-i18n="save">Save</button>
             </div>
-            <div class="field-hint" data-i18n="settings_autofill_hint">Leave blank for auto (avg period length from your last 6 months of logs). Set to 0 to disable.</div>
+            <div class="field-hint" data-i18n="settings_autofill_hint">Fills this many days after the period start day with light flow (e.g. 5 = start day + 5 more days = 6 days total). Leave blank for auto (avg period length from your last 6 months of logs). Set to 0 to disable.</div>
+          </div>
+
+          <div class="settings-section">
+            <h3 data-i18n="settings_recalc_section">Cycle History Maintenance</h3>
+            <div class="field-hint" data-i18n="settings_recalc_hint">Rebuilds your cycle history and predictions from your logged flow days. Use this if history or predictions ever look out of sync — it's safe and doesn't touch your logs.</div>
+            <button class="apply-btn" onclick="recalculateCycleHistoryWithConfirm()" data-i18n="settings_recalc_btn">
+              Recalculate Cycle History
+            </button>
           </div>
         </div>
 
@@ -1110,5 +1142,8 @@
       <span class="autofill-banner__backup-wrap"><span class="autofill-banner__backup-pre" data-i18n="autofill_banner_backup_pre">Reminder to </span><a href="#" class="autofill-banner__link" id="autofill-banner-backup-link" data-i18n="autofill_banner_backup">back up</a></span>
       <button class="autofill-banner__close" onclick="dismissAutoFillBanner()" aria-label="Dismiss">&#x2715;</button>
     </div>
+
+    <!-- Print-only cycle summary (populated by printCycleSummary() before window.print()) -->
+    <div id="print-summary" class="print-summary"></div>
   </body>
 </html>

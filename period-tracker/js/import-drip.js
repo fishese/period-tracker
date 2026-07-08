@@ -1,11 +1,15 @@
 "use strict";
 
+import { toISO } from "./dateUtils.js";
+
 // ─── Value converters ─────────────────────────────────────────────────────────
 
 // drip bleeding.value: 0=spotting, 1=light, 2=medium, 3=heavy
 // My Cycle Keeper flow:                      1=light,  2=medium, 3=heavy
+// Spotting (0) is intentionally NOT mapped to a flow level — it's tracked
+// separately (see row.spotting below) so it doesn't count as a period day
+// toward cycle-length / period-duration statistics.
 function dripBleedingToFlow(value) {
-  if (value === 0) return 1;
   if (value === 1) return 1;
   if (value === 2) return 2;
   if (value === 3) return 3;
@@ -186,7 +190,7 @@ export function parseDripCsv(csvText) {
   }
 
   const logs = {};
-  const today = new Date().toISOString().slice(0, 10);
+  const today = toISO(new Date());
 
   for (const flat of flatRows) {
     const raw = unflatten(flat);
@@ -198,8 +202,14 @@ export function parseDripCsv(csvText) {
     const log = {};
 
     if (row.bleeding && !row.bleeding.exclude && typeof row.bleeding.value === "number") {
-      const flow = dripBleedingToFlow(row.bleeding.value);
-      if (flow !== null) log.flow = flow;
+      if (row.bleeding.value === 0) {
+        // Spotting — tracked separately so it doesn't count as a period day
+        // toward cycle-length / period-duration statistics.
+        log.spotting = true;
+      } else {
+        const flow = dripBleedingToFlow(row.bleeding.value);
+        if (flow !== null) log.flow = flow;
+      }
     }
 
     const pain = dripPainToPainValue(row.pain);

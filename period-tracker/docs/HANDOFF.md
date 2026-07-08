@@ -1,6 +1,6 @@
 # My Cycle Keeper — Handoff Document
 
-**Last updated:** 2026-07-08 (evening session closed)  
+**Last updated:** 2026-07-08 (bug-fix + feature session closed)  
 **Maintainer:** Personal fork (fishese)  
 **Status:** Stable for personal use. Latest on `period-tracker/master`. Come back in a new chat with the prompt in §13.
 
@@ -50,7 +50,7 @@ mycyclekeeper/                    # Git repo root (landing page + Firebase confi
     ├── docs/
     │   ├── HANDOFF.md            # ← this file
     │   └── google-drive-sync-plan.md
-    └── service-worker.js         # CACHE_VERSION currently v20260708b
+    └── service-worker.js         # CACHE_VERSION currently v20260708d
 ```
 
 ---
@@ -114,12 +114,15 @@ state = {
   cycleLength: 28,              // synced from rolling mean when history exists
   periodDuration: 5,            // synced from rolling flow duration when logs exist
   toleranceDays: null,          // null = auto (±1/±2 from stats), 0–5 manual
-  autoFillDays: null,           // null = auto from logs; 0 = off; 1–10 = fixed
+  autoFillDays: null,           // null = auto from logs; 0 = off; 1–10 = days ahead (not including start day)
   showFertility: false,         // default OFF — calendar highlights only when true
-  logs: { "YYYY-MM-DD": { flow?, pain?, mood?, note? } },
+  logs: { "YYYY-MM-DD": { flow?, spotting?, pain?, mood?, note? } },
   cycleHistory: [{ start, length }],
 }
 ```
+
+- `flow` (1–3) is a real period day and counts toward cycle-length/period-duration stats.
+- `spotting: true` is tracked separately (currently only set via drip CSV import, `bleeding.value === 0`) — shows as a logged day (calendar dot) but is **excluded** from `flow`-based cycle/period calculations so it doesn't skew predictions. Round-trips back to drip's `bleeding.value=0` on export.
 
 `setState()` in `cycles.js` / `periodMarking.js` holds a **reference** — never pass copies.
 
@@ -145,9 +148,20 @@ state = {
 - **Spread caution:** Shortest vs longest **>7 days**
 - **Spread irregular:** **>9 days** (Cleveland Clinic)
 
+### Prediction window variation
+
+`buildStatisticalData()` derives the predicted-period highlight padding from the **real rolling std-deviation** (`Math.round(stdDeviation)`, clamped 1–5 days) instead of the old binary 1-or-2-day flag. Manual override still available via `state.toleranceDays` (0–5, Settings).
+
 ### Anchor walking
 
 `getCurrentCycleAnchor()` walks from `lastPeriodStart` using **rolling average** cycle length (not last irregular cycle alone).
+
+### Cycle history advancement (`updateCycleHistory()` in `script.js`)
+
+Every new flow day that isn't "same menses" (1-day gap tolerance, `isSameMenses()`) now **always** advances to a new cycle entry and moves `lastPeriodStart` forward — including gaps outside the "valid" 15–59 day range. Only the *length value* used in rolling/overall stats is filtered by `isValidCycleLength()` (in `cycles.js`); the episode itself is always recorded. (Previously, a gap >59 or <15 days was silently dropped entirely, leaving `lastPeriodStart` stale forever — long/irregular cycles would permanently break late-period detection and predictions until the user reset something.)
+
+- **Manual override:** log panel has a "This is a new period, not a continuation" checkbox (`#log-force-new-cycle`) to bypass the gap-tolerance heuristic when it misclassifies (e.g. spotting a couple days before real flow). The row (`#log-new-cycle-row`/`#log-new-cycle-hint`) is only shown when `isSameMenses(dateStr)` is true — i.e. only when there's actually a period day 1–2 days prior, so the option doesn't show up (confusingly, doing nothing) for an obviously-new cycle after weeks with no periods.
+- **Recovery tool:** Settings → Cycle → "Recalculate Cycle History" rebuilds `cycleHistory` + `lastPeriodStart` from scratch using `rebuildCycleHistoryFromLogs()` (safe — doesn't touch logs).
 
 ### Late period UX
 
@@ -189,8 +203,14 @@ Only while **actively bleeding** (`isPeriodEpisodeActive`).
 
 - Compact dates: `Jun 4–Jun 9, 2026`
 - Columns: Dates \| Period \| Cycle
-- Footer row: “Showing last N of M cycles” + small **share icon** (mailto, last 6 periods as plain text)
+- Footer row: “Showing last N of M cycles” + small **share icon** (mailto, last 6 periods as plain text) + **print icon** (`printCycleSummary()`)
 - `shareRecentPeriodHistory()` in `script.js`
+
+### Print cycle summary (doctor-visit friendly)
+
+- `printCycleSummary()` / `buildPrintSummaryContent()` in `script.js`, print icon next to the share icon on the History tab footer row.
+- Builds a hidden `#print-summary` element (direct child of `<body>`), then `window.print()`. `@media print` in `style.css` hides everything else (`body > *:not(.print-summary)`) and forces black-on-white regardless of active theme.
+- Content: rolling/overall cycle stats, next predicted period, and a full cycle history table with per-cycle avg pain/mood + note count (`summarizeCycleSymptoms()`), plus a "not medical advice" disclaimer.
 
 ### Symptom chart
 
@@ -216,6 +236,9 @@ My Calendar export
 
 - Encrypted backup: `.bin` (`mycyclekeeper_backup_*.bin`)
 - drip CSV export from Settings
+- drip `bleeding.value === 0` (spotting) imports as `log.spotting = true`, **not** `log.flow` — see §4 State shape. Export round-trips it back to `bleeding.value=0`.
+- `parseDripCsv()`'s future-date cutoff uses `toISO(new Date())` (local date) — was previously `Date.toISOString()` (UTC), which could wrongly drop "today"'s rows near midnight in timezones ahead of UTC.
+- Non-onboarding drip import already offers a real choice: **Merge** (keep existing logs on date collisions) vs **Replace** (drip data wins) — see the modal in `_pickDripCsvFile()`. Onboarding import has nothing to merge with, so it's just an initial load.
 
 ---
 
@@ -241,6 +264,35 @@ My Calendar export
 13. Drop unused **DM Sans** reference → system sans stack  
 14. SW cache bump `v20260708b`
 
+### Bug-fix + feature session (this closure, `v20260708d`)
+
+**Bugs fixed:**
+
+1. `updateCycleHistory()` no longer silently drops cycles with a gap outside 15–59 days — `lastPeriodStart` always advances now (see §5). This was the most impactful fix: long/irregular cycle gaps used to permanently desync predictions and late-period detection.
+2. `parseDripCsv()` future-date cutoff switched from `Date.toISOString()` (UTC) to `toISO(new Date())` (local) — matches the project's own date-handling rule and fixes a timezone-dependent CSV-import edge case.
+3. Fertile-window math (`getFertileWindowOffsets()` in `cycles.js`) clamped so `fertileEnd >= fertileStart` — previously inverted (and hid the fertile window entirely) for cycle lengths under ~19 days.
+4. `updateCycleBar()` no longer shifts segments backwards when a segment width is ≤0 (could happen for short cycles with a long period duration).
+5. `selectDay()`'s log-panel date now uses `getLanguage()` instead of a hardcoded `"default"` locale.
+6. Removed dead code: `getPhaseMessage()` / `getPhaseSubtitle()` (never called; superseded by `getStatusPhaseLabel()` + `status_phase_line`).
+7. Prediction-window variation now uses real rolling std-deviation (clamped 1–5d) instead of a coarse 1-or-2-day binary flag (see §5).
+
+**Features added:**
+
+8. Settings → Cycle → **Recalculate Cycle History** button (`recalculateCycleHistoryWithConfirm()`) — safe recovery tool that rebuilds `cycleHistory`/`lastPeriodStart` from logged flow days.
+9. Log panel → **"This is a new period, not a continuation"** checkbox (`#log-force-new-cycle`, `getForceNewCycleFlag()`) — manually overrides the gap-tolerance heuristic for both `updateCycleHistory()` and `applyAutoFill()`. Only shown when `isSameMenses(dateStr)` is true (recent adjacent flow), so an obviously-new cycle after weeks without bleeding never presents the option.
+10. CSV import now distinguishes **spotting** (drip `bleeding.value=0`) from real flow — see §4/§7.
+11. **Print cycle summary** for doctor visits — see §6.
+12. Auto-fill Settings copy clarified to **"Auto-fill expected period days ahead"** — value means days *after* the start day (e.g. `5` → start + 5 = 6 days total). Blank/`null` remains the default (rolling avg period length).
+
+**Explicitly deferred (owner's call, revisit later):**
+
+- Symptom chart re-enable — undecided how to present the data meaningfully.
+- Google Drive sync — still just the plan doc.
+- Push/background notifications — not feasible without a backend (Push API requires a server to trigger sends; Periodic Background Sync is unreliable/Chromium-only). In-app reminder-on-logging is the current approach.
+- WebAuthn/biometric unlock — unclear PWA support story, revisit later.
+- ru/be i18n rollout — personal fork with no current ru/be users; revisit if that changes.
+- Smarter CSV-import merge (auto-resolving near-duplicate records) — intentionally *not* wanted; current Merge/Replace choice is enough, and auto-merging risks silently "fixing" what might actually be a misclick.
+
 ---
 
 ## 9. Older work
@@ -261,16 +313,17 @@ Spec: [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
 
 ### B. Remaining UI / docs (optional)
 
-- Broader i18n for ru/be (supported in file; layout switcher currently lists en/es/ja/zh-TW)
-- Desktop Insights polish; symptom chart restore if needed
-- Refresh `README-Fork.md` + `CLAUDE.md` (still say Your Cycle Keeper / old keys in places)
+- Desktop Insights polish; symptom chart restore if needed (undecided how to present the data meaningfully — see §8)
+- Refresh `README-Fork.md` + `CLAUDE.md` (still say Your Cycle Keeper / old keys in places; `CLAUDE.md` also still lists `flow: 1-3` only — now `spotting?: true` too, see §4)
 - Confirm share-card / QR text pointing at `yourcyclekeeper.web.app`
 - Update `og:url` / canonical if hosting on a personal domain
+- Consider adding a distinct calendar dot style for spotting-only days (currently shows as the generic "has-log" dot, same as any other logged day)
 
 ### C. Explicitly deferred
 
-- Two-way sync / conflict resolution  
+- Two-way sync / conflict resolution
 - Loading a real webfont file for LunaDisplay (currently Georgia alias)
+- See §8 "Explicitly deferred" for the full current list (push notifications, WebAuthn, ru/be i18n, smarter CSV merge, Drive sync, symptom chart) with reasoning for each.
 
 ---
 
@@ -278,12 +331,14 @@ Spec: [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
 
 1. Hard-refresh / unregister SW after JS/CSS deploys; bump `CACHE_VERSION`  
 2. PIN modal: `_restoreModalBox()` after import / change-PIN  
-3. Dates: `toISO()` / `fromISO()` — never `Date.toISOString()` for day keys  
+3. Dates: `toISO()` / `fromISO()` — never `Date.toISOString()` for day keys (this bit `import-drip.js` once already — fixed, see §8, but stay alert for new occurrences)  
 4. State by reference after decrypt  
-5. `autoFillDays`: `null` = auto, `0` = off  
-6. CSV import overwrites — export backup first  
+5. `autoFillDays`: `null` = auto (rolling avg), `0` = off, `1–10` = days ahead after start (not including the start day itself)  
+6. Onboarding CSV import has nothing to merge with (fresh state); non-onboarding import offers a real Merge/Replace choice — see §7  
 7. GitHub Pages path quirks for `manifest.json` (`dd363ef`)  
 8. iOS PWA OAuth will be hard for Drive backup — test early  
+9. `log.flow` is truthy-checked pervasively (`if (log.flow)`) — a future 4th flow level must not be `0`/falsy, or it'll silently behave like "not set" everywhere. This is exactly why `spotting` was added as its own boolean field instead of `flow: 0`.  
+10. If cycle history / predictions ever look wrong, try Settings → Cycle → "Recalculate Cycle History" before debugging further — it's a safe, non-destructive rebuild from logs.  
 
 ---
 
@@ -292,10 +347,15 @@ Spec: [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
 - [ ] Onboarding / CSV import / unlock  
 - [ ] Late period message + dashed predicted days  
 - [ ] Fertility toggle: calendar only; legend stays  
-- [ ] History compact dates + share icon  
+- [ ] History compact dates + share icon + print icon  
 - [ ] Status phase line in zh-TW / ja / es  
 - [ ] Layout: Language above Theme; About has no PayPal  
 - [ ] Offline reload  
+- [ ] Log a period after a >60-day gap — confirm `lastPeriodStart`/predictions advance (was silently stuck before this session's fix)  
+- [ ] Log panel "This is a new period" checkbox actually splits a cycle when checked  
+- [ ] Settings → Cycle → "Recalculate Cycle History" rebuilds without errors on real data  
+- [ ] Import a drip CSV with a `bleeding.value=0` (spotting) row — check it doesn't inflate period count, and round-trips on export  
+- [ ] Print summary opens print dialog with populated stats + history table  
 
 ---
 
@@ -315,12 +375,14 @@ Read period-tracker/docs/HANDOFF.md and period-tracker/docs/google-drive-sync-pl
 
 | File | Role |
 |------|------|
-| `js/script.js` | Main UI / state / share / status |
-| `js/cycles.js` | Predictions / rolling / day types |
-| `js/import-drip.js` | CSV import |
+| `js/script.js` | Main UI / state / share / status / print summary |
+| `js/cycles.js` | Predictions / rolling / day types / fertile window |
+| `js/import-drip.js` | CSV import (incl. spotting) |
+| `js/export-drip.js` | CSV export (incl. spotting round-trip) |
+| `js/periodMarking.js` | Menses episode logic, `cleanupEmptyLogs()` |
 | `js/i18n.js` | Locales |
-| `index.html` | Structure / About / Layout |
-| `style.css` | Themes, calendar, history footer |
+| `index.html` | Structure / About / Layout / log panel / print container |
+| `style.css` | Themes, calendar, history footer, `@media print` |
 | `service-worker.js` | Offline cache |
 
 ---

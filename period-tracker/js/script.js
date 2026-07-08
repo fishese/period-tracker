@@ -645,13 +645,22 @@ function getAutoFillDayCount() {
   return getPredictionPeriodDuration();
 }
 
+// Reads the "This is a new period, not a continuation" checkbox in the log
+// panel — lets a user manually split a period the gap-tolerance heuristic
+// would otherwise group with a recent one (e.g. spotting a few days before
+// the real flow starts).
+function getForceNewCycleFlag() {
+  const cb = document.getElementById("log-force-new-cycle");
+  return !!(cb && cb.checked);
+}
+
 // Fills the next N days with light flow when a brand-new period starts.
-function applyAutoFill(dateStr, flow) {
+function applyAutoFill(dateStr, flow, forceNewCycle = false) {
   if (!flow) return false;
   const fillDays = getAutoFillDayCount();
   if (fillDays <= 0) return false;
   if (autoFillDatesThisSession.has(dateStr)) return false;
-  if (isSameMenses(dateStr)) return false;
+  if (!forceNewCycle && isSameMenses(dateStr)) return false;
   const start = fromISO(dateStr);
   for (let i = 1; i <= fillDays; i++) {
     const next = toISO(addDays(start, i));
@@ -670,9 +679,11 @@ async function autoSaveSymptomSelection() {
   const rawNote = noteEl ? noteEl.value : "";
   const log = {};
 
+  const forceNewCycle = getForceNewCycleFlag();
+
   if (currentFlowSet) {
     log.flow = normalizeFlowValue(currentFlowValue, 1);
-    updateCycleHistory(selectedDate);
+    updateCycleHistory(selectedDate, forceNewCycle);
     recalculatePeriodDuration();
   }
 
@@ -687,7 +698,7 @@ async function autoSaveSymptomSelection() {
   log.note = rawNote.slice(0, 500).replace(/[<>]/g, "");
 
   state.logs[selectedDate] = log;
-  const didAutoFill = currentFlowSet ? applyAutoFill(selectedDate, log.flow) : false;
+  const didAutoFill = currentFlowSet ? applyAutoFill(selectedDate, log.flow, forceNewCycle) : false;
   cleanupEmptyLogs();
   await save();
   renderCalendar();
@@ -1345,22 +1356,6 @@ function updateReminderBanner(info) {
   }
 }
 
-function getPhaseMessage(info) {
-  if (info.phase === "Menstruation") return t("phase_menstruation");
-  if (info.phase === "Follicular") return t("phase_follicular");
-  if (info.phase === "Fertile Window") return t("phase_fertile");
-  if (info.phase === "Ovulation Day") return t("phase_ovulation");
-  return t("phase_luteal");
-}
-function getPhaseSubtitle(info) {
-  if (info.phase === "Menstruation")
-    return t("subtitle_menstruation", { day: info.cycleDay });
-  if (info.phase === "Fertile Window")
-    return t("subtitle_fertile", { start: info.fertileStart, end: info.fertileEnd });
-  if (info.phase === "Ovulation Day") return t("subtitle_ovulation");
-  return t("subtitle_other", { n: info.daysUntilNext });
-}
-
 function updateCycleBar(info) {
   const bar = document.getElementById("cycle-bar");
   safeText("bar-cycle-end", t("bar_day", { n: info.cl }));
@@ -1383,10 +1378,9 @@ function updateCycleBar(info) {
   bar.innerHTML = "";
   let left = 0;
   segs.forEach((s) => {
-    if (s.w <= 0) {
-      left += s.w;
-      return;
-    }
+    // Skip zero/negative-width segments without moving the cursor backwards
+    // (can happen for short cycles with a long period duration).
+    if (s.w <= 0) return;
     const seg = document.createElement("div");
     seg.style.cssText = `position:absolute;top:0;height:100%;border-radius:999px;left:${(
       (left / info.cl) *
@@ -1604,6 +1598,168 @@ function shareRecentPeriodHistory() {
 
   // Keep mailto URLs under common client limits (~2000 chars is plenty for 6 rows).
   window.location.href = mailto;
+}
+
+/** Average pain/mood + note count over a period's days, for the print summary. */
+function summarizeCycleSymptoms(startStr, endStr) {
+  const start = fromISO(startStr);
+  const days = diffDays(start, fromISO(endStr)) + 1;
+  let painSum = 0, painCount = 0, moodSum = 0, moodCount = 0, noteCount = 0;
+  for (let i = 0; i < days; i++) {
+    const log = state.logs[toISO(addDays(start, i))];
+    if (!log) continue;
+    const painVal = getPainValueFromLog(log);
+    if (painVal != null) { painSum += painVal; painCount++; }
+    const moodVal = getMoodValueFromLog(log);
+    if (moodVal != null) { moodSum += moodVal; moodCount++; }
+    if (log.note && log.note.trim()) noteCount++;
+  }
+  const parts = [];
+  if (painCount > 0) {
+    parts.push(t("print_summary_avg_pain", { value: (painSum / painCount).toFixed(1) }));
+  }
+  if (moodCount > 0) {
+    parts.push(t("print_summary_avg_mood", { value: Math.round(moodSum / moodCount) }));
+  }
+  if (noteCount > 0) {
+    parts.push(tp("print_summary_notes_count", noteCount));
+  }
+  return parts.length ? parts.join(" · ") : "—";
+}
+
+function buildPrintSummaryContent() {
+  const rollingStats = getRollingStatisticalCycleData(fromISO(today()), 1);
+  const rollingDetailed = getRollingStatisticalCycleData(fromISO(today()), 3);
+  const overallStats = getOverallStatisticalCycleData(3);
+  const info = getCycleInfo();
+
+  const wrap = document.createElement("div");
+
+  const title = document.createElement("div");
+  title.className = "print-summary__title";
+  title.textContent = t("print_summary_title");
+  wrap.appendChild(title);
+
+  const generated = document.createElement("div");
+  generated.className = "print-summary__generated";
+  generated.textContent = t("print_summary_generated", {
+    date: new Date().toLocaleDateString(getLanguage(), {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }),
+  });
+  wrap.appendChild(generated);
+
+  const statsTitle = document.createElement("div");
+  statsTitle.className = "print-summary__section-title";
+  statsTitle.textContent = t("print_summary_stats_title");
+  wrap.appendChild(statsTitle);
+
+  const statsGrid = document.createElement("div");
+  statsGrid.className = "print-summary__stats";
+  const statEntries = [
+    [t("avg_length_rolling"), rollingStats ? `${Math.round(rollingStats.mean)}d` : "—"],
+    [t("avg_length_overall"), overallStats ? `${Math.round(overallStats.mean)}d` : "—"],
+    [t("avg_period"), info ? `${info.pd}d` : "—"],
+    [
+      t("stat_std_dev"),
+      rollingDetailed?.stdDeviation != null ? `±${rollingDetailed.stdDeviation}d` : "—",
+    ],
+    [t("cycles_logged"), state.cycleHistory?.length ? String(state.cycleHistory.length) : "—"],
+    [
+      t("print_summary_next_period"),
+      info?.nextPeriod ? formatDateLocale(info.nextPeriod) : "—",
+    ],
+  ];
+  statEntries.forEach(([label, value]) => {
+    const box = document.createElement("div");
+    const l = document.createElement("div");
+    l.className = "print-summary__stat-label";
+    l.textContent = label;
+    const v = document.createElement("div");
+    v.className = "print-summary__stat-value";
+    v.textContent = value;
+    box.appendChild(l);
+    box.appendChild(v);
+    statsGrid.appendChild(box);
+  });
+  wrap.appendChild(statsGrid);
+
+  const histTitle = document.createElement("div");
+  histTitle.className = "print-summary__section-title";
+  histTitle.textContent = t("cycle_history");
+  wrap.appendChild(histTitle);
+
+  if (!state.cycleHistory?.length) {
+    const p = document.createElement("p");
+    p.textContent = t("no_cycle_history");
+    wrap.appendChild(p);
+  } else {
+    const table = document.createElement("table");
+    table.className = "print-summary__table";
+    const thead = document.createElement("thead");
+    const headRow = document.createElement("tr");
+    [
+      t("history_col_dates"),
+      t("history_col_period"),
+      t("history_col_cycle"),
+      t("print_summary_col_symptoms"),
+    ].forEach((label) => {
+      const th = document.createElement("th");
+      th.textContent = label;
+      headRow.appendChild(th);
+    });
+    thead.appendChild(headRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+    [...state.cycleHistory].reverse().forEach((c, idx) => {
+      const isCurrentCycle = idx === 0 && isPeriodEpisodeActive(c.start);
+      const endStr = getPeriodEndDate(c.start);
+      const durDays = diffDays(fromISO(c.start), fromISO(endStr)) + 1;
+
+      const tr = document.createElement("tr");
+      const dateTd = document.createElement("td");
+      dateTd.textContent = formatPeriodDateRange(c.start, endStr);
+      const durTd = document.createElement("td");
+      durTd.textContent = `${durDays}d`;
+      const lenTd = document.createElement("td");
+      lenTd.textContent = isCurrentCycle
+        ? t("history_current")
+        : tp("history_days", parseInt(c.length));
+      const symTd = document.createElement("td");
+      symTd.textContent = summarizeCycleSymptoms(c.start, endStr);
+
+      tr.appendChild(dateTd);
+      tr.appendChild(durTd);
+      tr.appendChild(lenTd);
+      tr.appendChild(symTd);
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    wrap.appendChild(table);
+  }
+
+  const disclaimer = document.createElement("div");
+  disclaimer.className = "print-summary__disclaimer";
+  disclaimer.textContent = t("print_summary_disclaimer");
+  wrap.appendChild(disclaimer);
+
+  return wrap;
+}
+
+/** Builds a print-friendly cycle + symptom summary and opens the print dialog. */
+function printCycleSummary() {
+  if (!state.cycleHistory?.length) {
+    showToast(t("share_history_empty"));
+    return;
+  }
+  const container = document.getElementById("print-summary");
+  if (!container) return;
+  container.replaceChildren(buildPrintSummaryContent());
+  // Let the browser paint the freshly-built content before opening the dialog.
+  setTimeout(() => window.print(), 50);
 }
 
 function fillStatsBlock(prefix, statsData) {
@@ -2376,7 +2532,7 @@ function selectDay(dateStr) {
   if (nextBtn) nextBtn.classList.add("nav-disabled");
   const d = fromISO(dateStr);
   document.getElementById("log-panel-date").textContent = d.toLocaleDateString(
-    "default",
+    getLanguage(),
     {
       weekday: "long",
       month: "long",
@@ -2408,6 +2564,19 @@ function selectDay(dateStr) {
   noteEl.value = (log.note || "").slice(0, 500);
   updateNoteCount();
 
+  // "Force new cycle" is a one-time action for the next save, not a stored
+  // property of the log — always reset when switching days. Only show the
+  // option at all when there's a period day within the gap-tolerance window
+  // (i.e. when the app would otherwise treat this as a continuation) —
+  // showing it unconditionally is confusing when it's obviously a new cycle.
+  const forceNewCycleEl = document.getElementById("log-force-new-cycle");
+  if (forceNewCycleEl) forceNewCycleEl.checked = false;
+  const showForceNewCycle = isSameMenses(dateStr);
+  const forceNewCycleRow = document.getElementById("log-new-cycle-row");
+  const forceNewCycleHint = document.getElementById("log-new-cycle-hint");
+  if (forceNewCycleRow) forceNewCycleRow.style.display = showForceNewCycle ? "" : "none";
+  if (forceNewCycleHint) forceNewCycleHint.style.display = showForceNewCycle ? "" : "none";
+
   // Move focus into modal immediately (accessibility standard for modal dialogs)
   setTimeout(() => {
     const firstButton = document.getElementById("log-flow");
@@ -2435,13 +2604,14 @@ async function saveLog() {
   const rawNote = document.getElementById("log-note").value;
   log.note = rawNote.slice(0, 500).replace(/[<>]/g, ""); // strip < > as extra guard
 
+  const forceNewCycle = getForceNewCycleFlag();
   state.logs[selectedDate] = log;
   if (log.flow) {
-    updateCycleHistory(selectedDate);
+    updateCycleHistory(selectedDate, forceNewCycle);
     recalculatePeriodDuration();
   }
 
-  const didAutoFill = applyAutoFill(selectedDate, log.flow);
+  const didAutoFill = applyAutoFill(selectedDate, log.flow, forceNewCycle);
 
   cleanupEmptyLogs();
   await save();
@@ -2456,25 +2626,35 @@ async function saveLog() {
   }
 }
 
-function updateCycleHistory(dateStr) {
+function updateCycleHistory(dateStr, forceNewCycle = false) {
   if (!state.cycleHistory) state.cycleHistory = [];
 
   // Bleeding gap tolerance: if this flow date is within 1 day of an already-
   // logged flow day, it belongs to the same menses — skip creating a new cycle.
-  if (isSameMenses(dateStr)) return;
+  // `forceNewCycle` (the log panel's "This is a new period" checkbox) bypasses
+  // this for cases the heuristic gets wrong (e.g. spotting shortly before the
+  // real flow starts).
+  if (!forceNewCycle && isSameMenses(dateStr)) return;
 
   const hist = state.cycleHistory;
   if (hist.length > 0) {
     const last = hist[hist.length - 1];
     if (last.start === dateStr) return;
     const len = diffDays(fromISO(last.start), fromISO(dateStr));
-    if (len > 14 && len < 60) {
-      hist[hist.length - 1].length = len;
-      hist.push({ start: dateStr, length: state.cycleLength });
-      recalculateCycleLength(hist);
-      recalculatePeriodDuration();
-      state.lastPeriodStart = dateStr;
-    }
+    // A date earlier than the last recorded start isn't a new cycle — likely a
+    // backfilled/corrected log for the current or a past episode. Ignore rather
+    // than corrupt the sequential history with a negative-length entry.
+    if (len <= 0) return;
+    // Always advance to a new cycle, even if the gap is unusually short/long
+    // (out-of-range lengths are excluded from rolling/overall stats by
+    // isValidCycleLength in cycles.js, but the episode itself must still be
+    // recorded — otherwise lastPeriodStart goes stale and late-period /
+    // prediction logic silently breaks for anyone with a long cycle gap).
+    hist[hist.length - 1].length = len;
+    hist.push({ start: dateStr, length: state.cycleLength });
+    recalculateCycleLength(hist);
+    recalculatePeriodDuration();
+    state.lastPeriodStart = dateStr;
   } else {
     hist.push({ start: dateStr, length: state.cycleLength });
     state.lastPeriodStart = dateStr;
@@ -2580,6 +2760,24 @@ async function saveAutoFillDays() {
   showToast(t("settings_saved_toast"));
 }
 
+function recalculateCycleHistoryWithConfirm() {
+  showModal({
+    icon: "🔄",
+    title: t("settings_recalc_confirm_title"),
+    msg: t("settings_recalc_confirm_msg"),
+    confirmText: t("settings_recalc_confirm_btn"),
+    cancelText: t("cancel"),
+    onConfirm: async () => {
+      rebuildCycleHistoryFromLogs();
+      await save();
+      renderCalendar();
+      updateStatusCard();
+      updateInsights();
+      showToast(t("settings_recalc_done_toast"));
+    },
+  });
+}
+
 let _autoFillBannerDismiss = null;
 
 function showAutoFillBanner(n) {
@@ -2614,7 +2812,7 @@ function exportToDrip() {
   const logs = state.logs || {};
   const count = Object.keys(logs).filter(d => {
     const l = logs[d];
-    return l.flow || l.pain || l.mood != null || (l.note && l.note.trim());
+    return l.flow || l.spotting || l.pain || l.mood != null || (l.note && l.note.trim());
   }).length;
 
   if (count === 0) {
@@ -2864,7 +3062,7 @@ async function _applyDripCsvToState(parsed) {
   const mergedLogs = { ...parsed.logs };
   for (const date in mergedLogs) {
     const l = mergedLogs[date];
-    if (!l.flow && !l.pain && l.mood == null && !(l.note && l.note.trim())) {
+    if (!l.flow && !l.spotting && !l.pain && l.mood == null && !(l.note && l.note.trim())) {
       delete mergedLogs[date];
     }
   }
@@ -2988,7 +3186,7 @@ function _pickDripCsvFile({ onboarding = false } = {}) {
           const merged = { ...parsed.logs, ...(state.logs || {}) };
           for (const date in merged) {
             const l = merged[date];
-            if (!l.flow && !l.pain && l.mood == null && !(l.note && l.note.trim())) {
+            if (!l.flow && !l.spotting && !l.pain && l.mood == null && !(l.note && l.note.trim())) {
               delete merged[date];
             }
           }
@@ -3575,9 +3773,11 @@ window.savePeriodDuration = savePeriodDuration;
 window.saveTolerance = saveTolerance;
 window.toggleFertility = toggleFertility;
 window.saveAutoFillDays = saveAutoFillDays;
+window.recalculateCycleHistoryWithConfirm = recalculateCycleHistoryWithConfirm;
 window.dismissAutoFillBanner = dismissAutoFillBanner;
 window.showHistoryFullPage = showHistoryFullPage;
 window.shareRecentPeriodHistory = shareRecentPeriodHistory;
+window.printCycleSummary = printCycleSummary;
 window.showChangePinModal = showChangePinModal;
 window.exportToDrip = exportToDrip;
 window.triggerInstall = triggerInstall;

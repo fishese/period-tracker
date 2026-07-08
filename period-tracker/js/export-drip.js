@@ -95,7 +95,7 @@ export function buildDripCsv(logs) {
   const dates = Object.keys(logs)
     .filter(d => {
       const l = logs[d];
-      return l.flow || l.pain || l.mood != null || (l.note && l.note.trim());
+      return l.flow || l.spotting || l.pain || l.mood != null || (l.note && l.note.trim());
     })
     .sort((a, b) => (a < b ? 1 : -1)); // newest first
 
@@ -111,6 +111,10 @@ export function buildDripCsv(logs) {
         cols[COL.bleedVal]     = String(bleed);
         cols[COL.bleedExclude] = "false";
       }
+    } else if (log.spotting) {
+      // Round-trip spotting back to drip's bleeding.value=0 (spotting).
+      cols[COL.bleedVal]     = "0";
+      cols[COL.bleedExclude] = "false";
     }
 
     if (log.note && log.note.trim()) {
