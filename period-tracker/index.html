@@ -1047,10 +1047,32 @@
               Change PIN
             </button>
 
+            <div id="backup-status" class="backup-status"></div>
+            <button class="apply-btn btn--export" onclick="exportData()" data-i18n="settings_export">
+              Export Encrypted Backup
+            </button>
+            <button class="apply-btn btn--import" onclick="importData()" data-i18n="settings_import">
+              Import Encrypted Backup
+            </button>
+            <button
+              type="button"
+              class="apply-btn btn--import-drip"
+              onclick="importDripCsv()"
+              data-i18n="settings_import_drip"
+            >
+              Import from drip (CSV)
+            </button>
+            <button class="apply-btn btn--export-drip" onclick="exportToDrip()">
+              Export to drip CSV
+            </button>
+
             <div class="settings-section settings-section--nested" id="drive-backup-section">
               <h4 data-i18n="drive_section_title">Google Drive backup</h4>
               <div class="info-box info-box--margin" data-i18n-html="drive_section_desc">
                 Encrypted one-way backup to your Google Drive — <strong>not</strong> two-way sync. Logging on one device does not update another. Use this to back up and to restore on a new phone or after clearing app data.
+              </div>
+              <div class="info-box info-box--margin" data-i18n-html="drive_test_user_note">
+                Google Drive backup is limited to approved test accounts. If you want to use it, ask <strong>fishese</strong> to add your Google account to the test users list.
               </div>
               <div class="info-box info-box--security info-box--margin" data-i18n-html="drive_privacy_note">
                 Only an encrypted file is stored in a hidden app folder on your Google account. We have no server and cannot read your data.
@@ -1095,24 +1117,6 @@
               <div class="field-hint hidden" id="drive-auto-hint" data-i18n="drive_auto_hint">Uploads a debounced encrypted backup after you save changes. Does not download or merge from other devices.</div>
             </div>
 
-            <div id="backup-status" class="backup-status"></div>
-            <button class="apply-btn btn--export" onclick="exportData()" data-i18n="settings_export">
-              Export Encrypted Backup
-            </button>
-            <button class="apply-btn btn--import" onclick="importData()" data-i18n="settings_import">
-              Import Encrypted Backup
-            </button>
-            <button
-              type="button"
-              class="apply-btn btn--import-drip"
-              onclick="importDripCsv()"
-              data-i18n="settings_import_drip"
-            >
-              Import from drip (CSV)
-            </button>
-            <button class="apply-btn btn--export-drip" onclick="exportToDrip()">
-              Export to drip CSV
-            </button>
             <div class="info-box info-box--security">
               <strong data-i18n="settings_storage_label">Storage used:</strong>
               <span id="storage-usage">Calculating...</span>

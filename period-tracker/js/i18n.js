@@ -382,6 +382,8 @@ const LOCALES = {
       "Encrypted one-way backup to your Google Drive — <strong>not</strong> two-way sync. Logging on one device does not update another. Use this to back up and to restore on a new phone or after clearing app data.",
     drive_privacy_note:
       "Only an encrypted file is stored in a hidden app folder on your Google account. We have no server and cannot read your data.",
+    drive_test_user_note:
+      "Google Drive backup is limited to approved test accounts. If you want to use it, ask <strong>fishese</strong> to add your Google account to the test users list.",
     drive_status_not_connected: "Not connected",
     drive_status_last_backup: "Last backed up: {date} · One-way backup only",
     drive_status_never_synced: "Connected — no backup uploaded yet",
@@ -1317,6 +1319,8 @@ const LOCALES = {
       "Copia cifrada unidireccional a tu Google Drive — <strong>no</strong> es sincronización bidireccional. Registrar en un dispositivo no actualiza otro. Úsala para respaldar y restaurar en un teléfono nuevo o tras borrar los datos de la app.",
     drive_privacy_note:
       "Solo se almacena un archivo cifrado en una carpeta oculta de tu cuenta de Google. No tenemos servidor y no podemos leer tus datos.",
+    drive_test_user_note:
+      "La copia en Google Drive está limitada a cuentas de prueba aprobadas. Si quieres usarla, pide a <strong>fishese</strong> que añada tu cuenta de Google a la lista de usuarios de prueba.",
     drive_status_not_connected: "No conectado",
     drive_status_last_backup: "Última copia: {date} · Solo copia unidireccional",
     drive_status_never_synced: "Conectado — aún no se subió ninguna copia",
@@ -1724,6 +1728,8 @@ const LOCALES = {
       "Google Driveへの暗号化された一方向バックアップ — <strong>双方向同期ではありません</strong>。ある端末で記録しても別の端末は更新されません。新しい端末への移行やアプリデータ削除後の復元に使用してください。",
     drive_privacy_note:
       "Googleアカウントの非表示アプリフォルダに暗号化ファイルのみ保存されます。当方のサーバーはなく、データを読むことはできません。",
+    drive_test_user_note:
+      "Google Driveバックアップは承認されたテストアカウントのみ利用できます。使いたい場合は、<strong>fishese</strong>にGoogleアカウントをテストユーザーリストへ追加するよう依頼してください。",
     drive_status_not_connected: "未接続",
     drive_status_last_backup: "最終バックアップ: {date} · 一方向バックアップのみ",
     drive_status_never_synced: "接続済み — まだバックアップがアップロードされていません",
@@ -2127,6 +2133,8 @@ const LOCALES = {
       "加密單向備份至您的 Google Drive — <strong>不是</strong>雙向同步。在一台裝置上記錄不會更新另一台。用於備份，或在換機／清除應用資料後還原。",
     drive_privacy_note:
       "僅在您的 Google 帳戶隱藏應用資料夾中儲存加密檔案。我們沒有伺服器，無法讀取您的資料。",
+    drive_test_user_note:
+      "Google Drive 備份僅限已核准的測試帳號。若要使用，請請 <strong>fishese</strong> 將您的 Google 帳號加入測試使用者清單。",
     drive_status_not_connected: "未連線",
     drive_status_last_backup: "上次備份：{date} · 僅單向備份",
     drive_status_never_synced: "已連線 — 尚未上傳備份",
