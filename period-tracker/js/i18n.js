@@ -393,7 +393,7 @@ const LOCALES = {
     drive_auto_hint:
       "Uploads a debounced encrypted backup after you save changes. Does not download or merge from other devices.",
     drive_not_configured:
-      "Google Drive backup needs OAuth Client ID and Client secret in js/drive-config.js (see drive-config.example.js).",
+      "Google Drive backup needs an OAuth Client ID and token proxy URL in js/drive-config.js (see drive-config.example.js and drive-oauth-proxy/README.md).",
     drive_connected_toast: "Google Drive connected",
     drive_disconnected_toast: "Google Drive disconnected",
     drive_sync_success_toast: "Backup uploaded to Google Drive",
@@ -405,7 +405,7 @@ const LOCALES = {
     drive_oauth_redirect_mismatch:
       "Google rejected the sign-in (redirect URI mismatch). In Google Cloud Console → Credentials → your Web client, confirm this exact redirect URI is listed:\n\nhttps://fishese.github.io/period-tracker/period-tracker/\n\nAlso confirm the client type is Web application (not Desktop).",
     drive_oauth_missing_secret:
-      "Google requires the OAuth Client secret for this Web client. Open Google Cloud Console → Credentials → your client, copy Client secret into period-tracker/js/drive-config.js (GOOGLE_CLIENT_SECRET), then redeploy.",
+      "Drive backup is not fully set up: deploy the token proxy (period-tracker/drive-oauth-proxy) with your Client secret, set DRIVE_TOKEN_PROXY_URL in drive-config.js, then hard-refresh. Never put the Client secret in the public app.",
     drive_oauth_invalid_grant:
       "Google would not accept the sign-in code — it may have expired or already been used. Tap Connect Google Drive once and complete the flow without refreshing the page.",
     drive_oauth_no_refresh:
@@ -1329,7 +1329,7 @@ const LOCALES = {
     drive_auto_hint:
       "Sube una copia cifrada tras guardar cambios (con retardo). No descarga ni combina datos de otros dispositivos.",
     drive_not_configured:
-      "La copia en Google Drive no está configurada en esta compilación (faltan el ID y el secreto OAuth en drive-config.js).",
+      "La copia en Google Drive no está configurada (faltan el ID OAuth y la URL del proxy en drive-config.js; ver drive-oauth-proxy/README.md).",
     drive_connected_toast: "Google Drive conectado",
     drive_disconnected_toast: "Google Drive desconectado",
     drive_sync_success_toast: "Copia subida a Google Drive",
@@ -1341,7 +1341,7 @@ const LOCALES = {
     drive_oauth_redirect_mismatch:
       "Google rechazó el inicio de sesión (URI de redirección no coincide). En Google Cloud Console → Credenciales → tu cliente Web, confirma esta URI exacta:\n\nhttps://fishese.github.io/period-tracker/period-tracker/\n\nTambién confirma que el tipo es Aplicación web (no Escritorio).",
     drive_oauth_missing_secret:
-      "Google requiere el secreto de cliente OAuth para este cliente Web. Cópialo en period-tracker/js/drive-config.js (GOOGLE_CLIENT_SECRET) y vuelve a publicar.",
+      "La copia en Drive no está completa: despliega el proxy de tokens (period-tracker/drive-oauth-proxy) con el secreto de cliente, pon DRIVE_TOKEN_PROXY_URL en drive-config.js y recarga. Nunca pongas el secreto en la app pública.",
     drive_oauth_invalid_grant:
       "Google no aceptó el código de autorización — puede haber caducado o haberse usado ya. Pulsa Conectar Google Drive una vez y completa el flujo sin actualizar la página.",
     drive_oauth_no_refresh:
@@ -1753,7 +1753,7 @@ const LOCALES = {
     drive_auto_hint:
       "保存後、一定時間経過してから暗号化バックアップをアップロードします。他端末からのダウンロードや統合は行いません。",
     drive_not_configured:
-      "このビルドではGoogle Driveバックアップが未設定です（drive-config.jsにOAuthクライアントIDとシークレットがありません）。",
+      "このビルドではGoogle Driveバックアップが未設定です（drive-config.jsにOAuthクライアントIDとトークンプロキシURLがありません。drive-oauth-proxy/README.mdを参照）。",
     drive_connected_toast: "Google Driveに接続しました",
     drive_disconnected_toast: "Google Driveから切断しました",
     drive_sync_success_toast: "Google Driveにバックアップをアップロードしました",
@@ -1765,7 +1765,7 @@ const LOCALES = {
     drive_oauth_redirect_mismatch:
       "Googleがサインインを拒否しました（リダイレクトURI不一致）。Google Cloud Console → 認証情報 → Webクライアントで、次のURIが正確に登録されているか確認してください:\n\nhttps://fishese.github.io/period-tracker/period-tracker/\n\nクライアントの種類が「ウェブアプリケーション」（デスクトップではない）であることも確認してください。",
     drive_oauth_missing_secret:
-      "このWebクライアントにはOAuthクライアントシークレットが必要です。Google Cloud Consoleからコピーし、period-tracker/js/drive-config.js の GOOGLE_CLIENT_SECRET に入れて再デプロイしてください。",
+      "Driveバックアップの設定が未完了です。クライアントシークレットを Worker（period-tracker/drive-oauth-proxy）に置き、drive-config.js の DRIVE_TOKEN_PROXY_URL を設定して再読み込みしてください。シークレットを公開アプリに入れないでください。",
     drive_oauth_invalid_grant:
       "Googleが認証コードを受け付けませんでした。期限切れか、すでに使用済みの可能性があります。「Google Driveに接続」を一度押し、ページを更新せずに完了してください。",
     drive_oauth_no_refresh:
@@ -2173,7 +2173,7 @@ const LOCALES = {
     drive_auto_hint:
       "儲存變更後，延遲一段時間上傳加密備份。不會從其他裝置下載或合併資料。",
     drive_not_configured:
-      "此版本未設定 Google Drive 備份（drive-config.js 缺少 OAuth 用戶端 ID 與密鑰）。",
+      "此版本未設定 Google Drive 備份（drive-config.js 缺少 OAuth 用戶端 ID 與 token proxy URL；見 drive-oauth-proxy/README.md）。",
     drive_connected_toast: "已連線 Google Drive",
     drive_disconnected_toast: "已中斷 Google Drive",
     drive_sync_success_toast: "已上傳備份至 Google Drive",
@@ -2185,7 +2185,7 @@ const LOCALES = {
     drive_oauth_redirect_mismatch:
       "Google 拒絕登入（重新導向 URI 不符）。請在 Google Cloud Console → 憑證 → Web 用戶端確認已登錄此精確 URI：\n\nhttps://fishese.github.io/period-tracker/period-tracker/\n\n並確認類型為「網頁應用程式」（非桌面應用程式）。",
     drive_oauth_missing_secret:
-      "此 Web 用戶端需要 OAuth 用戶端密鑰。請從 Google Cloud Console 複製到 period-tracker/js/drive-config.js 的 GOOGLE_CLIENT_SECRET，然後重新部署。",
+      "Drive 備份尚未完成設定：請部署 token proxy（period-tracker/drive-oauth-proxy）並放入 Client secret，在 drive-config.js 設定 DRIVE_TOKEN_PROXY_URL 後重新整理。請勿將 Client secret 放進公開應用程式。",
     drive_oauth_invalid_grant:
       "Google 不接受授權碼——可能已過期或已使用。請再按一次「連線 Google Drive」，完成流程時不要重新整理頁面。",
     drive_oauth_no_refresh:

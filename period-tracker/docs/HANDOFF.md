@@ -321,18 +321,19 @@ Spec (as-built): [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
 - One-way encrypted upload to Drive `appDataFolder` (`js/drive-sync.js` + `drive-config.js`)
 - Settings → Security (**below** local export/import): Connect / Back up now / Disconnect + auto-backup (~45s debounce after `save()`)
 - First connect: optional restore from Drive (replaces local; PIN required)
-- OAuth: Web client + **Client ID and Client secret**; consent screen **Testing** + **test users** (ask fishese to add accounts — noted in UI)
+- OAuth: Web client + **Client ID in SPA**; **Client secret only on `drive-oauth-proxy` Worker**; consent **Testing** + test users
 - Origins/redirects: GitHub Pages double path + localhost (see `drive-config.example.js`)
-- PKCE state mirrored in IndexedDB + localStorage (PWA/browser handoff); `save()` isolates Drive errors from local encrypt
+- If Google warns about a published secret: **rotate secret**, put new secret on Worker only, never recommit to the SPA
+- PKCE state mirrored in IndexedDB + localStorage; `save()` isolates Drive errors from local encrypt
 - i18n: en / es / ja / zh-TW
 - No CSP changes on GitHub Pages (`firebase.json` unused)
 
 ### A2. Google Drive — still deferred
 
+- Backend token exchange → **done** via Cloudflare Worker (`drive-oauth-proxy/`); keep secret only there
 - Two-way sync / conflict resolution
 - Production OAuth verification for public users
 - Deleting remote backup on disconnect
-- Backend token exchange (to keep client secret off the client)
 
 ### B. Remaining UI / docs (optional)
 
@@ -359,7 +360,7 @@ Spec (as-built): [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
 5. `autoFillDays`: `null` = auto (rolling avg), `0` = off, `1–10` = days ahead after start (not including the start day itself)  
 6. Onboarding CSV import has nothing to merge with (fresh state); non-onboarding import offers a real Merge/Replace choice — see §7  
 7. GitHub Pages path quirks for `manifest.json` (`dd363ef`)  
-8. Drive OAuth: use **Testing** + test users; Web client needs **client secret** in `drive-config.js`; redirect URI must match Pages path exactly (double `period-tracker/`). PWA vs browser can drop PKCE state — localStorage mirror helps; prefer browser if connect loops. GitHub Push Protection may block secret commits until allowed.  
+8. Drive OAuth: **Testing** + test users; **never** put Client secret in `drive-config.js` — use `drive-oauth-proxy/`. Rotate secret immediately if Google reports a leak. Redirect URI must match Pages path (double `period-tracker/`).  
 9. iOS PWA OAuth remains awkward — test on a real device if supporting iPhone shortcuts  
 10. `log.flow` is truthy-checked pervasively (`if (log.flow)`) — a future 4th flow level must not be `0`/falsy, or it'll silently behave like "not set" everywhere. This is exactly why `spotting` was added as its own boolean field instead of `flow: 0`.  
 11. If cycle history / predictions ever look wrong, try Settings → Cycle → "Recalculate Cycle History" before debugging further — it's a safe, non-destructive rebuild from logs.  

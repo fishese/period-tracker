@@ -1,0 +1,7 @@
+name = "mycyclekeeper-drive-oauth"
+main = "worker.js"
+compatibility_date = "2026-07-20"
+
+# Set secrets (do not put real values in this file):
+#   npx wrangler secret put GOOGLE_CLIENT_ID
+#   npx wrangler secret put GOOGLE_CLIENT_SECRET

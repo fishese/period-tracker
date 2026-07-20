@@ -1,6 +1,6 @@
 "use strict";
 
-import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } from "./drive-config.js";
+import { GOOGLE_CLIENT_ID, DRIVE_TOKEN_PROXY_URL } from "./drive-config.js";
 
 const DRIVE_REFRESH_TOKEN_KEY = "mycyclekeeper_drive_refresh_token_v1";
 const DRIVE_FILE_ID_KEY = "mycyclekeeper_drive_file_id_v1";
@@ -155,9 +155,9 @@ export function isDriveConfigured() {
   return (
     typeof GOOGLE_CLIENT_ID === "string" &&
     GOOGLE_CLIENT_ID.length > 10 &&
-    typeof GOOGLE_CLIENT_SECRET === "string" &&
-    GOOGLE_CLIENT_SECRET.length > 5 &&
-    !GOOGLE_CLIENT_SECRET.includes("YOUR_CLIENT_SECRET")
+    !GOOGLE_CLIENT_ID.includes("YOUR_CLIENT_ID") &&
+    typeof DRIVE_TOKEN_PROXY_URL === "string" &&
+    /^https:\/\//i.test(DRIVE_TOKEN_PROXY_URL)
   );
 }
 
@@ -214,77 +214,59 @@ function cleanOAuthParamsFromUrl() {
   history.replaceState({}, "", url.pathname + url.search + url.hash);
 }
 
-function appendClientSecret(body) {
-  // Google "Web application" clients require client_secret on the token endpoint
-  // even when using PKCE. For a browser SPA this value is visible in the shipped
-  // JS — fine for personal Testing-mode use; do not treat it as a true secret.
-  if (
-    typeof GOOGLE_CLIENT_SECRET === "string" &&
-    GOOGLE_CLIENT_SECRET.length > 5
-  ) {
-    body.set("client_secret", GOOGLE_CLIENT_SECRET);
+async function postTokenViaProxy(payload) {
+  if (!isDriveConfigured()) throw new Error("token_proxy_missing");
+  const res = await fetch(DRIVE_TOKEN_PROXY_URL.replace(/\/$/, ""), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  let data = null;
+  try {
+    data = await res.json();
+  } catch (_) {
+    /* ignore */
   }
+  if (!res.ok) {
+    const detail =
+      (data && (data.error_description || data.error)) ||
+      `http_${res.status}`;
+    throw new Error(
+      typeof detail === "string" && detail.includes(":")
+        ? `token_exchange_failed:${res.status}:${detail}`
+        : `token_exchange_failed:${res.status}:${detail}`
+    );
+  }
+  return data;
 }
 
 async function exchangeCodeForTokens(code, verifier, redirectUri) {
-  const body = new URLSearchParams({
-    client_id: GOOGLE_CLIENT_ID,
+  return postTokenViaProxy({
+    grant_type: "authorization_code",
     code,
     code_verifier: verifier,
-    grant_type: "authorization_code",
     redirect_uri: redirectUri,
   });
-  appendClientSecret(body);
-  const res = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body,
-  });
-  if (!res.ok) {
-    let detail = "";
-    try {
-      const json = await res.json();
-      if (json.error_description) {
-        detail = `${json.error}: ${json.error_description}`;
-      } else {
-        detail = json.error || "";
-      }
-    } catch (_) {
-      /* ignore */
-    }
-    throw new Error(
-      detail
-        ? `token_exchange_failed:${res.status}:${detail}`
-        : `token_exchange_failed:${res.status}`
-    );
-  }
-  return res.json();
 }
 
 async function getAccessToken() {
   const refresh = await idbGet(DRIVE_REFRESH_TOKEN_KEY);
   if (!refresh) throw new Error("not_connected");
 
-  const body = new URLSearchParams({
-    client_id: GOOGLE_CLIENT_ID,
-    grant_type: "refresh_token",
-    refresh_token: refresh,
-  });
-  appendClientSecret(body);
-  const res = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body,
-  });
-  if (!res.ok) {
-    if (res.status === 400) {
+  try {
+    const data = await postTokenViaProxy({
+      grant_type: "refresh_token",
+      refresh_token: refresh,
+    });
+    return data.access_token;
+  } catch (e) {
+    const msg = String(e.message || "");
+    if (msg.includes(":400:") || msg.includes("invalid_grant")) {
       await disconnectDrive();
       throw new Error("reconnect_required");
     }
     throw new Error("token_refresh_failed");
   }
-  const data = await res.json();
-  return data.access_token;
 }
 
 async function finishConnectFlow(pendingConnect) {
@@ -555,8 +537,13 @@ export function getDriveOAuthErrorKey(err) {
   if (err === "access_denied") return "drive_oauth_access_denied";
   const lower = String(err).toLowerCase();
   if (lower.includes("redirect_uri_mismatch")) return "drive_oauth_redirect_mismatch";
-  if (lower.includes("client_secret") || lower.includes("unauthorized_client"))
+  if (
+    lower.includes("client_secret") ||
+    lower.includes("token_proxy_missing") ||
+    lower.includes("proxy_misconfigured")
+  ) {
     return "drive_oauth_missing_secret";
+  }
   if (lower.includes("invalid_grant")) return "drive_oauth_invalid_grant";
   return "drive_sync_failed_msg";
 }

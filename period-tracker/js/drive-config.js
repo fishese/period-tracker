@@ -1,6 +1,17 @@
 "use strict";
 
-// See drive-config.example.js for Google Cloud setup instructions.
-export const GOOGLE_CLIENT_ID = "541116003915-rj3jb8lfmhbujtf9d0d5trs3vs2p3ufh.apps.googleusercontent.com";
-// Paste Client secret from Google Cloud Console → Credentials → your Web client
-export const GOOGLE_CLIENT_SECRET = "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";
+/**
+ * Public OAuth client config (safe to ship in the browser).
+ * The Client secret must NEVER live here — use drive-oauth-proxy/ instead.
+ *
+ * See drive-config.example.js and docs/google-drive-sync-plan.md.
+ */
+export const GOOGLE_CLIENT_ID =
+  "541116003915-rj3jb8lfmhbujtf9d0d5trs3vs2p3ufh.apps.googleusercontent.com";
+
+/**
+ * URL of the token-exchange worker (Cloudflare Worker, etc.).
+ * Example: "https://mycyclekeeper-drive-oauth.YOUR_SUBDOMAIN.workers.dev"
+ * Leave empty until the proxy is deployed — Drive connect stays disabled.
+ */
+export const DRIVE_TOKEN_PROXY_URL = "";

@@ -1,26 +1,22 @@
 "use strict";
 
 /**
- * Copy this file to drive-config.js and set your Google Cloud OAuth credentials.
+ * Copy values into drive-config.js (Client ID + proxy URL only).
+ * NEVER put GOOGLE_CLIENT_SECRET in the browser or in this public repo.
  *
- * Setup (one-time):
- * 1. Google Cloud Console → APIs & Services → Enable Google Drive API
- * 2. OAuth consent screen (Testing mode is fine for personal use)
- * 3. Credentials → OAuth 2.0 Client ID → Web application
- * 4. Authorized JavaScript origins:
- *    - https://fishese.github.io
- *    - http://localhost:8000
- * 5. Authorized redirect URIs (must match exactly — note double period-tracker on GitHub Pages):
- *    - https://fishese.github.io/period-tracker/period-tracker/
- *    - http://localhost:8000/period-tracker/
- * 6. Copy both Client ID and Client secret into drive-config.js
- *
- * Note: Google Web clients require client_secret on the token endpoint even with
- * PKCE. In a browser SPA that value is visible in the downloaded JS — acceptable
- * for a personal Testing-mode app with test users only.
- *
- * GitHub repo URL (github.com/fishese/period-tracker) is NOT an OAuth origin — only
- * the live Pages URL above.
+ * Setup:
+ * 1. Google Cloud Console → enable Drive API
+ * 2. OAuth consent screen → Testing → add test users
+ * 3. Credentials → Web application client:
+ *    Origins: https://fishese.github.io , http://localhost:8000
+ *    Redirects:
+ *      https://fishese.github.io/period-tracker/period-tracker/
+ *      http://localhost:8000/period-tracker/
+ * 4. Deploy period-tracker/drive-oauth-proxy/ (see its README) with
+ *    GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET as Worker secrets
+ * 5. Set DRIVE_TOKEN_PROXY_URL below to the Worker URL
+ * 6. If Google emailed you about a leaked secret: rotate/reset the secret
+ *    in Console first, then put only the NEW secret on the Worker
  */
 export const GOOGLE_CLIENT_ID = "YOUR_CLIENT_ID.apps.googleusercontent.com";
-export const GOOGLE_CLIENT_SECRET = "YOUR_CLIENT_SECRET";
+export const DRIVE_TOKEN_PROXY_URL = "https://YOUR_WORKER.workers.dev";
