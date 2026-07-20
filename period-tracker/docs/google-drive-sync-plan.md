@@ -1,26 +1,26 @@
-# Google Drive backup sync — implementation plan
+# Google Drive backup — as built
 
-**Status:** Phase 1 implemented (2026-07-20) — manual + auto one-way backup; OAuth setup required in `drive-config.js`  
-**Scope:** `period-tracker/` PWA
+**Status:** Shipped (2026-07-20) on this fork  
+**Live app:** https://fishese.github.io/period-tracker/period-tracker/  
+**Scope:** `period-tracker/` PWA (GitHub Pages — root `firebase.json` is unused)
 
-This document captures the agreed approach for optional Google Drive backup. Data stays off our servers; only an encrypted backup blob is stored in the user's own Google Drive.
+Optional one-way encrypted backup to the user's own Google Drive. No app backend; the browser talks to Google APIs only after the user connects.
 
 ---
 
-## Goals
+## What it does
 
-- Let users **opt in** to backing up their encrypted data to **their** Google Drive.
-- Reuse the **existing backup format** (`{ enc, salt, v }` JSON bundle — same as manual Export).
-- **One-way sync:** upload only after initial setup (no merge / no two-way sync).
-- On **first connect**, optionally **restore** from Drive if a backup exists (reuse existing import + PIN flow).
-- Preserve the offline-first, zero-server-data model.
+| Feature | Behavior |
+|--------|----------|
+| **Direction** | One-way: App → Drive (overwrite). Not two-way sync. |
+| **Format** | Same as manual Export: `{ enc, salt, v: 1 }` |
+| **Remote file** | `mycyclekeeper_backup.bin` in Drive **`appDataFolder`** (hidden from normal Drive UI) |
+| **Manual** | Settings → Security → **Back up now** |
+| **Auto** | Optional checkbox — debounced (~45s) upload after `save()` when online and unlocked |
+| **First connect** | If a remote backup exists → offer restore (PIN required; replaces local data) |
+| **Disconnect** | Clears local OAuth tokens / file id; does **not** delete the Drive file |
 
-## Non-goals (v1)
-
-- Two-way / multi-device sync with conflict resolution.
-- Storing plaintext or PIN on Google or our server.
-- Automatic restore without user confirmation + PIN.
-- Replacing manual Export/Import (keep both).
+Local Export / Import / drip CSV stay primary for most users. Drive section sits **below** those controls.
 
 ---
 
@@ -28,269 +28,149 @@ This document captures the agreed approach for optional Google Drive backup. Dat
 
 | Layer | What happens |
 |--------|----------------|
-| **App server (Firebase hosting)** | Serves static files only. Never sees user health data. |
-| **Google Drive** | Stores encrypted `.bin` JSON only. Google sees file metadata (size, modified time), not contents. |
-| **User device** | PIN in memory only; decrypt locally via Web Crypto (unchanged). |
-| **OAuth tokens** | Stored in IndexedDB on device after user connects. Revocable via Disconnect. |
+| **Hosting (GitHub Pages)** | Static files only. Never sees health data. |
+| **Google Drive** | Encrypted blob only. Google sees metadata (size, modified time), not plaintext. |
+| **Device** | PIN in memory; AES-256-GCM via Web Crypto (unchanged). |
+| **OAuth tokens** | Refresh token in IndexedDB; revocable via Disconnect. |
+| **Client secret** | Google **Web application** clients require `client_secret` on the token endpoint even with PKCE. In a SPA it ships in `drive-config.js` and is visible in the browser — acceptable for **Testing** mode + test users only. |
 
-**User-facing privacy message (draft):**  
-*"Your cycle data is encrypted with your PIN before leaving this device. Google Drive only receives an encrypted backup file in a hidden app folder. We do not operate a backend and cannot read your data."*
-
----
-
-## Backup format (already implemented)
-
-Manual export in `js/script.js` → `exportData()`:
-
-```json
-{
-  "enc": "<base64 AES-256-GCM ciphertext>",
-  "salt": "<base64 PBKDF2 salt>",
-  "v": 1
-}
-```
-
-Drive sync should upload **this exact bundle** (as `application/json` or `application/octet-stream`). Restore should download it and pass it to the existing `importData()` / `_submitImportPin()` path.
-
-**Suggested Drive filename:** `mycyclekeeper_backup.bin` (single file, overwrite on each sync).
+**In-app privacy copy** (combined with test-user note): encrypted file in a hidden app folder; ask **fishese** to add Google accounts to the OAuth test users list.
 
 ---
 
-## Google API approach
+## Files
 
-### Scope (recommended)
+| Path | Role |
+|------|------|
+| `js/drive-sync.js` | PKCE OAuth, token exchange/refresh, upload/download, auto-backup scheduler |
+| `js/drive-config.js` | `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` (live credentials; GitHub may block push until allowed) |
+| `js/drive-config.example.js` | Setup instructions + placeholders |
+| `js/script.js` | Settings UI hooks, `buildBackupBundle()`, restore prompt, `save()` isolation |
+| `js/i18n.js` | Drive strings for **en / es / ja / zh-TW** |
+| `index.html` | Drive section under local backup |
+| `service-worker.js` | Caches `drive-sync.js` / `drive-config.js`; bump `CACHE_VERSION` on deploy |
 
-Use **`https://www.googleapis.com/auth/drive.appdata`**
+### IndexedDB keys
 
-- Files live in the user's **application data folder** (hidden from normal Drive UI).
-- Only this OAuth client can access files it created there.
-- Ideal for a single encrypted backup blob.
+- `mycyclekeeper_drive_refresh_token_v1`
+- `mycyclekeeper_drive_file_id_v1`
+- `mycyclekeeper_drive_last_sync_v1`
+- `mycyclekeeper_drive_auto_v1`
+- Ephemeral OAuth: state, verifier, redirect, pending exchange, errors (mirrored to **localStorage** so PWA ↔ system browser redirects can share PKCE state)
 
-Do **not** request full `drive` scope unless there is a strong reason.
+### Scope
 
-### Auth flow
-
-- **OAuth 2.0 for SPA** with **PKCE** (no client secret in the browser).
-- **Google Identity Services (GIS)** for sign-in, or raw `fetch` to token endpoint.
-- Store in IndexedDB (new keys, e.g.):
-  - `mycyclekeeper_drive_refresh_token_v1` (if using offline access)
-  - `mycyclekeeper_drive_file_id_v1` (Drive file ID after first upload)
-  - `mycyclekeeper_drive_last_sync_v1` (ISO date — mirrors `BACKUP_KEY` semantics)
-
-### Drive API operations
-
-| Action | API |
-|--------|-----|
-| First upload | `POST https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart` with `appDataFolder` parent |
-| Update | `PATCH .../files/{fileId}?uploadType=media` (overwrite content) |
-| Download | `GET .../files/{fileId}?alt=media` |
-| Find existing | `GET .../files?q=...` in `appDataFolder`, or rely on stored `file_id` |
-
-No backend proxy required — browser talks directly to `googleapis.com`.
+`https://www.googleapis.com/auth/drive.appdata` only.
 
 ---
 
-## Hosting / CSP changes
+## Google Cloud setup (required)
 
-**This fork:** GitHub Pages at `https://fishese.github.io/period-tracker/period-tracker/` — no CSP header (root `firebase.json` is upstream-only and not used).
+1. Enable **Google Drive API**.
+2. **OAuth consent screen** → **Testing** (recommended for this personal fork).
+3. Add every allowed Gmail under **Test users** (strangers cannot finish OAuth otherwise).
+4. **Credentials → OAuth 2.0 Client ID → Web application** (not Desktop).
+5. **Authorized JavaScript origins:**
+   - `https://fishese.github.io`
+   - `http://localhost:8000`
+6. **Authorized redirect URIs** (exact, trailing slash):
+   - `https://fishese.github.io/period-tracker/period-tracker/`
+   - `http://localhost:8000/period-tracker/`
+7. Copy **Client ID** and **Client secret** into `js/drive-config.js`.
 
-Google Drive API calls (`fetch` to `googleapis.com`, `oauth2.googleapis.com`) work without CSP changes on GitHub Pages.
+### Testing vs Production
 
-If you ever deploy to Firebase instead, extend CSP in root `firebase.json`:
+| Mode | Use |
+|------|-----|
+| **Testing** + test users | Correct for this fork. Unverified-app warning is normal; use Advanced → continue. |
+| **In production** unverified | Drive scopes often hard-block. Prefer Testing. |
+| **Verified production** | Only if opening to the public (review process). |
 
-```
-connect-src 'self';
-```
+Refreshing tokens in Testing may expire after ~7 days — user reconnects.
 
-**Must extend** (exact list to verify during implementation):
+### Client secret in a public repo
 
-```
-connect-src 'self'
-  https://www.googleapis.com
-  https://oauth2.googleapis.com
-  https://accounts.google.com;
-```
-
-If using the GIS script:
-
-```
-script-src 'self' 'unsafe-inline' https://accounts.google.com;
-frame-src https://accounts.google.com;
-```
-
-Update `CLAUDE.md` / copilot instructions when implemented — today they say no network calls.
-
----
-
-## Google Cloud Console setup (one-time, weekend prep)
-
-1. Create or reuse a [Google Cloud project](https://console.cloud.google.com/).
-2. **Enable** Google Drive API.
-3. **OAuth consent screen**
-   - App name: e.g. `Your Cycle Keeper` (or `My Cycle Keeper` — match product branding).
-   - User support email: use a neutral address (e.g. project email), not necessarily personal Gmail.
-   - Privacy policy URL: required for production (can link to in-app About/Privacy tab or GitHub).
-   - Scopes: `drive.appdata` only.
-4. **Credentials → OAuth 2.0 Client ID → Web application**
-   - Authorized JavaScript origins:
-     - `https://fishese.github.io` (GitHub Pages — this fork)
-     - `http://localhost:8000` (local testing from repo root)
-   - Authorized redirect URIs (must match exactly):
-     - `https://fishese.github.io/period-tracker/period-tracker/` (note double `period-tracker` on Pages)
-     - `http://localhost:8000/period-tracker/` (local — single `period-tracker`)
-   - No client secret needed for PKCE SPA flow.
-5. **Testing vs Production**
-   - **Testing:** up to 100 test users you add manually — fine for development.
-   - **Production:** public; Drive scopes may require [Google verification](https://support.google.com/cloud/answer/9110914) (free, but review can take days/weeks).
-
-### Cost
-
-- **Developer:** $0 for OAuth + Drive API at this scale.
-- **User:** backup counts against their Google Drive quota (tiny for one encrypted file).
-
-### What users see on connect
-
-- App name, support email, requested permissions — **not** the developer's personal Google login.
-- They sign in with **their** Google account.
+- GitHub Push Protection may block commits containing the secret; allow via the unblock links if you intentionally ship it for Pages.
+- Anyone can extract the secret from the live JS. Risk is mitigated by Testing + test-user allowlist; it is **not** equivalent to leaking a Google account password.
+- Period data remains PIN-encrypted either way.
 
 ---
 
-## UX flow
+## OAuth flow (as implemented)
 
-### Settings → Backup & Security (new section or extend existing)
+1. **Connect** → generate PKCE verifier/challenge; store state + verifier + redirect URI in IndexedDB **and** localStorage; redirect to Google.
+2. Google returns to the app URL with `?code=…&state=…` (often lands on the **PIN** screen — expected).
+3. On load: validate state, stage/exchange code for tokens (`client_id` + `client_secret` + `code_verifier` + `redirect_uri`).
+4. After unlock: show connected toast, or prompt restore if a remote backup exists.
+5. Service worker must **not** reload mid-OAuth while `code`/`error` are in the URL.
 
-```
-[ ] Connect Google Drive backup
-    Status: Not connected | Last synced: Today | Error: …
+**Redirect URI** used for authorize and token exchange must be identical and match Console (pinned map in `getDriveRedirectUri()` for GitHub Pages / localhost).
 
-[Connect Google Drive]  [Disconnect]
-[Sync now]              (disabled if not connected)
-```
+### Common errors
 
-### First-time connect
-
-1. User taps **Connect Google Drive**.
-2. Google OAuth consent → user approves.
-3. App searches `appDataFolder` for existing `mycyclekeeper_backup.bin` (or stored `file_id`).
-4. **If backup found:** modal — *"A backup was found in your Google Drive. Restore it now? This will replace local data."*
-   - **Restore** → download blob → existing import PIN modal → decrypt → replace state.
-   - **Skip** → continue with local data; next sync will upload (confirm overwrite if remote was newer? v1: simple — skip = keep local, upload on next sync overwrites remote).
-5. **If no backup:** show connected; offer **Sync now** or wait for auto-upload.
-
-### Ongoing (one-way)
-
-- **Manual:** Settings → **Sync now** → build bundle → upload/overwrite.
-- **Optional auto (v1.1):** after successful `save()`, debounced upload (e.g. 30–60s idle, only if connected and session unlocked).
-- Update `BACKUP_KEY` / Drive last-sync display on success.
-
-### Disconnect
-
-- Clear OAuth tokens + `file_id` from IndexedDB.
-- Do **not** delete remote file unless user explicitly chooses "Disconnect and remove Drive backup".
+| Symptom | Likely cause |
+|---------|----------------|
+| `client_secret is missing` | Secret not in `drive-config.js` or not deployed |
+| Access blocked / not verified | Account not in Test users, or consent screen In production unverified |
+| Redirect URI mismatch | Console URI ≠ app (check double `period-tracker` + trailing `/`) |
+| Lost login session / state mismatch | PWA vs browser storage; retry in browser; localStorage mirror should help |
+| Save Failed (historical) | Drive auto-backup check used to sit inside `save()`'s catch — **fixed**; local save is isolated from Drive |
 
 ---
 
-## Code structure (proposed)
+## `save()` and auto-backup
 
-```
-period-tracker/js/
-  drive-sync.js      # NEW — OAuth, upload, download, token refresh
-  script.js          # Wire Settings UI, first-connect restore prompt
-  indexeddb-storage.js  # (unchanged) + new keys for tokens/file id
-```
+1. Encrypt state → write IndexedDB (local save).
+2. **Separately** (never fails the local save): if auto-backup enabled → `scheduleDriveBackupUpload` (~45s debounce) → upload bundle.
 
-### `drive-sync.js` exports (sketch)
-
-```javascript
-export async function connectDrive()           // OAuth + optional restore prompt data
-export async function disconnectDrive()
-export function isDriveConnected()
-export async function uploadBackup(bundle)     // string or Blob
-export async function downloadBackup()         // returns bundle string or null
-export async function findExistingBackup()     // { fileId, modifiedTime } | null
-export function getLastSyncTime()
-```
-
-### Integration points in `script.js`
-
-| Hook | Action |
-|------|--------|
-| `exportData()` | Extract `buildBackupBundle()` helper shared with Drive upload |
-| `importData()` / `_submitImportPin()` | Accept bundle from Drive download same as file picker |
-| `save()` | (Optional later) `scheduleDriveSync()` if connected |
-| Settings screen | Connect / Disconnect / Sync now / status |
-| App unlock | Do **not** auto-sync without user action (v1) |
+Manual **Back up now** still surfaces Drive errors in a modal.
 
 ---
 
-## Implementation phases
+## UX placement
 
-### Phase 1 — Manual one-way (MVP, ~1 weekend)
+Settings → **Security & Privacy**:
 
-- [ ] Google Cloud project + OAuth client (Testing mode) with GitHub Pages origins (see §4).
-- [x] ~~CSP updates in `firebase.json`~~ Not needed for GitHub Pages hosting.
-- [ ] `drive-sync.js`: connect, disconnect, upload, download.
-- [ ] Refactor: `buildBackupBundle()` from `exportData()`.
-- [ ] Settings UI: Connect, Sync now, status line.
-- [ ] First connect: detect remote backup → offer restore via existing import flow.
-- [ ] i18n strings (en first; others fall back).
-- [ ] Privacy copy in Settings + About.
-
-### Phase 2 — Polish (optional follow-up)
-
-- [ ] Auto-upload after `save()` (debounced, only when unlocked).
-- [ ] Token refresh error handling + "Reconnect" prompt.
-- [ ] Service worker: ensure OAuth routes are not cached incorrectly.
-- [ ] OAuth consent screen → Production + verification if releasing publicly.
-- [ ] Translations for ru, es, ja, zh-TW.
-
-### Phase 3 — Explicitly deferred
-
-- Two-way sync, conflict resolution, multi-device merge.
+1. Change PIN  
+2. Local export / import / drip CSV  
+3. **Google Drive backup** (desc + privacy/test-user note + status + buttons + auto toggle)  
+4. Storage / erase  
 
 ---
 
-## Testing checklist
+## i18n
 
-- [ ] Local: `python -m http.server 8000` from repo root → `http://localhost:8000/period-tracker/`
-- [ ] Connect with test Google account (added in Cloud Console Testing).
-- [ ] Upload → verify file in appDataFolder (Drive API explorer or re-download).
-- [ ] Clear site data → connect → restore from Drive → PIN → data intact.
-- [ ] Wrong PIN on restore → same error as manual import.
-- [ ] Disconnect → tokens cleared; app still works offline.
-- [ ] CSP: no console violations on OAuth or API calls.
-- [ ] iOS Safari PWA: OAuth popup/redirect (known pain point — test early).
-- [ ] Backup file remains undecryptable without PIN (inspect downloaded file).
+Drive UI and OAuth error strings: **en, es, ja, zh-TW**.  
+`drive_test_user_note` is `""` (retired); text lives inside `drive_privacy_note`. Empty `data-i18n-html` nodes are hidden by `applyI18n()`.
 
 ---
 
-## Risks and mitigations
+## Non-goals (still deferred)
 
-| Risk | Mitigation |
-|------|------------|
-| iOS PWA OAuth popups blocked | Use redirect flow or full-page redirect; test on real device. |
-| Google verification delay | Stay in Testing for personal use; ship manual export as fallback. |
-| User forgets PIN | Same as today — backup useless without PIN; warn on PIN change (already done). |
-| Token expiry | Implement refresh; prompt reconnect on failure. |
-| Accidental overwrite | First connect: explicit restore/skip; Sync now: confirm if remote newer (v1.1). |
+- Two-way / multi-device merge or conflict resolution  
+- Storing PIN or plaintext on Google  
+- Auto-restore without confirmation + PIN  
+- Replacing manual Export/Import  
+- Firebase hosting / CSP for this fork  
 
 ---
 
-## Open decisions (pick when implementing)
+## Test checklist
 
-1. **Auto-sync on save** in v1 or Phase 2?
-2. **Branding on consent screen:** "Your Cycle Keeper" vs "My Cycle Keeper"?
-3. **Production domain list** for OAuth origins (staging URL?).
-4. On first connect with **both** local data and remote backup: default to "Keep local" vs "Restore from Drive"?
+- [ ] Connect (test user) → PIN → “connected” toast  
+- [ ] Back up now → status shows last backup date  
+- [ ] Auto-backup: edit data, wait ~45s+, confirm Drive last-sync updates (optional)  
+- [ ] Disconnect → reconnect  
+- [ ] First connect with existing remote backup → restore / skip  
+- [ ] Toggle fertility / save still works (local save not blocked by Drive)  
+- [ ] Hard-refresh after deploy (`CACHE_VERSION` bump)  
+- [ ] Localhost redirect URI when developing  
 
 ---
 
 ## References
 
-- [Google Drive API — appDataFolder](https://developers.google.com/drive/api/guides/appdata)
-- [OAuth 2.0 for client-side web apps (PKCE)](https://developers.google.com/identity/protocols/oauth2/javascript-implicit-flow) — prefer authorization code + PKCE for SPAs
-- [Google Identity Services](https://developers.google.com/identity/gsi/web/guides/overview)
-- [OAuth verification FAQ](https://support.google.com/cloud/answer/9110914)
-- Existing export: `period-tracker/js/script.js` → `exportData()`
-- Existing import: `period-tracker/js/script.js` → `importData()`, `_submitImportPin()`
-- CSP (Firebase only): root `firebase.json` → `/period-tracker/**` headers — not used on GitHub Pages
+- [Drive API — appDataFolder](https://developers.google.com/drive/api/guides/appdata)
+- [OAuth 2.0 for web (auth code + PKCE)](https://developers.google.com/identity/protocols/oauth2/web-server)
+- Setup copy: `period-tracker/js/drive-config.example.js`
+- Handoff: [`HANDOFF.md`](./HANDOFF.md) §10

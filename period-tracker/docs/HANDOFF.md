@@ -298,7 +298,7 @@ My Calendar export
 **Explicitly deferred (owner's call, revisit later):**
 
 - Symptom chart re-enable — undecided how to present the data meaningfully.
-- Google Drive sync — still just the plan doc.
+- ~~Google Drive sync — still just the plan doc.~~ → **Shipped** (one-way backup); see §10 A and [`google-drive-sync-plan.md`](./google-drive-sync-plan.md).
 - Push/background notifications — not feasible without a backend (Push API requires a server to trigger sends; Periodic Background Sync is unreliable/Chromium-only). In-app reminder-on-logging is the current approach.
 - WebAuthn/biometric unlock — unclear PWA support story, revisit later.
 - ru/be i18n rollout — personal fork with no current ru/be users; revisit if that changes.
@@ -314,17 +314,25 @@ See `README-Fork.md` §§1–20 (drip tools, crypto chunks, auto-fill, themes, P
 
 ## 10. Next plans (when you return)
 
-### A. Google Drive backup — Phase 1 implemented
+### A. Google Drive backup — shipped
 
-Spec: [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
+Spec (as-built): [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
 
-- One-way encrypted upload to Drive `appDataFolder` via `js/drive-sync.js`
-- Settings → Security: Connect / Back up now / Disconnect + auto-backup toggle
-- First connect: optional restore from Drive (replaces local data; PIN required)
-- **Requires:** OAuth client ID in `js/drive-config.js` (see `drive-config.example.js`) + Google Cloud Console redirect URI matching **GitHub Pages** URL exactly (see §3)
-- No CSP changes needed on GitHub Pages (root `firebase.json` is upstream-only)
+- One-way encrypted upload to Drive `appDataFolder` (`js/drive-sync.js` + `drive-config.js`)
+- Settings → Security (**below** local export/import): Connect / Back up now / Disconnect + auto-backup (~45s debounce after `save()`)
+- First connect: optional restore from Drive (replaces local; PIN required)
+- OAuth: Web client + **Client ID and Client secret**; consent screen **Testing** + **test users** (ask fishese to add accounts — noted in UI)
+- Origins/redirects: GitHub Pages double path + localhost (see `drive-config.example.js`)
+- PKCE state mirrored in IndexedDB + localStorage (PWA/browser handoff); `save()` isolates Drive errors from local encrypt
+- i18n: en / es / ja / zh-TW
+- No CSP changes on GitHub Pages (`firebase.json` unused)
 
-### A2. Google Drive — deferred
+### A2. Google Drive — still deferred
+
+- Two-way sync / conflict resolution
+- Production OAuth verification for public users
+- Deleting remote backup on disconnect
+- Backend token exchange (to keep client secret off the client)
 
 ### B. Remaining UI / docs (optional)
 
@@ -338,7 +346,7 @@ Spec: [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
 
 - Two-way sync / conflict resolution
 - Loading a real webfont file for LunaDisplay (currently Georgia alias)
-- See §8 "Explicitly deferred" for the full current list (push notifications, WebAuthn, ru/be i18n, smarter CSV merge, Drive sync, symptom chart) with reasoning for each.
+- See §8 "Explicitly deferred" for the full current list (push notifications, WebAuthn, ru/be i18n, smarter CSV merge, symptom chart) with reasoning for each. Drive **one-way backup is shipped**; two-way sync remains deferred (§10 A2).
 
 ---
 
@@ -351,9 +359,11 @@ Spec: [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
 5. `autoFillDays`: `null` = auto (rolling avg), `0` = off, `1–10` = days ahead after start (not including the start day itself)  
 6. Onboarding CSV import has nothing to merge with (fresh state); non-onboarding import offers a real Merge/Replace choice — see §7  
 7. GitHub Pages path quirks for `manifest.json` (`dd363ef`)  
-8. iOS PWA OAuth will be hard for Drive backup — test early  
-9. `log.flow` is truthy-checked pervasively (`if (log.flow)`) — a future 4th flow level must not be `0`/falsy, or it'll silently behave like "not set" everywhere. This is exactly why `spotting` was added as its own boolean field instead of `flow: 0`.  
-10. If cycle history / predictions ever look wrong, try Settings → Cycle → "Recalculate Cycle History" before debugging further — it's a safe, non-destructive rebuild from logs.  
+8. Drive OAuth: use **Testing** + test users; Web client needs **client secret** in `drive-config.js`; redirect URI must match Pages path exactly (double `period-tracker/`). PWA vs browser can drop PKCE state — localStorage mirror helps; prefer browser if connect loops. GitHub Push Protection may block secret commits until allowed.  
+9. iOS PWA OAuth remains awkward — test on a real device if supporting iPhone shortcuts  
+10. `log.flow` is truthy-checked pervasively (`if (log.flow)`) — a future 4th flow level must not be `0`/falsy, or it'll silently behave like "not set" everywhere. This is exactly why `spotting` was added as its own boolean field instead of `flow: 0`.  
+11. If cycle history / predictions ever look wrong, try Settings → Cycle → "Recalculate Cycle History" before debugging further — it's a safe, non-destructive rebuild from logs.  
+12. Local `save()` must not fail because of Drive — auto-backup scheduling is outside the encrypt/IndexedDB try/catch.  
 
 ---
 
@@ -371,6 +381,7 @@ Spec: [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
 - [ ] Settings → Cycle → "Recalculate Cycle History" rebuilds without errors on real data  
 - [ ] Import a drip CSV with a `bleeding.value=0` (spotting) row — check it doesn't inflate period count, and round-trips on export  
 - [ ] Print summary opens print dialog with populated stats + history table  
+- [ ] Drive: connect (test user) → back up now → disconnect; auto-backup optional; fertility toggle still saves without error  
 
 ---
 

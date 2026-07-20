@@ -6,7 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Your Cycle Keeper** is a privacy-first period tracking PWA with client-side AES-256-GCM encryption. Zero server communication—all data stays on-device using IndexedDB. Built with vanilla JavaScript ES6 modules (no frameworks, no build tools, no dependencies).
 
-**Live URL:** https://yourcyclekeeper.web.app
+**Live URL (this fork):** https://fishese.github.io/period-tracker/period-tracker/
+
+Upstream branding/URL in older docs may still say Your Cycle Keeper / yourcyclekeeper.web.app.
 
 ## Development Commands
 
@@ -18,8 +20,7 @@ npx http-server
 
 # Access at http://localhost:8000 (NOT file://)
 
-# Deploy to Firebase
-firebase deploy
+# Deploy: push to fishese/period-tracker (GitHub Pages). Root firebase.json is upstream-only.
 ```
 
 ### Pre-Deploy Checklist
@@ -74,6 +75,8 @@ state = {
 | `js/dateUtils.js` | ISO date utilities (`toISO`, `fromISO`, `addDays`, `diffDays`) |
 | `js/session.js` | Timeout warnings, countdown timers, lock triggers |
 | `js/navigation.js` | Keyboard accessibility and focus management |
+| `js/drive-sync.js` | Optional Google Drive one-way backup (OAuth PKCE, upload/download) |
+| `js/drive-config.js` | OAuth Client ID + Client secret (see `drive-config.example.js`) |
 
 ### Cycle Prediction Algorithm
 
@@ -92,10 +95,11 @@ Calendar Rhythm Method + Standard Days Method:
 
 ### Security Rules
 
-- **No network calls:** CSP blocks `connect-src: none`—app is 100% offline after first load
+- **No app backend:** Health data never leaves the device except optional user-initiated Google Drive backup (encrypted blob to the user's Drive).
 - **PIN never stored:** Derived to key on-demand using PBKDF2
 - **Fast PIN validation:** HMAC hash check before attempting decryption
 - **Schema versioning:** Encrypted envelope wraps state as `{ v: SCHEMA_VERSION, payload: state }`
+- **Drive backup docs:** `period-tracker/docs/google-drive-sync-plan.md`
 
 ### UI Screens
 
@@ -131,11 +135,12 @@ Canvas-based with DPR scaling for retina displays:
 
 ## Forbidden Patterns
 
-- **Do not** use `localStorage` (replaced with IndexedDB)
-- **Do not** call `fetch()` or `XMLHttpRequest` (CSP blocks all network)
+- **Do not** use `localStorage` for health data (IndexedDB + encryption). UI prefs (theme) and ephemeral Drive OAuth PKCE mirrors may use localStorage.
+- **Do not** call `fetch()` for app backends — optional Google Drive backup may `fetch` `googleapis.com` / `oauth2.googleapis.com` / `accounts.google.com` only.
 - **Do not** store PIN in state or IndexedDB
-- **Do not** use `Date.toISOString()` (use `toISO()` instead)
+- **Do not** use `Date.toISOString()` for day keys (use `toISO()` instead)
 - **Do not** pass `state` as function parameter (use module-level `setState()` reference)
+- **Do not** let Drive backup errors fail local `save()` (schedule auto-backup outside the encrypt/IDB try/catch)
 
 ## Testing Checklist
 
@@ -143,3 +148,4 @@ Canvas-based with DPR scaling for retina displays:
 - Session timeout: Wait 5 min idle, verify auto-lock with countdown
 - Wrong PIN: Should fail fast with HMAC check (no decryption attempt)
 - Period marking: Toggle start/end, verify cleanup of consecutive markers
+- Drive backup (optional): connect as test user, back up now; confirm normal saves still work
