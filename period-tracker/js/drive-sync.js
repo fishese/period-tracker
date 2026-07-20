@@ -12,9 +12,14 @@ const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.appdata";
 const OAUTH_STATE_KEY = "mycyclekeeper_drive_oauth_state";
 const OAUTH_VERIFIER_KEY = "mycyclekeeper_drive_oauth_verifier";
 const OAUTH_PENDING_CONNECT_KEY = "mycyclekeeper_drive_pending_connect";
+const OAUTH_REDIRECT_KEY = "mycyclekeeper_drive_oauth_redirect";
 const OAUTH_ERROR_KEY = "mycyclekeeper_drive_oauth_error";
 const SHOW_CONNECTED_KEY = "mycyclekeeper_drive_show_connected_toast";
+const OAUTH_CODE_USED_KEY = "mycyclekeeper_drive_oauth_code_used";
 export const DRIVE_PENDING_RESTORE_KEY = "mycyclekeeper_drive_pending_restore";
+
+/** Ephemeral OAuth keys — mirrored to localStorage so PWA ↔ browser redirect can share state. */
+const OAUTH_LS_PREFIX = "mycyclekeeper_drive_oauth_";
 
 /** Must match Google Cloud Console redirect URIs exactly. */
 const DRIVE_REDIRECT_BY_ORIGIN = {
@@ -40,6 +45,52 @@ async function idbSet(key, value) {
 
 async function idbDel(key) {
   await idb().deleteFromDB(key);
+}
+
+function lsGet(key) {
+  try {
+    return localStorage.getItem(OAUTH_LS_PREFIX + key);
+  } catch (_) {
+    return null;
+  }
+}
+
+function lsSet(key, value) {
+  try {
+    localStorage.setItem(OAUTH_LS_PREFIX + key, value);
+  } catch (_) {
+    /* quota / private mode — IndexedDB still used */
+  }
+}
+
+function lsDel(key) {
+  try {
+    localStorage.removeItem(OAUTH_LS_PREFIX + key);
+  } catch (_) {}
+}
+
+/** OAuth PKCE/state: write to IndexedDB + localStorage (PWA and browser tab share localStorage). */
+async function oauthSet(key, value) {
+  lsSet(key, value);
+  await idbSet(key, value);
+}
+
+async function oauthGet(key) {
+  const fromIdb = await idbGet(key);
+  if (fromIdb != null && fromIdb !== "") return fromIdb;
+  return lsGet(key);
+}
+
+async function oauthDel(key) {
+  lsDel(key);
+  await idbDel(key);
+}
+
+async function clearOAuthSessionKeys() {
+  await oauthDel(OAUTH_STATE_KEY);
+  await oauthDel(OAUTH_VERIFIER_KEY);
+  await oauthDel(OAUTH_PENDING_CONNECT_KEY);
+  await oauthDel(OAUTH_REDIRECT_KEY);
 }
 
 function base64UrlEncode(bytes) {
@@ -127,13 +178,13 @@ function cleanOAuthParamsFromUrl() {
   history.replaceState({}, "", url.pathname + url.search + url.hash);
 }
 
-async function exchangeCodeForTokens(code, verifier) {
+async function exchangeCodeForTokens(code, verifier, redirectUri) {
   const body = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID,
     code,
     code_verifier: verifier,
     grant_type: "authorization_code",
-    redirect_uri: getDriveRedirectUri(),
+    redirect_uri: redirectUri,
   });
   const res = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
@@ -141,7 +192,18 @@ async function exchangeCodeForTokens(code, verifier) {
     body,
   });
   if (!res.ok) {
-    throw new Error(`token_exchange_failed:${res.status}`);
+    let detail = "";
+    try {
+      const json = await res.json();
+      detail = json.error || json.error_description || "";
+    } catch (_) {
+      /* ignore */
+    }
+    throw new Error(
+      detail
+        ? `token_exchange_failed:${res.status}:${detail}`
+        : `token_exchange_failed:${res.status}`
+    );
   }
   return res.json();
 }
@@ -184,26 +246,36 @@ export async function handleDriveOAuthReturn() {
   if (error) {
     cleanOAuthParamsFromUrl();
     await setDriveOAuthError(error);
+    await clearOAuthSessionKeys();
     return { status: "error", error };
   }
   if (!code) return { status: "none" };
 
-  const expectedState = await idbGet(OAUTH_STATE_KEY);
-  const verifier = await idbGet(OAUTH_VERIFIER_KEY);
-  const pendingConnect = (await idbGet(OAUTH_PENDING_CONNECT_KEY)) === "1";
+  const usedCode = await oauthGet(OAUTH_CODE_USED_KEY);
+  if (usedCode === code) {
+    cleanOAuthParamsFromUrl();
+    return { status: "none" };
+  }
 
-  await idbDel(OAUTH_STATE_KEY);
-  await idbDel(OAUTH_VERIFIER_KEY);
-  await idbDel(OAUTH_PENDING_CONNECT_KEY);
-  cleanOAuthParamsFromUrl();
+  const expectedState = await oauthGet(OAUTH_STATE_KEY);
+  const verifier = await oauthGet(OAUTH_VERIFIER_KEY);
+  const pendingConnect = (await oauthGet(OAUTH_PENDING_CONNECT_KEY)) === "1";
+  const redirectUri =
+    (await oauthGet(OAUTH_REDIRECT_KEY)) || getDriveRedirectUri();
 
   if (!verifier || !state || state !== expectedState) {
+    cleanOAuthParamsFromUrl();
     await setDriveOAuthError("state_mismatch");
+    await clearOAuthSessionKeys();
     return { status: "error", error: "state_mismatch" };
   }
 
   try {
-    const data = await exchangeCodeForTokens(code, verifier);
+    const data = await exchangeCodeForTokens(code, verifier, redirectUri);
+    await oauthSet(OAUTH_CODE_USED_KEY, code);
+    await clearOAuthSessionKeys();
+    cleanOAuthParamsFromUrl();
+
     if (data.refresh_token) {
       await idbSet(DRIVE_REFRESH_TOKEN_KEY, data.refresh_token);
     } else if (!(await idbGet(DRIVE_REFRESH_TOKEN_KEY))) {
@@ -227,8 +299,11 @@ export async function handleDriveOAuthReturn() {
     }
     return { status: "connected", existingBackup: null };
   } catch (e) {
-    await setDriveOAuthError(e.message || "token_exchange_failed");
-    return { status: "error", error: e.message || "token_exchange_failed" };
+    cleanOAuthParamsFromUrl();
+    await clearOAuthSessionKeys();
+    const msg = e.message || "token_exchange_failed";
+    await setDriveOAuthError(msg);
+    return { status: "error", error: msg };
   }
 }
 
@@ -238,13 +313,16 @@ export async function startDriveConnect() {
 
   const { verifier, challenge } = await generatePkce();
   const state = base64UrlEncode(crypto.getRandomValues(new Uint8Array(16)));
-  await idbSet(OAUTH_VERIFIER_KEY, verifier);
-  await idbSet(OAUTH_STATE_KEY, state);
-  await idbSet(OAUTH_PENDING_CONNECT_KEY, "1");
+  const redirectUri = getDriveRedirectUri();
+  await oauthDel(OAUTH_CODE_USED_KEY);
+  await oauthSet(OAUTH_VERIFIER_KEY, verifier);
+  await oauthSet(OAUTH_STATE_KEY, state);
+  await oauthSet(OAUTH_PENDING_CONNECT_KEY, "1");
+  await oauthSet(OAUTH_REDIRECT_KEY, redirectUri);
 
   const params = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID,
-    redirect_uri: getDriveRedirectUri(),
+    redirect_uri: redirectUri,
     response_type: "code",
     scope: DRIVE_SCOPE,
     code_challenge: challenge,
@@ -347,7 +425,22 @@ export async function uploadDriveBackup(bundleString) {
   return syncDate;
 }
 
-let _uploadTimer = null;
+/** Map stored OAuth error codes to i18n key suffixes. */
+export function getDriveOAuthErrorKey(err) {
+  if (!err) return "drive_sync_failed_msg";
+  if (err === "state_mismatch") return "drive_oauth_state_mismatch";
+  if (err === "no_refresh_token") return "drive_oauth_no_refresh";
+  if (err === "access_denied") return "drive_oauth_access_denied";
+  const lower = String(err).toLowerCase();
+  if (
+    lower.includes("redirect_uri_mismatch") ||
+    lower.includes("invalid_grant") ||
+    lower.includes("token_exchange_failed:400")
+  ) {
+    return "drive_oauth_redirect_mismatch";
+  }
+  return "drive_sync_failed_msg";
+}
 
 /** Debounced upload hook — call from save() when auto-backup is enabled. */
 export function scheduleDriveBackupUpload(uploadFn) {

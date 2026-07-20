@@ -57,6 +57,7 @@ import {
   disconnectDrive,
   handleDriveOAuthReturn,
   consumeDriveOAuthError,
+  getDriveOAuthErrorKey,
   consumeDriveShowConnectedToast,
   consumeDrivePendingRestore,
   downloadDriveBackup,
@@ -2872,10 +2873,11 @@ async function toggleDriveAutoBackup() {
 async function maybeShowDriveOAuthError() {
   const err = await consumeDriveOAuthError();
   if (!err) return;
+  const msgKey = getDriveOAuthErrorKey(err);
   showModal({
     icon: "⚠️",
     title: t("drive_sync_failed_title"),
-    msg: t("drive_sync_failed_msg"),
+    msg: t(msgKey),
     cancelText: "",
     confirmText: t("ok"),
   });
@@ -3807,6 +3809,8 @@ async function init() {
       // When a new SW takes over (skipWaiting + clients.claim), reload so
       // the page runs the latest JS instead of the old in-memory version.
       navigator.serviceWorker.addEventListener("controllerchange", () => {
+        const u = new URL(window.location.href);
+        if (u.searchParams.has("code") || u.searchParams.has("error")) return;
         window.location.reload();
       });
     } else if (!("serviceWorker" in navigator)) {

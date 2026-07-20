@@ -399,6 +399,14 @@ const LOCALES = {
     drive_sync_failed_title: "Google Drive backup failed",
     drive_sync_failed_msg:
       "Could not complete the Google Drive backup. Check your connection and try again.",
+    drive_oauth_state_mismatch:
+      "Google sign-in could not be completed because the app lost track of the login session (common when opening from a home-screen shortcut). Close the app completely, open it again in your browser, then try Connect once more.",
+    drive_oauth_redirect_mismatch:
+      "Google rejected the sign-in (redirect URI mismatch). In Google Cloud Console, set the redirect URI exactly to: https://fishese.github.io/period-tracker/period-tracker/",
+    drive_oauth_no_refresh:
+      "Google did not grant offline access. Disconnect any previous attempt in Google Account → Security → Third-party access, then connect again.",
+    drive_oauth_access_denied:
+      "Google sign-in was cancelled or denied.",
     drive_reconnect_msg:
       "Google Drive access expired. Disconnect and connect again.",
     drive_disconnect_confirm_title: "Disconnect Google Drive?",
