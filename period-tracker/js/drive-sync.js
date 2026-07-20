@@ -50,15 +50,29 @@ function idb() {
 }
 
 async function idbGet(key) {
-  return idb().getFromDB(key);
+  try {
+    return await idb().getFromDB(key);
+  } catch (err) {
+    console.warn("[Drive] idbGet failed:", key, err);
+    return null;
+  }
 }
 
 async function idbSet(key, value) {
-  await idb().setInDB(key, value);
+  try {
+    await idb().setInDB(key, value);
+  } catch (err) {
+    console.warn("[Drive] idbSet failed:", key, err);
+    throw err;
+  }
 }
 
 async function idbDel(key) {
-  await idb().deleteFromDB(key);
+  try {
+    await idb().deleteFromDB(key);
+  } catch (err) {
+    console.warn("[Drive] idbDel failed:", key, err);
+  }
 }
 
 function lsSuffix(idbKey) {

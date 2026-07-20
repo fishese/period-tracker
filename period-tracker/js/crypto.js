@@ -28,10 +28,15 @@ export async function deriveKey(pin, salt) {
 }
 
 export async function encryptData(data, pin, salt) {
+  let envelope;
+  try {
+    envelope = JSON.stringify({ v: SCHEMA_VERSION, payload: data });
+  } catch (err) {
+    throw new Error(`state_not_serializable: ${err.message}`);
+  }
   const key = await deriveKey(pin, salt);
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const enc = new TextEncoder();
-  const envelope = JSON.stringify({ v: SCHEMA_VERSION, payload: data });
   const ct = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv },
     key,

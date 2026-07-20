@@ -103,7 +103,12 @@ function loadTheme() {
 async function getOrCreateSalt() {
   try {
     let s = await getFromDB(SALT_KEY);
-    if (s) return Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+    if (s) {
+      if (typeof s !== "string") {
+        throw new Error("salt_corrupted: expected string");
+      }
+      return Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+    }
     const salt = crypto.getRandomValues(new Uint8Array(16));
     const encoded = btoa(String.fromCharCode(...salt));
     await setInDB(SALT_KEY, encoded);
@@ -460,7 +465,11 @@ async function save() {
     try {
       await setInDB(STORE_KEY, enc);
     } catch (e) {
-      if (e.name === "QuotaExceededError" || e.name === "NS_ERROR_DOMQuota_REACHED") {
+      if (
+        e.name === "QuotaExceededError" ||
+        e.name === "NS_ERROR_DOMQuota_REACHED" ||
+        /quota/i.test(e.message || "")
+      ) {
         showModal({
           icon: "⚠️",
           title: t("storage_full_title"),
@@ -471,17 +480,25 @@ async function save() {
       }
       throw e;
     }
-    if (await isDriveAutoBackupEnabled()) {
-      scheduleDriveBackupUpload(() => performDriveBackupUpload(false));
-    }
   } catch (error) {
     console.error("🚨 Save error:", error);
+    const detail = error?.message ? `\n\n(${error.message})` : "";
     showModal({
       icon: "⚠️",
       title: t("save_failed_title"),
-      msg: t("save_failed_msg"),
+      msg: t("save_failed_msg") + detail,
       confirmText: t("ok"),
     });
+    return;
+  }
+
+  // Never let Drive backup scheduling fail a successful local save
+  try {
+    if (await isDriveAutoBackupEnabled()) {
+      scheduleDriveBackupUpload(() => performDriveBackupUpload(false));
+    }
+  } catch (err) {
+    console.warn("[Drive backup] schedule check failed:", err);
   }
 }
 
