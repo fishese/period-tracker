@@ -381,9 +381,8 @@ const LOCALES = {
     drive_section_desc:
       "Encrypted one-way backup to your Google Drive — <strong>not</strong> two-way sync. Logging on one device does not update another. Use this to back up and to restore on a new phone or after clearing app data.",
     drive_privacy_note:
-      "Only an encrypted file is stored in a hidden app folder on your Google account. We have no server and cannot read your data.",
-    drive_test_user_note:
-      "Google Drive backup is limited to approved test accounts. If you want to use it, ask <strong>fishese</strong> to add your Google account to the test users list.",
+      "Only an encrypted file is stored in a hidden app folder on your Google account. We have no server and cannot read your data.<br><br>Google Drive backup is limited to approved test accounts. If you want to use it, ask <strong>fishese</strong> to add your Google account to the test users list.",
+    drive_test_user_note: "",
     drive_status_not_connected: "Not connected",
     drive_status_last_backup: "Last backed up: {date} · One-way backup only",
     drive_status_never_synced: "Connected — no backup uploaded yet",
@@ -1318,9 +1317,8 @@ const LOCALES = {
     drive_section_desc:
       "Copia cifrada unidireccional a tu Google Drive — <strong>no</strong> es sincronización bidireccional. Registrar en un dispositivo no actualiza otro. Úsala para respaldar y restaurar en un teléfono nuevo o tras borrar los datos de la app.",
     drive_privacy_note:
-      "Solo se almacena un archivo cifrado en una carpeta oculta de tu cuenta de Google. No tenemos servidor y no podemos leer tus datos.",
-    drive_test_user_note:
-      "La copia en Google Drive está limitada a cuentas de prueba aprobadas. Si quieres usarla, pide a <strong>fishese</strong> que añada tu cuenta de Google a la lista de usuarios de prueba.",
+      "Solo se almacena un archivo cifrado en una carpeta oculta de tu cuenta de Google. No tenemos servidor y no podemos leer tus datos.<br><br>La copia en Google Drive está limitada a cuentas de prueba aprobadas. Si quieres usarla, pide a <strong>fishese</strong> que añada tu cuenta de Google a la lista de usuarios de prueba.",
+    drive_test_user_note: "",
     drive_status_not_connected: "No conectado",
     drive_status_last_backup: "Última copia: {date} · Solo copia unidireccional",
     drive_status_never_synced: "Conectado — aún no se subió ninguna copia",
@@ -1331,13 +1329,29 @@ const LOCALES = {
     drive_auto_hint:
       "Sube una copia cifrada tras guardar cambios (con retardo). No descarga ni combina datos de otros dispositivos.",
     drive_not_configured:
-      "La copia en Google Drive no está configurada en esta compilación (falta el ID OAuth en drive-config.js).",
+      "La copia en Google Drive no está configurada en esta compilación (faltan el ID y el secreto OAuth en drive-config.js).",
     drive_connected_toast: "Google Drive conectado",
     drive_disconnected_toast: "Google Drive desconectado",
     drive_sync_success_toast: "Copia subida a Google Drive",
     drive_sync_failed_title: "Error de copia en Google Drive",
     drive_sync_failed_msg:
       "No se pudo completar la copia en Google Drive. Comprueba tu conexión e inténtalo de nuevo.",
+    drive_oauth_state_mismatch:
+      "No se pudo completar el inicio de sesión de Google porque la app perdió la sesión de autorización (suele pasar con el acceso directo desde la pantalla de inicio). Cierra la app por completo, ábrela en el navegador e intenta Conectar otra vez.",
+    drive_oauth_redirect_mismatch:
+      "Google rechazó el inicio de sesión (URI de redirección no coincide). En Google Cloud Console → Credenciales → tu cliente Web, confirma esta URI exacta:\n\nhttps://fishese.github.io/period-tracker/period-tracker/\n\nTambién confirma que el tipo es Aplicación web (no Escritorio).",
+    drive_oauth_missing_secret:
+      "Google requiere el secreto de cliente OAuth para este cliente Web. Cópialo en period-tracker/js/drive-config.js (GOOGLE_CLIENT_SECRET) y vuelve a publicar.",
+    drive_oauth_invalid_grant:
+      "Google no aceptó el código de autorización — puede haber caducado o haberse usado ya. Pulsa Conectar Google Drive una vez y completa el flujo sin actualizar la página.",
+    drive_oauth_no_refresh:
+      "Google no concedió acceso sin conexión. Revoca el acceso anterior en Cuenta de Google → Seguridad → Acceso de terceros y vuelve a conectar.",
+    drive_oauth_access_denied:
+      "Se canceló o denegó el inicio de sesión de Google.",
+    drive_oauth_enter_pin:
+      "Introduce tu PIN para terminar de conectar Google Drive.",
+    drive_oauth_code_expired:
+      "El inicio de sesión de Google caducó. Pulsa Conectar Google Drive e inténtalo de nuevo.",
     drive_reconnect_msg:
       "El acceso a Google Drive expiró. Desconecta y vuelve a conectar.",
     drive_disconnect_confirm_title: "¿Desconectar Google Drive?",
@@ -1727,9 +1741,8 @@ const LOCALES = {
     drive_section_desc:
       "Google Driveへの暗号化された一方向バックアップ — <strong>双方向同期ではありません</strong>。ある端末で記録しても別の端末は更新されません。新しい端末への移行やアプリデータ削除後の復元に使用してください。",
     drive_privacy_note:
-      "Googleアカウントの非表示アプリフォルダに暗号化ファイルのみ保存されます。当方のサーバーはなく、データを読むことはできません。",
-    drive_test_user_note:
-      "Google Driveバックアップは承認されたテストアカウントのみ利用できます。使いたい場合は、<strong>fishese</strong>にGoogleアカウントをテストユーザーリストへ追加するよう依頼してください。",
+      "Googleアカウントの非表示アプリフォルダに暗号化ファイルのみ保存されます。当方のサーバーはなく、データを読むことはできません。<br><br>Google Driveバックアップは承認されたテストアカウントのみ利用できます。使いたい場合は、<strong>fishese</strong>にGoogleアカウントをテストユーザーリストへ追加するよう依頼してください。",
+    drive_test_user_note: "",
     drive_status_not_connected: "未接続",
     drive_status_last_backup: "最終バックアップ: {date} · 一方向バックアップのみ",
     drive_status_never_synced: "接続済み — まだバックアップがアップロードされていません",
@@ -1740,13 +1753,29 @@ const LOCALES = {
     drive_auto_hint:
       "保存後、一定時間経過してから暗号化バックアップをアップロードします。他端末からのダウンロードや統合は行いません。",
     drive_not_configured:
-      "このビルドではGoogle Driveバックアップが未設定です（drive-config.jsにOAuthクライアントIDがありません）。",
+      "このビルドではGoogle Driveバックアップが未設定です（drive-config.jsにOAuthクライアントIDとシークレットがありません）。",
     drive_connected_toast: "Google Driveに接続しました",
     drive_disconnected_toast: "Google Driveから切断しました",
     drive_sync_success_toast: "Google Driveにバックアップをアップロードしました",
     drive_sync_failed_title: "Google Driveバックアップに失敗",
     drive_sync_failed_msg:
       "Google Driveバックアップを完了できませんでした。接続を確認して再試行してください。",
+    drive_oauth_state_mismatch:
+      "アプリがログイン状態を見失ったため、Googleサインインを完了できませんでした（ホーム画面ショートカットで起きやすいです）。アプリを完全に閉じてブラウザで開き直し、「接続」をもう一度試してください。",
+    drive_oauth_redirect_mismatch:
+      "Googleがサインインを拒否しました（リダイレクトURI不一致）。Google Cloud Console → 認証情報 → Webクライアントで、次のURIが正確に登録されているか確認してください:\n\nhttps://fishese.github.io/period-tracker/period-tracker/\n\nクライアントの種類が「ウェブアプリケーション」（デスクトップではない）であることも確認してください。",
+    drive_oauth_missing_secret:
+      "このWebクライアントにはOAuthクライアントシークレットが必要です。Google Cloud Consoleからコピーし、period-tracker/js/drive-config.js の GOOGLE_CLIENT_SECRET に入れて再デプロイしてください。",
+    drive_oauth_invalid_grant:
+      "Googleが認証コードを受け付けませんでした。期限切れか、すでに使用済みの可能性があります。「Google Driveに接続」を一度押し、ページを更新せずに完了してください。",
+    drive_oauth_no_refresh:
+      "Googleがオフラインアクセスを許可しませんでした。Googleアカウント → セキュリティ → サードパーティのアクセスで以前の許可を削除してから、再接続してください。",
+    drive_oauth_access_denied:
+      "Googleサインインがキャンセルまたは拒否されました。",
+    drive_oauth_enter_pin:
+      "Google Driveの接続を完了するにはPINを入力してください。",
+    drive_oauth_code_expired:
+      "Googleサインインがタイムアウトしました。「Google Driveに接続」をもう一度試してください。",
     drive_reconnect_msg:
       "Google Driveのアクセスが期限切れです。切断して再接続してください。",
     drive_disconnect_confirm_title: "Google Driveを切断しますか？",
@@ -2132,9 +2161,8 @@ const LOCALES = {
     drive_section_desc:
       "加密單向備份至您的 Google Drive — <strong>不是</strong>雙向同步。在一台裝置上記錄不會更新另一台。用於備份，或在換機／清除應用資料後還原。",
     drive_privacy_note:
-      "僅在您的 Google 帳戶隱藏應用資料夾中儲存加密檔案。我們沒有伺服器，無法讀取您的資料。",
-    drive_test_user_note:
-      "Google Drive 備份僅限已核准的測試帳號。若要使用，請請 <strong>fishese</strong> 將您的 Google 帳號加入測試使用者清單。",
+      "僅在您的 Google 帳戶隱藏應用資料夾中儲存加密檔案。我們沒有伺服器，無法讀取您的資料。<br><br>Google Drive 備份僅限已核准的測試帳號。若要使用，請向 <strong>fishese</strong> 將您的 Google 帳號加入測試使用者清單。",
+    drive_test_user_note: "",
     drive_status_not_connected: "未連線",
     drive_status_last_backup: "上次備份：{date} · 僅單向備份",
     drive_status_never_synced: "已連線 — 尚未上傳備份",
@@ -2145,13 +2173,29 @@ const LOCALES = {
     drive_auto_hint:
       "儲存變更後，延遲一段時間上傳加密備份。不會從其他裝置下載或合併資料。",
     drive_not_configured:
-      "此版本未設定 Google Drive 備份（drive-config.js 缺少 OAuth 用戶端 ID）。",
+      "此版本未設定 Google Drive 備份（drive-config.js 缺少 OAuth 用戶端 ID 與密鑰）。",
     drive_connected_toast: "已連線 Google Drive",
     drive_disconnected_toast: "已中斷 Google Drive",
     drive_sync_success_toast: "已上傳備份至 Google Drive",
     drive_sync_failed_title: "Google Drive 備份失敗",
     drive_sync_failed_msg:
       "無法完成 Google Drive 備份。請檢查連線後再試。",
+    drive_oauth_state_mismatch:
+      "應用程式遺失登入狀態，無法完成 Google 登入（從主畫面捷徑開啟時較常見）。請完全關閉應用程式，改用瀏覽器開啟，然後再試一次連線。",
+    drive_oauth_redirect_mismatch:
+      "Google 拒絕登入（重新導向 URI 不符）。請在 Google Cloud Console → 憑證 → Web 用戶端確認已登錄此精確 URI：\n\nhttps://fishese.github.io/period-tracker/period-tracker/\n\n並確認類型為「網頁應用程式」（非桌面應用程式）。",
+    drive_oauth_missing_secret:
+      "此 Web 用戶端需要 OAuth 用戶端密鑰。請從 Google Cloud Console 複製到 period-tracker/js/drive-config.js 的 GOOGLE_CLIENT_SECRET，然後重新部署。",
+    drive_oauth_invalid_grant:
+      "Google 不接受授權碼——可能已過期或已使用。請再按一次「連線 Google Drive」，完成流程時不要重新整理頁面。",
+    drive_oauth_no_refresh:
+      "Google 未授予離線存取權。請在 Google 帳戶 → 安全性 → 第三方存取權限撤銷先前授權後再連線。",
+    drive_oauth_access_denied:
+      "已取消或拒絕 Google 登入。",
+    drive_oauth_enter_pin:
+      "請輸入 PIN 以完成 Google Drive 連線。",
+    drive_oauth_code_expired:
+      "Google 登入逾時。請再按「連線 Google Drive」重試。",
     drive_reconnect_msg:
       "Google Drive 存取已過期。請中斷連線後重新連線。",
     drive_disconnect_confirm_title: "中斷 Google Drive？",
@@ -2349,7 +2393,14 @@ export function applyI18n() {
     el.textContent = t(el.dataset.i18n);
   });
   document.querySelectorAll("[data-i18n-html]").forEach((el) => {
-    el.innerHTML = t(el.dataset.i18nHtml);
+    const html = t(el.dataset.i18nHtml);
+    el.innerHTML = html;
+    // Hide empty translated boxes (e.g. retired keys left as "")
+    if (!String(html).trim()) {
+      el.classList.add("hidden");
+    } else {
+      el.classList.remove("hidden");
+    }
   });
   document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
     el.placeholder = t(el.dataset.i18nPlaceholder);
