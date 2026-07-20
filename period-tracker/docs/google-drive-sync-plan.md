@@ -1,10 +1,10 @@
 # Google Drive backup — as built
 
-**Status:** Shipped (2026-07-20) on this fork  
+**Status:** Shipped (2026-07-20); **token proxy required** (2026-07-21) — Client secret must not live in the SPA  
 **Live app:** https://fishese.github.io/period-tracker/period-tracker/  
 **Scope:** `period-tracker/` PWA (GitHub Pages — root `firebase.json` is unused)
 
-Optional one-way encrypted backup to the user's own Google Drive. No app backend; the browser talks to Google APIs only after the user connects.
+Optional one-way encrypted backup to the user's own Google Drive. Health data stays encrypted; the browser talks to Google Drive APIs after connect. **Token exchange/refresh** goes through a tiny Cloudflare Worker so the OAuth **Client secret never ships in public JS**.
 
 ---
 
@@ -28,11 +28,20 @@ Local Export / Import / drip CSV stay primary for most users. Drive section sits
 
 | Layer | What happens |
 |--------|----------------|
-| **Hosting (GitHub Pages)** | Static files only. Never sees health data. |
+| **Hosting (GitHub Pages)** | Static files only. Never sees health data. **Never** contains Client secret. |
+| **Token proxy** (`drive-oauth-proxy/`) | Holds Client secret as a Worker env secret; exchanges auth codes / refreshes tokens. |
 | **Google Drive** | Encrypted blob only. Google sees metadata (size, modified time), not plaintext. |
 | **Device** | PIN in memory; AES-256-GCM via Web Crypto (unchanged). |
 | **OAuth tokens** | Refresh token in IndexedDB; revocable via Disconnect. |
-| **Client secret** | Google **Web application** clients require `client_secret` on the token endpoint even with PKCE. In a SPA it ships in `drive-config.js` and is visible in the browser — acceptable for **Testing** mode + test users only. |
+
+### If Google emails “handle client credentials securely”
+
+That means a Client secret was found in a public place (e.g. this repo / Pages JS). Treat it as **burned**:
+
+1. Cloud Console → Credentials → your Web client → **Reset / rotate secret**
+2. Put **only the new secret** on the Worker (`wrangler secret put GOOGLE_CLIENT_SECRET`)
+3. Confirm `drive-config.js` has **no** Client secret (only Client ID + `DRIVE_TOKEN_PROXY_URL`)
+4. Users: Disconnect + Connect again after rotate
 
 **In-app privacy copy** (combined with test-user note): encrypted file in a hidden app folder; ask **fishese** to add Google accounts to the OAuth test users list.
 
@@ -42,13 +51,14 @@ Local Export / Import / drip CSV stay primary for most users. Drive section sits
 
 | Path | Role |
 |------|------|
-| `js/drive-sync.js` | PKCE OAuth, token exchange/refresh, upload/download, auto-backup scheduler |
-| `js/drive-config.js` | `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` (live credentials; GitHub may block push until allowed) |
-| `js/drive-config.example.js` | Setup instructions + placeholders |
+| `js/drive-sync.js` | PKCE OAuth, calls token proxy, upload/download, auto-backup scheduler |
+| `js/drive-config.js` | `GOOGLE_CLIENT_ID` + `DRIVE_TOKEN_PROXY_URL` only (public) |
+| `js/drive-config.example.js` | Setup placeholders |
+| `drive-oauth-proxy/` | Cloudflare Worker + README — holds Client secret |
 | `js/script.js` | Settings UI hooks, `buildBackupBundle()`, restore prompt, `save()` isolation |
 | `js/i18n.js` | Drive strings for **en / es / ja / zh-TW** |
 | `index.html` | Drive section under local backup |
-| `service-worker.js` | Caches `drive-sync.js` / `drive-config.js`; bump `CACHE_VERSION` on deploy |
+| `service-worker.js` | Caches drive JS; bump `CACHE_VERSION` on deploy |
 
 ### IndexedDB keys
 
@@ -64,113 +74,80 @@ Local Export / Import / drip CSV stay primary for most users. Drive section sits
 
 ---
 
-## Google Cloud setup (required)
+## Google Cloud + proxy setup (required)
 
 1. Enable **Google Drive API**.
-2. **OAuth consent screen** → **Testing** (recommended for this personal fork).
-3. Add every allowed Gmail under **Test users** (strangers cannot finish OAuth otherwise).
-4. **Credentials → OAuth 2.0 Client ID → Web application** (not Desktop).
-5. **Authorized JavaScript origins:**
+2. **OAuth consent screen** → **Testing** + **Test users**.
+3. **Credentials → OAuth 2.0 Client ID → Web application**
+4. **Authorized JavaScript origins:**
    - `https://fishese.github.io`
    - `http://localhost:8000`
-6. **Authorized redirect URIs** (exact, trailing slash):
+5. **Authorized redirect URIs** (exact, trailing slash):
    - `https://fishese.github.io/period-tracker/period-tracker/`
    - `http://localhost:8000/period-tracker/`
-7. Copy **Client ID** and **Client secret** into `js/drive-config.js`.
+6. Deploy **`period-tracker/drive-oauth-proxy/`** (see its README) with secrets `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET`.
+7. Set `DRIVE_TOKEN_PROXY_URL` in `js/drive-config.js` to the Worker URL. Client ID may stay in that file; **secret must not**.
 
 ### Testing vs Production
 
 | Mode | Use |
 |------|-----|
-| **Testing** + test users | Correct for this fork. Unverified-app warning is normal; use Advanced → continue. |
-| **In production** unverified | Drive scopes often hard-block. Prefer Testing. |
-| **Verified production** | Only if opening to the public (review process). |
-
-Refreshing tokens in Testing may expire after ~7 days — user reconnects.
-
-### Client secret in a public repo
-
-- GitHub Push Protection may block commits containing the secret; allow via the unblock links if you intentionally ship it for Pages.
-- Anyone can extract the secret from the live JS. Risk is mitigated by Testing + test-user allowlist; it is **not** equivalent to leaking a Google account password.
-- Period data remains PIN-encrypted either way.
+| **Testing** + test users | Correct for this fork. |
+| **In production** unverified | Often hard-blocks Drive scopes. Prefer Testing. |
+| **Verified production** | Only if opening to the public. |
 
 ---
 
 ## OAuth flow (as implemented)
 
-1. **Connect** → generate PKCE verifier/challenge; store state + verifier + redirect URI in IndexedDB **and** localStorage; redirect to Google.
-2. Google returns to the app URL with `?code=…&state=…` (often lands on the **PIN** screen — expected).
-3. On load: validate state, stage/exchange code for tokens (`client_id` + `client_secret` + `code_verifier` + `redirect_uri`).
-4. After unlock: show connected toast, or prompt restore if a remote backup exists.
-5. Service worker must **not** reload mid-OAuth while `code`/`error` are in the URL.
-
-**Redirect URI** used for authorize and token exchange must be identical and match Console (pinned map in `getDriveRedirectUri()` for GitHub Pages / localhost).
-
-### Common errors
-
-| Symptom | Likely cause |
-|---------|----------------|
-| `client_secret is missing` | Secret not in `drive-config.js` or not deployed |
-| Access blocked / not verified | Account not in Test users, or consent screen In production unverified |
-| Redirect URI mismatch | Console URI ≠ app (check double `period-tracker` + trailing `/`) |
-| Lost login session / state mismatch | PWA vs browser storage; retry in browser; localStorage mirror should help |
-| Save Failed (historical) | Drive auto-backup check used to sit inside `save()`'s catch — **fixed**; local save is isolated from Drive |
+1. **Connect** → PKCE; store state/verifier/redirect in IndexedDB + localStorage; redirect to Google.
+2. Google returns to the app with `?code=…` (PIN screen is normal).
+3. App `POST`s `{ grant_type, code, code_verifier, redirect_uri }` to **token proxy** → proxy adds secret → Google token endpoint.
+4. After unlock: connected toast, or restore prompt if remote backup exists.
+5. Access token refresh also goes through the proxy (`grant_type=refresh_token`).
 
 ---
 
 ## `save()` and auto-backup
 
 1. Encrypt state → write IndexedDB (local save).
-2. **Separately** (never fails the local save): if auto-backup enabled → `scheduleDriveBackupUpload` (~45s debounce) → upload bundle.
-
-Manual **Back up now** still surfaces Drive errors in a modal.
+2. **Separately** (never fails the local save): if auto-backup enabled → debounced upload.
 
 ---
 
 ## UX placement
 
-Settings → **Security & Privacy**:
-
-1. Change PIN  
-2. Local export / import / drip CSV  
-3. **Google Drive backup** (desc + privacy/test-user note + status + buttons + auto toggle)  
-4. Storage / erase  
+Settings → **Security & Privacy**: Change PIN → local export/import → **Google Drive** → storage/erase.
 
 ---
 
 ## i18n
 
-Drive UI and OAuth error strings: **en, es, ja, zh-TW**.  
-`drive_test_user_note` is `""` (retired); text lives inside `drive_privacy_note`. Empty `data-i18n-html` nodes are hidden by `applyI18n()`.
+Drive UI / OAuth errors: **en, es, ja, zh-TW**.
 
 ---
 
 ## Non-goals (still deferred)
 
-- Two-way / multi-device merge or conflict resolution  
-- Storing PIN or plaintext on Google  
-- Auto-restore without confirmation + PIN  
-- Replacing manual Export/Import  
-- Firebase hosting / CSP for this fork  
+- Two-way sync / conflict resolution  
+- Auto-restore without PIN  
+- Deleting remote file on disconnect  
+- Firebase hosting for this fork  
 
 ---
 
 ## Test checklist
 
-- [ ] Connect (test user) → PIN → “connected” toast  
-- [ ] Back up now → status shows last backup date  
-- [ ] Auto-backup: edit data, wait ~45s+, confirm Drive last-sync updates (optional)  
-- [ ] Disconnect → reconnect  
-- [ ] First connect with existing remote backup → restore / skip  
-- [ ] Toggle fertility / save still works (local save not blocked by Drive)  
-- [ ] Hard-refresh after deploy (`CACHE_VERSION` bump)  
-- [ ] Localhost redirect URI when developing  
+- [ ] Proxy deployed; `DRIVE_TOKEN_PROXY_URL` set; secret **not** in SPA  
+- [ ] Connect (test user) → PIN → connected  
+- [ ] Back up now / optional auto-backup  
+- [ ] After secret rotate: Disconnect → Connect again  
+- [ ] Local save (e.g. fertility toggle) still works  
 
 ---
 
 ## References
 
 - [Drive API — appDataFolder](https://developers.google.com/drive/api/guides/appdata)
-- [OAuth 2.0 for web (auth code + PKCE)](https://developers.google.com/identity/protocols/oauth2/web-server)
-- Setup copy: `period-tracker/js/drive-config.example.js`
+- Proxy: [`../drive-oauth-proxy/README.md`](../drive-oauth-proxy/README.md)
 - Handoff: [`HANDOFF.md`](./HANDOFF.md) §10
