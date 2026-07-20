@@ -13,6 +13,7 @@ const OAUTH_STATE_KEY = "mycyclekeeper_drive_oauth_state";
 const OAUTH_VERIFIER_KEY = "mycyclekeeper_drive_oauth_verifier";
 const OAUTH_PENDING_CONNECT_KEY = "mycyclekeeper_drive_pending_connect";
 const OAUTH_REDIRECT_KEY = "mycyclekeeper_drive_oauth_redirect";
+const OAUTH_PENDING_EXCHANGE_KEY = "mycyclekeeper_drive_oauth_pending_exchange";
 const OAUTH_ERROR_KEY = "mycyclekeeper_drive_oauth_error";
 const SHOW_CONNECTED_KEY = "mycyclekeeper_drive_show_connected_toast";
 const OAUTH_CODE_USED_KEY = "mycyclekeeper_drive_oauth_code_used";
@@ -47,9 +48,18 @@ async function idbDel(key) {
   await idb().deleteFromDB(key);
 }
 
+function lsSuffix(idbKey) {
+  if (idbKey === OAUTH_VERIFIER_KEY) return "verifier";
+  if (idbKey === OAUTH_STATE_KEY) return "state";
+  if (idbKey === OAUTH_PENDING_CONNECT_KEY) return "pending";
+  if (idbKey === OAUTH_REDIRECT_KEY) return "redirect";
+  if (idbKey === OAUTH_CODE_USED_KEY) return "code_used";
+  return idbKey;
+}
+
 function lsGet(key) {
   try {
-    return localStorage.getItem(OAUTH_LS_PREFIX + key);
+    return localStorage.getItem(OAUTH_LS_PREFIX + lsSuffix(key));
   } catch (_) {
     return null;
   }
@@ -57,7 +67,7 @@ function lsGet(key) {
 
 function lsSet(key, value) {
   try {
-    localStorage.setItem(OAUTH_LS_PREFIX + key, value);
+    localStorage.setItem(OAUTH_LS_PREFIX + lsSuffix(key), value);
   } catch (_) {
     /* quota / private mode — IndexedDB still used */
   }
@@ -65,20 +75,22 @@ function lsSet(key, value) {
 
 function lsDel(key) {
   try {
-    localStorage.removeItem(OAUTH_LS_PREFIX + key);
+    localStorage.removeItem(OAUTH_LS_PREFIX + lsSuffix(key));
   } catch (_) {}
 }
 
-/** OAuth PKCE/state: write to IndexedDB + localStorage (PWA and browser tab share localStorage). */
+/** OAuth PKCE/state: write to localStorage first (sync, survives redirect), then IndexedDB. */
 async function oauthSet(key, value) {
   lsSet(key, value);
   await idbSet(key, value);
 }
 
 async function oauthGet(key) {
+  const fromLs = lsGet(key);
+  if (fromLs != null && fromLs !== "") return fromLs;
   const fromIdb = await idbGet(key);
   if (fromIdb != null && fromIdb !== "") return fromIdb;
-  return lsGet(key);
+  return null;
 }
 
 async function oauthDel(key) {
@@ -233,9 +245,91 @@ async function getAccessToken() {
   return data.access_token;
 }
 
+async function finishConnectFlow(pendingConnect) {
+  if (pendingConnect) {
+    let existing = null;
+    try {
+      existing = await findExistingBackup();
+    } catch (_) {
+      /* list may fail offline — connect still succeeded */
+    }
+    if (existing) {
+      await idbSet(DRIVE_PENDING_RESTORE_KEY, "1");
+    } else {
+      await idbSet(SHOW_CONNECTED_KEY, "1");
+    }
+    return { status: "connected", existingBackup: existing };
+  }
+  return { status: "connected", existingBackup: null };
+}
+
+export async function hasPendingDriveOAuthExchange() {
+  return !!(await idbGet(OAUTH_PENDING_EXCHANGE_KEY));
+}
+
 /**
- * Call on page load (before unlock). Exchanges OAuth code if present and stores
- * tokens. Sets IndexedDB flags for post-unlock restore prompt when needed.
+ * Complete token exchange after PIN unlock (Google redirect lands on lock screen).
+ */
+export async function completePendingDriveOAuth() {
+  const raw = await idbGet(OAUTH_PENDING_EXCHANGE_KEY);
+  if (!raw) return { status: "none" };
+
+  let pending;
+  try {
+    pending = typeof raw === "string" ? JSON.parse(raw) : raw;
+  } catch (_) {
+    await idbDel(OAUTH_PENDING_EXCHANGE_KEY);
+    await setDriveOAuthError("state_mismatch");
+    return { status: "error", error: "state_mismatch" };
+  }
+
+  if (!pending?.code || !pending?.verifier || !pending?.redirectUri) {
+    await idbDel(OAUTH_PENDING_EXCHANGE_KEY);
+    await setDriveOAuthError("state_mismatch");
+    return { status: "error", error: "state_mismatch" };
+  }
+
+  if (Date.now() - (pending.ts || 0) > 10 * 60 * 1000) {
+    await idbDel(OAUTH_PENDING_EXCHANGE_KEY);
+    await setDriveOAuthError("code_expired");
+    return { status: "error", error: "code_expired" };
+  }
+
+  const usedCode = await oauthGet(OAUTH_CODE_USED_KEY);
+  if (usedCode === pending.code) {
+    await idbDel(OAUTH_PENDING_EXCHANGE_KEY);
+    return { status: "none" };
+  }
+
+  try {
+    const data = await exchangeCodeForTokens(
+      pending.code,
+      pending.verifier,
+      pending.redirectUri
+    );
+    await oauthSet(OAUTH_CODE_USED_KEY, pending.code);
+    await idbDel(OAUTH_PENDING_EXCHANGE_KEY);
+    await clearOAuthSessionKeys();
+
+    if (data.refresh_token) {
+      await idbSet(DRIVE_REFRESH_TOKEN_KEY, data.refresh_token);
+    } else if (!(await idbGet(DRIVE_REFRESH_TOKEN_KEY))) {
+      await setDriveOAuthError("no_refresh_token");
+      return { status: "error", error: "no_refresh_token" };
+    }
+
+    return finishConnectFlow(!!pending.pendingConnect);
+  } catch (e) {
+    await idbDel(OAUTH_PENDING_EXCHANGE_KEY);
+    const msg = e.message || "token_exchange_failed";
+    await setDriveOAuthError(msg);
+    return { status: "error", error: msg };
+  }
+}
+
+/**
+ * Call on page load (before unlock). Validates Google redirect and stages the
+ * authorization code for exchange after PIN unlock.
  */
 export async function handleDriveOAuthReturn() {
   const url = new URL(window.location.href);
@@ -265,46 +359,25 @@ export async function handleDriveOAuthReturn() {
 
   if (!verifier || !state || state !== expectedState) {
     cleanOAuthParamsFromUrl();
-    await setDriveOAuthError("state_mismatch");
+    const detail = !verifier ? "state_mismatch:no_verifier" : "state_mismatch";
+    await setDriveOAuthError(detail);
     await clearOAuthSessionKeys();
-    return { status: "error", error: "state_mismatch" };
+    return { status: "error", error: detail };
   }
 
-  try {
-    const data = await exchangeCodeForTokens(code, verifier, redirectUri);
-    await oauthSet(OAUTH_CODE_USED_KEY, code);
-    await clearOAuthSessionKeys();
-    cleanOAuthParamsFromUrl();
-
-    if (data.refresh_token) {
-      await idbSet(DRIVE_REFRESH_TOKEN_KEY, data.refresh_token);
-    } else if (!(await idbGet(DRIVE_REFRESH_TOKEN_KEY))) {
-      await setDriveOAuthError("no_refresh_token");
-      return { status: "error", error: "no_refresh_token" };
-    }
-
-    if (pendingConnect) {
-      let existing = null;
-      try {
-        existing = await findExistingBackup();
-      } catch (_) {
-        /* list may fail offline — connect still succeeded */
-      }
-      if (existing) {
-        await idbSet(DRIVE_PENDING_RESTORE_KEY, "1");
-      } else {
-        await idbSet(SHOW_CONNECTED_KEY, "1");
-      }
-      return { status: "connected", existingBackup: existing };
-    }
-    return { status: "connected", existingBackup: null };
-  } catch (e) {
-    cleanOAuthParamsFromUrl();
-    await clearOAuthSessionKeys();
-    const msg = e.message || "token_exchange_failed";
-    await setDriveOAuthError(msg);
-    return { status: "error", error: msg };
-  }
+  await idbSet(
+    OAUTH_PENDING_EXCHANGE_KEY,
+    JSON.stringify({
+      code,
+      verifier,
+      redirectUri,
+      pendingConnect,
+      ts: Date.now(),
+    })
+  );
+  await clearOAuthSessionKeys();
+  cleanOAuthParamsFromUrl();
+  return { status: "pending_unlock" };
 }
 
 export async function startDriveConnect() {
@@ -428,7 +501,9 @@ export async function uploadDriveBackup(bundleString) {
 /** Map stored OAuth error codes to i18n key suffixes. */
 export function getDriveOAuthErrorKey(err) {
   if (!err) return "drive_sync_failed_msg";
-  if (err === "state_mismatch") return "drive_oauth_state_mismatch";
+  if (err === "state_mismatch" || String(err).startsWith("state_mismatch"))
+    return "drive_oauth_state_mismatch";
+  if (err === "code_expired") return "drive_oauth_code_expired";
   if (err === "no_refresh_token") return "drive_oauth_no_refresh";
   if (err === "access_denied") return "drive_oauth_access_denied";
   const lower = String(err).toLowerCase();

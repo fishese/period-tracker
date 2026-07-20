@@ -56,6 +56,8 @@ import {
   startDriveConnect,
   disconnectDrive,
   handleDriveOAuthReturn,
+  completePendingDriveOAuth,
+  hasPendingDriveOAuthExchange,
   consumeDriveOAuthError,
   getDriveOAuthErrorKey,
   consumeDriveShowConnectedToast,
@@ -337,6 +339,7 @@ async function submitPin() {
     switchTab("calendar");
     updateInsights(); // Populate insights for desktop view
     loadSettingsFields();
+    await completePendingDriveOAuth();
     await maybeCompleteDriveConnectFlow();
     await maybeShowDriveOAuthError();
   } catch (error) {
@@ -3771,7 +3774,7 @@ async function init() {
     // Initialize IndexedDB
     await initIndexedDB();
 
-    await handleDriveOAuthReturn();
+    const oauthReturn = await handleDriveOAuthReturn();
 
     // Setup event listeners now that DOM exists
     setupEventListeners();
@@ -3824,8 +3827,16 @@ async function init() {
     if (hasData && hasSalt && hasPinHash) {
       // Returning user: show lock screen
       document.getElementById("lock-screen").classList.remove("hidden");
-      document.getElementById("lock-sub").textContent =
-        t("unlock_subtitle");
+      const lockSub = document.getElementById("lock-sub");
+      if (
+        lockSub &&
+        (oauthReturn.status === "pending_unlock" ||
+          (await hasPendingDriveOAuthExchange()))
+      ) {
+        lockSub.textContent = t("drive_oauth_enter_pin");
+      } else if (lockSub) {
+        lockSub.textContent = t("unlock_subtitle");
+      }
     } else {
       // First time: show onboarding
       document.getElementById("lock-screen").classList.add("hidden");

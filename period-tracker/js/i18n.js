@@ -407,6 +407,10 @@ const LOCALES = {
       "Google did not grant offline access. Disconnect any previous attempt in Google Account → Security → Third-party access, then connect again.",
     drive_oauth_access_denied:
       "Google sign-in was cancelled or denied.",
+    drive_oauth_enter_pin:
+      "Enter your PIN to finish connecting Google Drive.",
+    drive_oauth_code_expired:
+      "Google sign-in timed out. Please tap Connect Google Drive and try again.",
     drive_reconnect_msg:
       "Google Drive access expired. Disconnect and connect again.",
     drive_disconnect_confirm_title: "Disconnect Google Drive?",
