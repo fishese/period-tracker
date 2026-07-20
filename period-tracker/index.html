@@ -41,10 +41,10 @@
       property="og:description"
       content="Predict your next period and ovulation, track flow, mood and symptoms. Spot patterns in your cycle — 100% private, no account, no data collection."
     />
-    <meta property="og:url" content="https://yourcyclekeeper.com/period-tracker/" />
+    <meta property="og:url" content="https://fishese.github.io/period-tracker/period-tracker/" />
     <meta
       property="og:image"
-      content="https://yourcyclekeeper.com/icons/favicon-512x512.png"
+      content="https://fishese.github.io/period-tracker/period-tracker/icons/android-chrome-512x512.png"
     />
     <meta property="og:image:width" content="512" />
     <meta property="og:image:height" content="512" />
@@ -65,12 +65,12 @@
     />
     <meta
       name="twitter:image"
-      content="https://yourcyclekeeper.com/icons/favicon-512x512.png"
+      content="https://fishese.github.io/period-tracker/period-tracker/icons/android-chrome-512x512.png"
     />
     <meta name="twitter:image:alt" content="My Cycle Keeper logo" />
 
     <!-- Canonical URL -->
-    <link rel="canonical" href="https://yourcyclekeeper.com/period-tracker/" />
+    <link rel="canonical" href="https://fishese.github.io/period-tracker/period-tracker/" />
 
     <link rel="stylesheet" href="style.css" />
     <link
@@ -98,7 +98,7 @@
         "name": "My Cycle Keeper",
         "alternateName": "Cycle Keeper",
         "description": "Free menstruation and period tracker. Predict your next period, track ovulation, flow, mood and symptoms. Know what's normal for your cycle — 100% private, no account needed, no data collection.",
-        "url": "https://yourcyclekeeper.com/period-tracker/",
+        "url": "https://fishese.github.io/period-tracker/period-tracker/",
         "applicationCategory": "HealthApplication",
         "operatingSystem": "Web",
         "browserRequirements": "Requires JavaScript, Web Crypto API",
@@ -122,8 +122,8 @@
           "Encrypted backup & restore",
           "Free forever, no ads"
         ],
-        "screenshot": "https://yourcyclekeeper.com/icons/favicon-512x512.png",
-        "image": "https://yourcyclekeeper.com/icons/favicon-512x512.png"
+        "screenshot": "https://fishese.github.io/period-tracker/period-tracker/icons/android-chrome-512x512.png",
+        "image": "https://fishese.github.io/period-tracker/period-tracker/icons/android-chrome-512x512.png"
       }
     </script>
 
@@ -1046,6 +1046,55 @@
             >
               Change PIN
             </button>
+
+            <div class="settings-section settings-section--nested" id="drive-backup-section">
+              <h4 data-i18n="drive_section_title">Google Drive backup</h4>
+              <div class="info-box info-box--margin" data-i18n-html="drive_section_desc">
+                Encrypted one-way backup to your Google Drive — <strong>not</strong> two-way sync. Logging on one device does not update another. Use this to back up and to restore on a new phone or after clearing app data.
+              </div>
+              <div class="info-box info-box--security info-box--margin" data-i18n-html="drive_privacy_note">
+                Only an encrypted file is stored in a hidden app folder on your Google account. We have no server and cannot read your data.
+              </div>
+              <div id="drive-backup-status" class="backup-status"></div>
+              <div id="drive-not-configured" class="field-hint hidden" data-i18n="drive_not_configured">
+                Google Drive backup is not configured on this build (missing OAuth client ID).
+              </div>
+              <button
+                type="button"
+                class="apply-btn btn--drive-connect"
+                id="btn-drive-connect"
+                onclick="connectGoogleDrive()"
+                data-i18n="drive_connect_btn"
+              >
+                Connect Google Drive
+              </button>
+              <button
+                type="button"
+                class="apply-btn btn--drive-sync hidden"
+                id="btn-drive-sync"
+                onclick="syncGoogleDriveNow()"
+                data-i18n="drive_sync_now_btn"
+              >
+                Back up now
+              </button>
+              <button
+                type="button"
+                class="apply-btn btn--secondary hidden"
+                id="btn-drive-disconnect"
+                onclick="disconnectGoogleDrive()"
+                data-i18n="drive_disconnect_btn"
+              >
+                Disconnect
+              </button>
+              <div class="toggle-row drive-auto-row hidden" id="drive-auto-row">
+                <label class="toggle-label">
+                  <input type="checkbox" id="drive-auto-backup" onchange="toggleDriveAutoBackup()">
+                  <span data-i18n="drive_auto_label">Automatically back up after changes (when online)</span>
+                </label>
+              </div>
+              <div class="field-hint hidden" id="drive-auto-hint" data-i18n="drive_auto_hint">Uploads a debounced encrypted backup after you save changes. Does not download or merge from other devices.</div>
+            </div>
+
             <div id="backup-status" class="backup-status"></div>
             <button class="apply-btn btn--export" onclick="exportData()" data-i18n="settings_export">
               Export Encrypted Backup

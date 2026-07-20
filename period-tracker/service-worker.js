@@ -1,8 +1,8 @@
 /*
  * My Cycle Keeper — Service Worker
  * ─────────────────────────────────────────────────────────────
- * Strategy: Cache-first for app shell, network-only for nothing
- * (My Cycle Keeper has no network calls at all — everything is local).
+ * Strategy: Cache-first for app shell. Google Drive backup uses network at runtime
+ * (googleapis.com) and is never cached by this worker.
  *
  * Versioned cache: bump CACHE_VERSION when deploying updates
  * so stale caches are automatically purged on activation.
@@ -19,7 +19,7 @@ const IS_DEV =
   self.location.hostname === "localhost" ||
   self.location.hostname === "127.0.0.1";
 
-const CACHE_VERSION = "v20260708e";
+const CACHE_VERSION = "v20260720b";
 const CACHE_NAME = `mycyclekeeper-${CACHE_VERSION}`;
 
 // Derive base path from the SW's own URL so this works on both localhost
@@ -46,6 +46,9 @@ const ASSETS_TO_CACHE = [
   BASE_PATH + "js/session.js",
   BASE_PATH + "js/validators.js",
   BASE_PATH + "js/import-drip.js",
+  BASE_PATH + "js/export-drip.js",
+  BASE_PATH + "js/drive-sync.js",
+  BASE_PATH + "js/drive-config.js",
   BASE_PATH + "import-drip.html",
   BASE_PATH + "icons/favicon-16x16.png",
   BASE_PATH + "icons/favicon-32x32.png",

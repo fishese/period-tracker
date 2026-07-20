@@ -1,5 +1,8 @@
 "use strict";
 
+/** Live app URL (GitHub Pages) — used in chart export footers */
+const APP_SHARE_URL = "fishese.github.io/period-tracker/period-tracker";
+
 // Import modular utilities
 import { toISO, fromISO, addDays, diffDays, today } from "./dateUtils.js";
 import { deriveKey, encryptData, decryptData, hashPin } from "./crypto.js";
@@ -44,6 +47,21 @@ import {
 } from "./periodMarking.js";
 import { buildDripCsv } from "./export-drip.js";
 import { buildCycleHistoryFromLogs, parseDripCsv } from "./import-drip.js";
+import {
+  isDriveConfigured,
+  isDriveConnected,
+  isDriveAutoBackupEnabled,
+  setDriveAutoBackup,
+  getDriveLastSyncTime,
+  startDriveConnect,
+  disconnectDrive,
+  handleDriveOAuthReturn,
+  downloadDriveBackup,
+  uploadDriveBackup,
+  scheduleDriveBackupUpload,
+  cancelScheduledDriveBackupUpload,
+  DRIVE_PENDING_RESTORE_KEY,
+} from "./drive-sync.js";
 
 const STORE_KEY = "mycyclekeeper_enc_v1"; // encrypted blob
 const SALT_KEY = "mycyclekeeper_salt_v1"; // random salt (not secret)
@@ -315,6 +333,9 @@ async function submitPin() {
     renderCalendar();
     switchTab("calendar");
     updateInsights(); // Populate insights for desktop view
+    loadSettingsFields();
+    await maybeCompleteDriveConnectFlow();
+    await maybeShowDriveOAuthError();
   } catch (error) {
     console.error("🚨 PIN submission error:", error);
     document.getElementById("lock-error").textContent =
@@ -432,7 +453,7 @@ async function save() {
     try {
       await setInDB(STORE_KEY, enc);
     } catch (e) {
-      if (e.name === "QuotaExceededError" || e.name === "NS_ERROR_DOM_QUOTA_REACHED") {
+      if (e.name === "QuotaExceededError" || e.name === "NS_ERROR_DOMQuota_REACHED") {
         showModal({
           icon: "⚠️",
           title: t("storage_full_title"),
@@ -442,6 +463,9 @@ async function save() {
         return;
       }
       throw e;
+    }
+    if (await isDriveAutoBackupEnabled()) {
+      scheduleDriveBackupUpload(() => performDriveBackupUpload(false));
     }
   } catch (error) {
     console.error("🚨 Save error:", error);
@@ -2309,7 +2333,7 @@ function downloadChart() {
       ctx.font = `${11 * dpr}px sans-serif`;
       ctx.textAlign = "center";
       ctx.fillText(
-        "yourcyclekeeper.web.app",
+        APP_SHARE_URL,
         centerX,
         headerHeight * dpr + originalCanvas.height + 25 * dpr
       );
@@ -2363,7 +2387,7 @@ function downloadChart() {
       ctx.font = `${11 * dpr}px sans-serif`;
       ctx.textAlign = "center";
       ctx.fillText(
-        "Private & Encrypted • yourcyclekeeper.web.app",
+        `Private & Encrypted • ${APP_SHARE_URL}`,
         centerX,
         headerHeight * dpr + originalCanvas.height + 25 * dpr
       );
@@ -2691,6 +2715,224 @@ async function saveTolerance() {
   showToast(t("settings_saved_toast"));
 }
 
+async function buildBackupBundle() {
+  const salt = await getOrCreateSalt();
+  const enc = await encryptData(state, sessionPin, salt);
+  const saltB64 = btoa(String.fromCharCode(...salt));
+  return JSON.stringify({ enc, salt: saltB64, v: 1 });
+}
+
+function parseBackupBundleText(text) {
+  const bundle = JSON.parse(text);
+  if (bundle.v !== 1) throw new Error("invalid_version");
+  const backupSalt = Uint8Array.from(atob(bundle.salt), (c) => c.charCodeAt(0));
+  return { bundle, backupSalt };
+}
+
+async function updateDriveBackupUI() {
+  const statusEl = document.getElementById("drive-backup-status");
+  const connectBtn = document.getElementById("btn-drive-connect");
+  const syncBtn = document.getElementById("btn-drive-sync");
+  const disconnectBtn = document.getElementById("btn-drive-disconnect");
+  const autoRow = document.getElementById("drive-auto-row");
+  const autoHint = document.getElementById("drive-auto-hint");
+  const notConfigured = document.getElementById("drive-not-configured");
+
+  if (!statusEl) return;
+
+  if (!isDriveConfigured()) {
+    if (notConfigured) notConfigured.classList.remove("hidden");
+    statusEl.textContent = t("drive_not_configured");
+    statusEl.className = "backup-status backup-status--warn";
+    if (connectBtn) connectBtn.classList.add("hidden");
+    if (syncBtn) syncBtn.classList.add("hidden");
+    if (disconnectBtn) disconnectBtn.classList.add("hidden");
+    if (autoRow) autoRow.classList.add("hidden");
+    if (autoHint) autoHint.classList.add("hidden");
+    return;
+  }
+  if (notConfigured) notConfigured.classList.add("hidden");
+
+  const connected = await isDriveConnected();
+  if (!connected) {
+    statusEl.textContent = t("drive_status_not_connected");
+    statusEl.className = "backup-status";
+    if (connectBtn) connectBtn.classList.remove("hidden");
+    if (syncBtn) syncBtn.classList.add("hidden");
+    if (disconnectBtn) disconnectBtn.classList.add("hidden");
+    if (autoRow) autoRow.classList.add("hidden");
+    if (autoHint) autoHint.classList.add("hidden");
+    return;
+  }
+
+  const lastSync = await getDriveLastSyncTime();
+  if (lastSync) {
+    statusEl.textContent = t("drive_status_last_backup", { date: formatDateLocale(lastSync) });
+    statusEl.className = "backup-status backup-status--ok";
+  } else {
+    statusEl.textContent = t("drive_status_never_synced");
+    statusEl.className = "backup-status backup-status--warn";
+  }
+
+  if (connectBtn) connectBtn.classList.add("hidden");
+  if (syncBtn) syncBtn.classList.remove("hidden");
+  if (disconnectBtn) disconnectBtn.classList.remove("hidden");
+  if (autoRow) autoRow.classList.remove("hidden");
+  if (autoHint) autoHint.classList.remove("hidden");
+
+  const autoCb = document.getElementById("drive-auto-backup");
+  if (autoCb) autoCb.checked = await isDriveAutoBackupEnabled();
+}
+
+async function performDriveBackupUpload(showSuccessToast = true) {
+  if (!sessionPin) return;
+  if (!(await isDriveConnected())) return;
+  const bundle = await buildBackupBundle();
+  const syncDate = await uploadDriveBackup(bundle);
+  await setInDB(BACKUP_KEY, syncDate);
+  backupReminderShownThisSession = true;
+  updateBackupStatus();
+  updateDriveBackupUI();
+  if (showSuccessToast) showToast(t("drive_sync_success_toast"));
+}
+
+async function connectGoogleDrive() {
+  if (!isDriveConfigured()) {
+    showModal({
+      icon: "☁️",
+      title: t("drive_section_title"),
+      msg: t("drive_not_configured"),
+      cancelText: "",
+      confirmText: t("ok"),
+    });
+    return;
+  }
+  try {
+    await startDriveConnect();
+  } catch (err) {
+    showModal({
+      icon: "⚠️",
+      title: t("drive_sync_failed_title"),
+      msg: t("drive_sync_failed_msg"),
+      cancelText: "",
+      confirmText: t("ok"),
+    });
+  }
+}
+
+async function syncGoogleDriveNow() {
+  if (!sessionPin) return;
+  try {
+    await performDriveBackupUpload(true);
+  } catch (err) {
+    const msg =
+      err?.message === "reconnect_required"
+        ? t("drive_reconnect_msg")
+        : t("drive_sync_failed_msg");
+    showModal({
+      icon: "⚠️",
+      title: t("drive_sync_failed_title"),
+      msg,
+      cancelText: "",
+      confirmText: t("ok"),
+    });
+    updateDriveBackupUI();
+  }
+}
+
+function disconnectGoogleDrive() {
+  showModal({
+    icon: "☁️",
+    title: t("drive_disconnect_confirm_title"),
+    msg: t("drive_disconnect_confirm_msg"),
+    confirmText: t("drive_disconnect_btn"),
+    cancelText: t("cancel"),
+    onConfirm: async () => {
+      cancelScheduledDriveBackupUpload();
+      await disconnectDrive();
+      updateDriveBackupUI();
+      showToast(t("drive_disconnected_toast"));
+    },
+  });
+}
+
+async function toggleDriveAutoBackup() {
+  const cb = document.getElementById("drive-auto-backup");
+  if (!cb) return;
+  await setDriveAutoBackup(cb.checked);
+  if (cb.checked && sessionPin) {
+    scheduleDriveBackupUpload(() => performDriveBackupUpload(false));
+  } else {
+    cancelScheduledDriveBackupUpload();
+  }
+}
+
+async function maybeShowDriveOAuthError() {
+  const err = sessionStorage.getItem("mycyclekeeper_drive_oauth_error");
+  if (!err) return;
+  sessionStorage.removeItem("mycyclekeeper_drive_oauth_error");
+  showModal({
+    icon: "⚠️",
+    title: t("drive_sync_failed_title"),
+    msg: t("drive_sync_failed_msg"),
+    cancelText: "",
+    confirmText: t("ok"),
+  });
+}
+
+async function maybeCompleteDriveConnectFlow() {
+  if (sessionStorage.getItem("mycyclekeeper_drive_show_connected_toast") === "1") {
+    sessionStorage.removeItem("mycyclekeeper_drive_show_connected_toast");
+    updateDriveBackupUI();
+    showToast(t("drive_connected_toast"));
+    return;
+  }
+
+  if (sessionStorage.getItem(DRIVE_PENDING_RESTORE_KEY) !== "1") {
+    updateDriveBackupUI();
+    return;
+  }
+  sessionStorage.removeItem(DRIVE_PENDING_RESTORE_KEY);
+
+  if (!(await isDriveConnected())) {
+    updateDriveBackupUI();
+    return;
+  }
+
+  showModal({
+    icon: "☁️",
+    title: t("drive_restore_found_title"),
+    msg: t("drive_restore_found_msg"),
+    confirmText: t("drive_restore_confirm"),
+    cancelText: t("drive_restore_skip"),
+    onConfirm: async () => {
+      try {
+        const text = await downloadDriveBackup();
+        if (!text) {
+          showToast(t("drive_sync_failed_msg"));
+          updateDriveBackupUI();
+          return;
+        }
+        const { bundle, backupSalt } = parseBackupBundleText(text);
+        _showImportPinModal(bundle, backupSalt);
+      } catch (_) {
+        showModal({
+          icon: "⚠️",
+          title: t("drive_sync_failed_title"),
+          msg: t("drive_sync_failed_msg"),
+          cancelText: "",
+          confirmText: t("ok"),
+        });
+      }
+      updateDriveBackupUI();
+    },
+    onCancel: () => {
+      updateDriveBackupUI();
+      showToast(t("drive_connected_toast"));
+    },
+  });
+}
+
 async function updateBackupStatus() {
   const el = document.getElementById("backup-status");
   if (!el) return;
@@ -2735,6 +2977,7 @@ function loadSettingsFields() {
 
   calculateStorageUsage();
   updateBackupStatus();
+  updateDriveBackupUI();
 }
 
 function toggleFertility() {
@@ -2854,10 +3097,7 @@ async function exportData() {
     cancelText: t("cancel"),
     onConfirm: async () => {
       try {
-        const salt = await getOrCreateSalt();
-        const enc = await encryptData(state, sessionPin, salt);
-        const saltB64 = btoa(String.fromCharCode(...salt));
-        const bundle = JSON.stringify({ enc, salt: saltB64, v: 1 });
+        const bundle = await buildBackupBundle();
         const blob = new Blob([bundle], {
           type: "application/octet-stream",
         });
@@ -3239,13 +3479,10 @@ function _pickAndImportBackup() {
     if (!file) return;
     try {
       const text = await file.text();
-      const bundle = JSON.parse(text);
-      const backupSalt = Uint8Array.from(atob(bundle.salt), (c) =>
-        c.charCodeAt(0)
-      );
-
-      // Validate backup version
-      if (bundle.v !== 1) {
+      const { bundle, backupSalt } = parseBackupBundleText(text);
+      _showImportPinModal(bundle, backupSalt);
+    } catch (err) {
+      if (err?.message === "invalid_version") {
         showModal({
           icon: "❌",
           title: t("invalid_backup_title"),
@@ -3255,9 +3492,6 @@ function _pickAndImportBackup() {
         });
         return;
       }
-
-      _showImportPinModal(bundle, backupSalt);
-    } catch (err) {
       showModal({
         icon: "❌",
         title: t("import_failed_title"),
@@ -3497,7 +3731,8 @@ function switchTab(tab) {
       const notice = document.createElement("div");
       notice.id = "official-version-notice";
       notice.style.cssText = "margin:1.5rem 0 0 0;padding:0.75rem 1.25rem;background:#221a33;color:#A78BFA;border-radius:8px;font-size:0.9rem;text-align:center;opacity:0.92;";
-      notice.innerHTML = "Official version: yourcyclekeeper.web.app &nbsp;·&nbsp; yourcyclekeeper.com";
+      notice.innerHTML =
+        'Upstream open source: <a href="https://yourcyclekeeper.web.app" target="_blank" rel="noopener" class="accessibility-link">yourcyclekeeper.web.app</a> &nbsp;·&nbsp; <a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">Your Cycle Keeper on GitHub</a>';
       aboutView.appendChild(notice);
     }
   }
@@ -3534,6 +3769,8 @@ async function init() {
   try {
     // Initialize IndexedDB
     await initIndexedDB();
+
+    await handleDriveOAuthReturn();
 
     // Setup event listeners now that DOM exists
     setupEventListeners();
@@ -3782,6 +4019,10 @@ window.showChangePinModal = showChangePinModal;
 window.exportToDrip = exportToDrip;
 window.triggerInstall = triggerInstall;
 window.exportData = exportData;
+window.connectGoogleDrive = connectGoogleDrive;
+window.disconnectGoogleDrive = disconnectGoogleDrive;
+window.syncGoogleDriveNow = syncGoogleDriveNow;
+window.toggleDriveAutoBackup = toggleDriveAutoBackup;
 window.importData = importData;
 window.confirmClear = confirmClear;
 window.switchTab = switchTab;

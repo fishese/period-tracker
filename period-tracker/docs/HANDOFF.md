@@ -17,7 +17,9 @@ This document is the **current source of truth** for continuing work. Older deta
 | **This repo** | [`fishese/period-tracker`](https://github.com/fishese/period-tracker) on GitHub |
 | **App path** | `period-tracker/` inside the repo (not repo root) |
 | **Stack** | Vanilla JS ES modules, no build step, IndexedDB + AES-256-GCM, Service Worker |
-| **Privacy** | Zero server data; CSP blocks network after load (except future Drive backup) |
+| **Privacy** | Zero server data; no backend. Google Drive backup (optional) talks to Google APIs from the browser only |
+
+**Live URL (this fork):** https://fishese.github.io/period-tracker/period-tracker/
 
 **Why the fork exists:** Migrate history from **My Calendar** → **drip CSV** → this app; continue tracking with rolling predictions, auto-fill, and optional export back to drip format.
 
@@ -28,11 +30,11 @@ This document is the **current source of truth** for continuing work. Older deta
 ## 2. Repository layout
 
 ```
-mycyclekeeper/                    # Git repo root (landing page + Firebase config)
-├── index.html                    # Marketing/landing (yourcyclekeeper.com style)
-├── firebase.json
+fishese/period-tracker/           # GitHub repo (GitHub Pages hosts the app)
+├── index.html                    # Upstream marketing landing (optional on Pages)
+├── firebase.json                 # Upstream Firebase config — NOT used for this fork's hosting
 ├── README.md / README-Fork.md
-└── period-tracker/               # ★ THE WEB APP ★
+└── period-tracker/               # ★ THE WEB APP ★ (served at …/period-tracker/period-tracker/ on Pages)
     ├── index.html                # Main PWA
     ├── js/
     │   ├── script.js             # UI, state, onboarding, settings
@@ -50,35 +52,44 @@ mycyclekeeper/                    # Git repo root (landing page + Firebase confi
     ├── docs/
     │   ├── HANDOFF.md            # ← this file
     │   └── google-drive-sync-plan.md
-    └── service-worker.js         # CACHE_VERSION currently v20260708e
+    └── service-worker.js         # CACHE_VERSION currently v20260720a
 ```
 
 ---
 
 ## 3. Development & deployment
 
+### Deploy (GitHub Pages)
+
+**Live app:** https://fishese.github.io/period-tracker/period-tracker/
+
+Push to `period-tracker` remote `master`; GitHub Pages serves from repo root, so the app path is **double** `period-tracker/` (repo name + app folder).
+
+Root `firebase.json` is leftover from upstream — **not used** for this fork unless you switch to Firebase hosting.
+
 ### Local dev (required for SW + Web Crypto)
 
 ```bash
-cd mycyclekeeper          # repo root
+cd period-tracker          # repo root (clone root)
 python -m http.server 8000
 # Open: http://localhost:8000/period-tracker/
 # NOT file://
 ```
 
-### Git remotes
-
-| Remote | URL | Purpose |
-|--------|-----|---------|
-| `period-tracker` | `https://github.com/fishese/period-tracker.git` | **Push fork work here** (`master`) |
-| `origin` | `https://github.com/pythonime-lab/yourcyclekeeper.git` | Upstream (do not force-push) |
+Note: local path is single `period-tracker/`; GitHub Pages uses double — OAuth redirect URIs must register **both** (see `drive-config.example.js`).
 
 ### Pre-deploy checklist
 
 1. Bump `CACHE_VERSION` in `period-tracker/service-worker.js`
-2. Bump `?v=` query params on CSS/JS in `index.html` if used
-3. Test offline: DevTools → Network → Offline → reload
-4. Deploy via Firebase and/or GitHub Pages as appropriate
+2. Test offline: DevTools → Network → Offline → reload
+3. Push to GitHub (`period-tracker` remote)
+
+### Git remotes
+
+| Remote | URL | Purpose |
+|--------|-----|---------|
+| `period-tracker` | `https://github.com/fishese/period-tracker.git` | **Push fork work here** (`master`) → GitHub Pages |
+| `origin` | `https://github.com/pythonime-lab/yourcyclekeeper.git` | Upstream (do not force-push) |
 
 ### Fonts
 
@@ -303,19 +314,23 @@ See `README-Fork.md` §§1–20 (drip tools, crypto chunks, auto-fill, themes, P
 
 ## 10. Next plans (when you return)
 
-### A. Google Drive backup — planned, not built
+### A. Google Drive backup — Phase 1 implemented
 
 Spec: [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
 
-- One-way encrypted upload to Drive `appDataFolder`
-- CSP must allow Google OAuth / Drive APIs
-- New `js/drive-sync.js`; Phase 1 Connect / Sync now / restore prompt
+- One-way encrypted upload to Drive `appDataFolder` via `js/drive-sync.js`
+- Settings → Security: Connect / Back up now / Disconnect + auto-backup toggle
+- First connect: optional restore from Drive (replaces local data; PIN required)
+- **Requires:** OAuth client ID in `js/drive-config.js` (see `drive-config.example.js`) + Google Cloud Console redirect URI matching **GitHub Pages** URL exactly (see §3)
+- No CSP changes needed on GitHub Pages (root `firebase.json` is upstream-only)
+
+### A2. Google Drive — deferred
 
 ### B. Remaining UI / docs (optional)
 
 - Desktop Insights polish; symptom chart restore if needed (undecided how to present the data meaningfully — see §8)
 - Refresh `README-Fork.md` + `CLAUDE.md` (still say Your Cycle Keeper / old keys in places; `CLAUDE.md` also still lists `flow: 1-3` only — now `spotting?: true` too, see §4)
-- Confirm share-card / QR text pointing at `yourcyclekeeper.web.app`
+- ~~Confirm share-card / QR text pointing at GitHub Pages URL~~ (done)
 - Update `og:url` / canonical if hosting on a personal domain
 - Consider adding a distinct calendar dot style for spotting-only days (currently shows as the generic "has-log" dot, same as any other logged day)
 

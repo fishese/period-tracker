@@ -1,7 +1,6 @@
 # Google Drive backup sync — implementation plan
 
-**Status:** Planned (not implemented)  
-**Last updated:** 2026-07-08  
+**Status:** Phase 1 implemented (2026-07-20) — manual + auto one-way backup; OAuth setup required in `drive-config.js`  
 **Scope:** `period-tracker/` PWA
 
 This document captures the agreed approach for optional Google Drive backup. Data stays off our servers; only an encrypted backup blob is stored in the user's own Google Drive.
@@ -93,7 +92,11 @@ No backend proxy required — browser talks directly to `googleapis.com`.
 
 ## Hosting / CSP changes
 
-Current `firebase.json` for `/period-tracker/**`:
+**This fork:** GitHub Pages at `https://fishese.github.io/period-tracker/period-tracker/` — no CSP header (root `firebase.json` is upstream-only and not used).
+
+Google Drive API calls (`fetch` to `googleapis.com`, `oauth2.googleapis.com`) work without CSP changes on GitHub Pages.
+
+If you ever deploy to Firebase instead, extend CSP in root `firebase.json`:
 
 ```
 connect-src 'self';
@@ -130,9 +133,12 @@ Update `CLAUDE.md` / copilot instructions when implemented — today they say no
    - Scopes: `drive.appdata` only.
 4. **Credentials → OAuth 2.0 Client ID → Web application**
    - Authorized JavaScript origins:
-     - `https://yourcyclekeeper.web.app` (or your live domain)
+     - `https://fishese.github.io` (GitHub Pages — this fork)
      - `http://localhost:8000` (local testing from repo root)
-   - No client secret needed for PKCE SPA flow (or store secret only if using server — we are not).
+   - Authorized redirect URIs (must match exactly):
+     - `https://fishese.github.io/period-tracker/period-tracker/` (note double `period-tracker` on Pages)
+     - `http://localhost:8000/period-tracker/` (local — single `period-tracker`)
+   - No client secret needed for PKCE SPA flow.
 5. **Testing vs Production**
    - **Testing:** up to 100 test users you add manually — fine for development.
    - **Production:** public; Drive scopes may require [Google verification](https://support.google.com/cloud/answer/9110914) (free, but review can take days/weeks).
@@ -221,8 +227,8 @@ export function getLastSyncTime()
 
 ### Phase 1 — Manual one-way (MVP, ~1 weekend)
 
-- [ ] Google Cloud project + OAuth client (Testing mode).
-- [ ] CSP updates in `firebase.json`.
+- [ ] Google Cloud project + OAuth client (Testing mode) with GitHub Pages origins (see §4).
+- [x] ~~CSP updates in `firebase.json`~~ Not needed for GitHub Pages hosting.
 - [ ] `drive-sync.js`: connect, disconnect, upload, download.
 - [ ] Refactor: `buildBackupBundle()` from `exportData()`.
 - [ ] Settings UI: Connect, Sync now, status line.
@@ -287,4 +293,4 @@ export function getLastSyncTime()
 - [OAuth verification FAQ](https://support.google.com/cloud/answer/9110914)
 - Existing export: `period-tracker/js/script.js` → `exportData()`
 - Existing import: `period-tracker/js/script.js` → `importData()`, `_submitImportPin()`
-- CSP: `firebase.json` → `/period-tracker/**` headers
+- CSP (Firebase only): root `firebase.json` → `/period-tracker/**` headers — not used on GitHub Pages

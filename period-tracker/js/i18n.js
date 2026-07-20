@@ -377,6 +377,38 @@ const LOCALES = {
       "This rebuilds your cycle history and predictions from your logged flow days. Your logs themselves won't be changed.",
     settings_recalc_confirm_btn: "Recalculate",
     settings_recalc_done_toast: "Cycle history recalculated",
+    drive_section_title: "Google Drive backup",
+    drive_section_desc:
+      "Encrypted one-way backup to your Google Drive — <strong>not</strong> two-way sync. Logging on one device does not update another. Use this to back up and to restore on a new phone or after clearing app data.",
+    drive_privacy_note:
+      "Only an encrypted file is stored in a hidden app folder on your Google account. We have no server and cannot read your data.",
+    drive_status_not_connected: "Not connected",
+    drive_status_last_backup: "Last backed up: {date} · One-way backup only",
+    drive_status_never_synced: "Connected — no backup uploaded yet",
+    drive_connect_btn: "Connect Google Drive",
+    drive_disconnect_btn: "Disconnect",
+    drive_sync_now_btn: "Back up now",
+    drive_auto_label: "Automatically back up after changes (when online)",
+    drive_auto_hint:
+      "Uploads a debounced encrypted backup after you save changes. Does not download or merge from other devices.",
+    drive_not_configured:
+      "Google Drive backup is not configured on this build (missing OAuth client ID in drive-config.js).",
+    drive_connected_toast: "Google Drive connected",
+    drive_disconnected_toast: "Google Drive disconnected",
+    drive_sync_success_toast: "Backup uploaded to Google Drive",
+    drive_sync_failed_title: "Google Drive backup failed",
+    drive_sync_failed_msg:
+      "Could not complete the Google Drive backup. Check your connection and try again.",
+    drive_reconnect_msg:
+      "Google Drive access expired. Disconnect and connect again.",
+    drive_disconnect_confirm_title: "Disconnect Google Drive?",
+    drive_disconnect_confirm_msg:
+      "This removes Google sign-in from this device. Your encrypted backup file stays in Google Drive until you delete it there.",
+    drive_restore_found_title: "Restore from Google Drive?",
+    drive_restore_found_msg:
+      "A backup was found in your Google Drive. Restore it now? This will <strong>replace</strong> all data on this device. You’ll need your PIN.",
+    drive_restore_confirm: "Restore backup",
+    drive_restore_skip: "Keep local data",
 
     // Onboarding
     onboard_sub: "Track Your Period and Cycle Privately",
@@ -1264,6 +1296,38 @@ const LOCALES = {
       "Esto reconstruirá tu historial de ciclos y predicciones a partir de tus días de flujo registrados. Tus registros no se modificarán.",
     settings_recalc_confirm_btn: "Recalcular",
     settings_recalc_done_toast: "Historial de ciclos recalculado",
+    drive_section_title: "Copia de seguridad en Google Drive",
+    drive_section_desc:
+      "Copia cifrada unidireccional a tu Google Drive — <strong>no</strong> es sincronización bidireccional. Registrar en un dispositivo no actualiza otro. Úsala para respaldar y restaurar en un teléfono nuevo o tras borrar los datos de la app.",
+    drive_privacy_note:
+      "Solo se almacena un archivo cifrado en una carpeta oculta de tu cuenta de Google. No tenemos servidor y no podemos leer tus datos.",
+    drive_status_not_connected: "No conectado",
+    drive_status_last_backup: "Última copia: {date} · Solo copia unidireccional",
+    drive_status_never_synced: "Conectado — aún no se subió ninguna copia",
+    drive_connect_btn: "Conectar Google Drive",
+    drive_disconnect_btn: "Desconectar",
+    drive_sync_now_btn: "Copiar ahora",
+    drive_auto_label: "Copiar automáticamente tras cambios (con conexión)",
+    drive_auto_hint:
+      "Sube una copia cifrada tras guardar cambios (con retardo). No descarga ni combina datos de otros dispositivos.",
+    drive_not_configured:
+      "La copia en Google Drive no está configurada en esta compilación (falta el ID OAuth en drive-config.js).",
+    drive_connected_toast: "Google Drive conectado",
+    drive_disconnected_toast: "Google Drive desconectado",
+    drive_sync_success_toast: "Copia subida a Google Drive",
+    drive_sync_failed_title: "Error de copia en Google Drive",
+    drive_sync_failed_msg:
+      "No se pudo completar la copia en Google Drive. Comprueba tu conexión e inténtalo de nuevo.",
+    drive_reconnect_msg:
+      "El acceso a Google Drive expiró. Desconecta y vuelve a conectar.",
+    drive_disconnect_confirm_title: "¿Desconectar Google Drive?",
+    drive_disconnect_confirm_msg:
+      "Quita el inicio de sesión de Google de este dispositivo. Tu copia cifrada permanece en Google Drive hasta que la borres allí.",
+    drive_restore_found_title: "¿Restaurar desde Google Drive?",
+    drive_restore_found_msg:
+      "Se encontró una copia en tu Google Drive. ¿Restaurarla ahora? Esto <strong>reemplazará</strong> todos los datos de este dispositivo. Necesitarás tu PIN.",
+    drive_restore_confirm: "Restaurar copia",
+    drive_restore_skip: "Mantener datos locales",
     settings_autofill_label: "Autocompletar días de período previstos",
     settings_autofill_hint:
       "Rellena esta cantidad de días después del día de inicio del período con flujo leve (p. ej. 5 = día de inicio + 5 días más = 6 días en total). Deja en blanco para automático (duración promedio de tus últimos 6 meses). Pon 0 para desactivar.",
@@ -1639,6 +1703,38 @@ const LOCALES = {
       "記録した経血日から周期履歴と予測を再構築します。記録内容自体は変更されません。",
     settings_recalc_confirm_btn: "再計算",
     settings_recalc_done_toast: "周期履歴を再計算しました",
+    drive_section_title: "Google Driveバックアップ",
+    drive_section_desc:
+      "Google Driveへの暗号化された一方向バックアップ — <strong>双方向同期ではありません</strong>。ある端末で記録しても別の端末は更新されません。新しい端末への移行やアプリデータ削除後の復元に使用してください。",
+    drive_privacy_note:
+      "Googleアカウントの非表示アプリフォルダに暗号化ファイルのみ保存されます。当方のサーバーはなく、データを読むことはできません。",
+    drive_status_not_connected: "未接続",
+    drive_status_last_backup: "最終バックアップ: {date} · 一方向バックアップのみ",
+    drive_status_never_synced: "接続済み — まだバックアップがアップロードされていません",
+    drive_connect_btn: "Google Driveに接続",
+    drive_disconnect_btn: "切断",
+    drive_sync_now_btn: "今すぐバックアップ",
+    drive_auto_label: "変更後に自動バックアップ（オンライン時）",
+    drive_auto_hint:
+      "保存後、一定時間経過してから暗号化バックアップをアップロードします。他端末からのダウンロードや統合は行いません。",
+    drive_not_configured:
+      "このビルドではGoogle Driveバックアップが未設定です（drive-config.jsにOAuthクライアントIDがありません）。",
+    drive_connected_toast: "Google Driveに接続しました",
+    drive_disconnected_toast: "Google Driveから切断しました",
+    drive_sync_success_toast: "Google Driveにバックアップをアップロードしました",
+    drive_sync_failed_title: "Google Driveバックアップに失敗",
+    drive_sync_failed_msg:
+      "Google Driveバックアップを完了できませんでした。接続を確認して再試行してください。",
+    drive_reconnect_msg:
+      "Google Driveのアクセスが期限切れです。切断して再接続してください。",
+    drive_disconnect_confirm_title: "Google Driveを切断しますか？",
+    drive_disconnect_confirm_msg:
+      "この端末からGoogleログインを削除します。暗号化バックアップファイルはGoogle Drive上に残ります（Google Drive側で削除するまで）。",
+    drive_restore_found_title: "Google Driveから復元しますか？",
+    drive_restore_found_msg:
+      "Google Driveにバックアップが見つかりました。今すぐ復元しますか？この端末の<strong>すべてのデータが置き換え</strong>られます。PINが必要です。",
+    drive_restore_confirm: "バックアップを復元",
+    drive_restore_skip: "ローカルデータを保持",
 
     onboard_sub: "生理とサイクルをプライベートに記録",
     onboard_tagline:
@@ -2010,6 +2106,38 @@ const LOCALES = {
       "這將根據您記錄的經期天數重建週期歷史與預測。您的紀錄本身不會被更動。",
     settings_recalc_confirm_btn: "重新計算",
     settings_recalc_done_toast: "週期歷史已重新計算",
+    drive_section_title: "Google Drive 備份",
+    drive_section_desc:
+      "加密單向備份至您的 Google Drive — <strong>不是</strong>雙向同步。在一台裝置上記錄不會更新另一台。用於備份，或在換機／清除應用資料後還原。",
+    drive_privacy_note:
+      "僅在您的 Google 帳戶隱藏應用資料夾中儲存加密檔案。我們沒有伺服器，無法讀取您的資料。",
+    drive_status_not_connected: "未連線",
+    drive_status_last_backup: "上次備份：{date} · 僅單向備份",
+    drive_status_never_synced: "已連線 — 尚未上傳備份",
+    drive_connect_btn: "連線 Google Drive",
+    drive_disconnect_btn: "中斷連線",
+    drive_sync_now_btn: "立即備份",
+    drive_auto_label: "變更後自動備份（需連線）",
+    drive_auto_hint:
+      "儲存變更後，延遲一段時間上傳加密備份。不會從其他裝置下載或合併資料。",
+    drive_not_configured:
+      "此版本未設定 Google Drive 備份（drive-config.js 缺少 OAuth 用戶端 ID）。",
+    drive_connected_toast: "已連線 Google Drive",
+    drive_disconnected_toast: "已中斷 Google Drive",
+    drive_sync_success_toast: "已上傳備份至 Google Drive",
+    drive_sync_failed_title: "Google Drive 備份失敗",
+    drive_sync_failed_msg:
+      "無法完成 Google Drive 備份。請檢查連線後再試。",
+    drive_reconnect_msg:
+      "Google Drive 存取已過期。請中斷連線後重新連線。",
+    drive_disconnect_confirm_title: "中斷 Google Drive？",
+    drive_disconnect_confirm_msg:
+      "將移除此裝置上的 Google 登入。加密備份檔仍留在 Google Drive，直到您在該處刪除。",
+    drive_restore_found_title: "從 Google Drive 還原？",
+    drive_restore_found_msg:
+      "在您的 Google Drive 找到備份。要立即還原嗎？這將<strong>取代</strong>此裝置上的所有資料。需要您的 PIN。",
+    drive_restore_confirm: "還原備份",
+    drive_restore_skip: "保留本機資料",
 
     onboard_sub: "私密追蹤您的經期和週期",
     onboard_tagline:
