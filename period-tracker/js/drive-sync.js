@@ -29,6 +29,19 @@ const DRIVE_REDIRECT_BY_ORIGIN = {
   "http://127.0.0.1:8000": "http://127.0.0.1:8000/period-tracker/",
 };
 
+function normalizeRedirectPath(pathname) {
+  let path = pathname.replace(/\/index\.html$/i, "");
+  if (!path.endsWith("/")) path += "/";
+  return path;
+}
+
+/** Redirect URI for OAuth — must match authorize + token requests and Google Console. */
+export function getDriveRedirectUri() {
+  const canonical = DRIVE_REDIRECT_BY_ORIGIN[window.location.origin];
+  if (canonical) return canonical;
+  return window.location.origin + normalizeRedirectPath(window.location.pathname);
+}
+
 function idb() {
   if (typeof globalThis.getFromDB !== "function") {
     throw new Error("idb_unavailable");
@@ -124,15 +137,6 @@ async function generatePkce() {
   return { verifier, challenge };
 }
 
-/** Redirect URI must match Google Cloud Console entry exactly. */
-export function getDriveRedirectUri() {
-  const fixed = DRIVE_REDIRECT_BY_ORIGIN[window.location.origin];
-  if (fixed) return fixed;
-  let path = window.location.pathname.replace(/\/index\.html$/i, "");
-  if (!path.endsWith("/")) path += "/";
-  return window.location.origin + path;
-}
-
 export function isDriveConfigured() {
   return typeof GOOGLE_CLIENT_ID === "string" && GOOGLE_CLIENT_ID.length > 10;
 }
@@ -207,7 +211,11 @@ async function exchangeCodeForTokens(code, verifier, redirectUri) {
     let detail = "";
     try {
       const json = await res.json();
-      detail = json.error || json.error_description || "";
+      if (json.error_description) {
+        detail = `${json.error}: ${json.error_description}`;
+      } else {
+        detail = json.error || "";
+      }
     } catch (_) {
       /* ignore */
     }
@@ -354,8 +362,13 @@ export async function handleDriveOAuthReturn() {
   const expectedState = await oauthGet(OAUTH_STATE_KEY);
   const verifier = await oauthGet(OAUTH_VERIFIER_KEY);
   const pendingConnect = (await oauthGet(OAUTH_PENDING_CONNECT_KEY)) === "1";
-  const redirectUri =
-    (await oauthGet(OAUTH_REDIRECT_KEY)) || getDriveRedirectUri();
+  const redirectUri = await oauthGet(OAUTH_REDIRECT_KEY);
+  if (!redirectUri) {
+    cleanOAuthParamsFromUrl();
+    await setDriveOAuthError("state_mismatch:no_redirect");
+    await clearOAuthSessionKeys();
+    return { status: "error", error: "state_mismatch:no_redirect" };
+  }
 
   if (!verifier || !state || state !== expectedState) {
     cleanOAuthParamsFromUrl();
@@ -377,7 +390,7 @@ export async function handleDriveOAuthReturn() {
   );
   await clearOAuthSessionKeys();
   cleanOAuthParamsFromUrl();
-  return { status: "pending_unlock" };
+  return completePendingDriveOAuth();
 }
 
 export async function startDriveConnect() {
@@ -498,7 +511,7 @@ export async function uploadDriveBackup(bundleString) {
   return syncDate;
 }
 
-/** Map stored OAuth error codes to i18n key suffixes. */
+/** Map stored OAuth error codes to i18n keys. */
 export function getDriveOAuthErrorKey(err) {
   if (!err) return "drive_sync_failed_msg";
   if (err === "state_mismatch" || String(err).startsWith("state_mismatch"))
@@ -507,14 +520,21 @@ export function getDriveOAuthErrorKey(err) {
   if (err === "no_refresh_token") return "drive_oauth_no_refresh";
   if (err === "access_denied") return "drive_oauth_access_denied";
   const lower = String(err).toLowerCase();
-  if (
-    lower.includes("redirect_uri_mismatch") ||
-    lower.includes("invalid_grant") ||
-    lower.includes("token_exchange_failed:400")
-  ) {
-    return "drive_oauth_redirect_mismatch";
-  }
+  if (lower.includes("redirect_uri_mismatch")) return "drive_oauth_redirect_mismatch";
+  if (lower.includes("invalid_grant")) return "drive_oauth_invalid_grant";
   return "drive_sync_failed_msg";
+}
+
+/** Human-readable detail from stored OAuth error (for modal). */
+export function getDriveOAuthErrorDetail(err) {
+  if (!err) return "";
+  const str = String(err);
+  const tokenIdx = str.indexOf("token_exchange_failed:");
+  if (tokenIdx === -1) return str;
+  const tail = str.slice(tokenIdx + "token_exchange_failed:".length);
+  const colon = tail.indexOf(":");
+  if (colon === -1) return tail;
+  return tail.slice(colon + 1);
 }
 
 /** Debounced upload hook — call from save() when auto-backup is enabled. */

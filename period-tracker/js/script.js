@@ -60,6 +60,7 @@ import {
   hasPendingDriveOAuthExchange,
   consumeDriveOAuthError,
   getDriveOAuthErrorKey,
+  getDriveOAuthErrorDetail,
   consumeDriveShowConnectedToast,
   consumeDrivePendingRestore,
   downloadDriveBackup,
@@ -2877,10 +2878,17 @@ async function maybeShowDriveOAuthError() {
   const err = await consumeDriveOAuthError();
   if (!err) return;
   const msgKey = getDriveOAuthErrorKey(err);
+  let msg = t(msgKey);
+  const detail = getDriveOAuthErrorDetail(err);
+  if (detail && msgKey === "drive_sync_failed_msg") {
+    msg = `${msg}\n\n(${detail})`;
+  } else if (detail && msgKey === "drive_oauth_invalid_grant") {
+    msg = `${msg}\n\nGoogle: ${detail}`;
+  }
   showModal({
     icon: "⚠️",
     title: t("drive_sync_failed_title"),
-    msg: t(msgKey),
+    msg,
     cancelText: "",
     confirmText: t("ok"),
   });
@@ -3774,7 +3782,7 @@ async function init() {
     // Initialize IndexedDB
     await initIndexedDB();
 
-    const oauthReturn = await handleDriveOAuthReturn();
+    await handleDriveOAuthReturn();
 
     // Setup event listeners now that DOM exists
     setupEventListeners();
@@ -3830,8 +3838,7 @@ async function init() {
       const lockSub = document.getElementById("lock-sub");
       if (
         lockSub &&
-        (oauthReturn.status === "pending_unlock" ||
-          (await hasPendingDriveOAuthExchange()))
+        (await hasPendingDriveOAuthExchange())
       ) {
         lockSub.textContent = t("drive_oauth_enter_pin");
       } else if (lockSub) {

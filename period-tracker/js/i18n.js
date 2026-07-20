@@ -402,7 +402,9 @@ const LOCALES = {
     drive_oauth_state_mismatch:
       "Google sign-in could not be completed because the app lost track of the login session (common when opening from a home-screen shortcut). Close the app completely, open it again in your browser, then try Connect once more.",
     drive_oauth_redirect_mismatch:
-      "Google rejected the sign-in (redirect URI mismatch). In Google Cloud Console, set the redirect URI exactly to: https://fishese.github.io/period-tracker/period-tracker/",
+      "Google rejected the sign-in (redirect URI mismatch). In Google Cloud Console → Credentials → your Web client, confirm this exact redirect URI is listed:\n\nhttps://fishese.github.io/period-tracker/period-tracker/\n\nAlso confirm the client type is Web application (not Desktop).",
+    drive_oauth_invalid_grant:
+      "Google would not accept the sign-in code — it may have expired or already been used. Tap Connect Google Drive once and complete the flow without refreshing the page.",
     drive_oauth_no_refresh:
       "Google did not grant offline access. Disconnect any previous attempt in Google Account → Security → Third-party access, then connect again.",
     drive_oauth_access_denied:
