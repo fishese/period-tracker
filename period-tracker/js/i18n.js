@@ -392,7 +392,7 @@ const LOCALES = {
     drive_auto_hint:
       "Uploads a debounced encrypted backup after you save changes. Does not download or merge from other devices.",
     drive_not_configured:
-      "Google Drive backup is not configured on this build (missing OAuth client ID in drive-config.js).",
+      "Google Drive backup needs OAuth Client ID and Client secret in js/drive-config.js (see drive-config.example.js).",
     drive_connected_toast: "Google Drive connected",
     drive_disconnected_toast: "Google Drive disconnected",
     drive_sync_success_toast: "Backup uploaded to Google Drive",
@@ -403,6 +403,8 @@ const LOCALES = {
       "Google sign-in could not be completed because the app lost track of the login session (common when opening from a home-screen shortcut). Close the app completely, open it again in your browser, then try Connect once more.",
     drive_oauth_redirect_mismatch:
       "Google rejected the sign-in (redirect URI mismatch). In Google Cloud Console → Credentials → your Web client, confirm this exact redirect URI is listed:\n\nhttps://fishese.github.io/period-tracker/period-tracker/\n\nAlso confirm the client type is Web application (not Desktop).",
+    drive_oauth_missing_secret:
+      "Google requires the OAuth Client secret for this Web client. Open Google Cloud Console → Credentials → your client, copy Client secret into period-tracker/js/drive-config.js (GOOGLE_CLIENT_SECRET), then redeploy.",
     drive_oauth_invalid_grant:
       "Google would not accept the sign-in code — it may have expired or already been used. Tap Connect Google Drive once and complete the flow without refreshing the page.",
     drive_oauth_no_refresh:

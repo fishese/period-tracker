@@ -1,6 +1,6 @@
 "use strict";
 
-import { GOOGLE_CLIENT_ID } from "./drive-config.js";
+import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } from "./drive-config.js";
 
 const DRIVE_REFRESH_TOKEN_KEY = "mycyclekeeper_drive_refresh_token_v1";
 const DRIVE_FILE_ID_KEY = "mycyclekeeper_drive_file_id_v1";
@@ -138,7 +138,13 @@ async function generatePkce() {
 }
 
 export function isDriveConfigured() {
-  return typeof GOOGLE_CLIENT_ID === "string" && GOOGLE_CLIENT_ID.length > 10;
+  return (
+    typeof GOOGLE_CLIENT_ID === "string" &&
+    GOOGLE_CLIENT_ID.length > 10 &&
+    typeof GOOGLE_CLIENT_SECRET === "string" &&
+    GOOGLE_CLIENT_SECRET.length > 5 &&
+    !GOOGLE_CLIENT_SECRET.includes("YOUR_CLIENT_SECRET")
+  );
 }
 
 export async function isDriveConnected() {
@@ -194,6 +200,18 @@ function cleanOAuthParamsFromUrl() {
   history.replaceState({}, "", url.pathname + url.search + url.hash);
 }
 
+function appendClientSecret(body) {
+  // Google "Web application" clients require client_secret on the token endpoint
+  // even when using PKCE. For a browser SPA this value is visible in the shipped
+  // JS — fine for personal Testing-mode use; do not treat it as a true secret.
+  if (
+    typeof GOOGLE_CLIENT_SECRET === "string" &&
+    GOOGLE_CLIENT_SECRET.length > 5
+  ) {
+    body.set("client_secret", GOOGLE_CLIENT_SECRET);
+  }
+}
+
 async function exchangeCodeForTokens(code, verifier, redirectUri) {
   const body = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID,
@@ -202,6 +220,7 @@ async function exchangeCodeForTokens(code, verifier, redirectUri) {
     grant_type: "authorization_code",
     redirect_uri: redirectUri,
   });
+  appendClientSecret(body);
   const res = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -237,6 +256,7 @@ async function getAccessToken() {
     grant_type: "refresh_token",
     refresh_token: refresh,
   });
+  appendClientSecret(body);
   const res = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -521,6 +541,8 @@ export function getDriveOAuthErrorKey(err) {
   if (err === "access_denied") return "drive_oauth_access_denied";
   const lower = String(err).toLowerCase();
   if (lower.includes("redirect_uri_mismatch")) return "drive_oauth_redirect_mismatch";
+  if (lower.includes("client_secret") || lower.includes("unauthorized_client"))
+    return "drive_oauth_missing_secret";
   if (lower.includes("invalid_grant")) return "drive_oauth_invalid_grant";
   return "drive_sync_failed_msg";
 }
