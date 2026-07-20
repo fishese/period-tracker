@@ -56,11 +56,13 @@ import {
   startDriveConnect,
   disconnectDrive,
   handleDriveOAuthReturn,
+  consumeDriveOAuthError,
+  consumeDriveShowConnectedToast,
+  consumeDrivePendingRestore,
   downloadDriveBackup,
   uploadDriveBackup,
   scheduleDriveBackupUpload,
   cancelScheduledDriveBackupUpload,
-  DRIVE_PENDING_RESTORE_KEY,
 } from "./drive-sync.js";
 
 const STORE_KEY = "mycyclekeeper_enc_v1"; // encrypted blob
@@ -2868,9 +2870,8 @@ async function toggleDriveAutoBackup() {
 }
 
 async function maybeShowDriveOAuthError() {
-  const err = sessionStorage.getItem("mycyclekeeper_drive_oauth_error");
+  const err = await consumeDriveOAuthError();
   if (!err) return;
-  sessionStorage.removeItem("mycyclekeeper_drive_oauth_error");
   showModal({
     icon: "⚠️",
     title: t("drive_sync_failed_title"),
@@ -2881,18 +2882,16 @@ async function maybeShowDriveOAuthError() {
 }
 
 async function maybeCompleteDriveConnectFlow() {
-  if (sessionStorage.getItem("mycyclekeeper_drive_show_connected_toast") === "1") {
-    sessionStorage.removeItem("mycyclekeeper_drive_show_connected_toast");
+  if (await consumeDriveShowConnectedToast()) {
     updateDriveBackupUI();
     showToast(t("drive_connected_toast"));
     return;
   }
 
-  if (sessionStorage.getItem(DRIVE_PENDING_RESTORE_KEY) !== "1") {
+  if (!(await consumeDrivePendingRestore())) {
     updateDriveBackupUI();
     return;
   }
-  sessionStorage.removeItem(DRIVE_PENDING_RESTORE_KEY);
 
   if (!(await isDriveConnected())) {
     updateDriveBackupUI();
