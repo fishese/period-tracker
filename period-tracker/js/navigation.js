@@ -99,7 +99,11 @@ export function initKeyboardNavigation(callbacks) {
 
       const genericModal = document.getElementById("modal-overlay");
       if (genericModal && genericModal.classList.contains("visible")) {
-        genericModal.classList.remove("visible");
+        if (typeof window.closeAppModal === "function") {
+          window.closeAppModal();
+        } else {
+          genericModal.classList.remove("visible");
+        }
         return;
       }
     }

@@ -154,6 +154,31 @@ let currentTab = "calendar";
 let backupReminderShownThisSession = false;
 
 // Reset on any user interaction (deferred until DOM ready)
+function bindTap(el, handler) {
+  if (!el || typeof handler !== "function") return;
+  let suppressClick = false;
+  el.addEventListener(
+    "touchend",
+    (e) => {
+      suppressClick = true;
+      e.preventDefault();
+      handler(e);
+      setTimeout(() => {
+        suppressClick = false;
+      }, 400);
+    },
+    { passive: false }
+  );
+  el.addEventListener("click", (e) => {
+    if (suppressClick) {
+      e.preventDefault();
+      return;
+    }
+    e.preventDefault();
+    handler(e);
+  });
+}
+
 function setupEventListeners() {
   ["touchstart", "touchend", "click", "keydown", "mousemove", "scroll"].forEach(
     (ev) =>
@@ -188,6 +213,10 @@ function setupEventListeners() {
       { passive: false }
     );
   });
+
+  bindTap(document.getElementById("btn-drive-connect"), connectGoogleDrive);
+  bindTap(document.getElementById("btn-drive-sync"), syncGoogleDriveNow);
+  bindTap(document.getElementById("btn-drive-disconnect"), disconnectGoogleDrive);
 }
 
 function showToast(msg, duration = 2500) {
@@ -203,6 +232,18 @@ function showToast(msg, duration = 2500) {
   toast._timer = setTimeout(() => toast.classList.remove("visible"), duration);
 }
 
+function _ensureModalBox() {
+  if (!document.getElementById("modal-confirm")) {
+    _restoreModalBox();
+  }
+}
+
+function closeAppModal() {
+  const overlay = document.getElementById("modal-overlay");
+  if (overlay) overlay.classList.remove("visible");
+  _ensureModalBox();
+}
+
 function showModal({
   icon = "⚠️",
   title = "",
@@ -212,11 +253,17 @@ function showModal({
   onConfirm,
   onCancel,
 } = {}) {
-  document.getElementById("modal-icon").textContent = icon;
-  document.getElementById("modal-title").textContent = title;
-  document.getElementById("modal-msg").textContent = msg;
+  _ensureModalBox();
+  const iconEl = document.getElementById("modal-icon");
+  const titleEl = document.getElementById("modal-title");
+  const msgEl = document.getElementById("modal-msg");
   const confirmBtn = document.getElementById("modal-confirm");
   const cancelBtn = document.getElementById("modal-cancel");
+  if (!iconEl || !titleEl || !msgEl || !confirmBtn || !cancelBtn) return;
+
+  iconEl.textContent = icon;
+  titleEl.textContent = title;
+  msgEl.textContent = msg;
   confirmBtn.textContent = confirmText;
   cancelBtn.textContent = cancelText || "";
   cancelBtn.style.display = cancelText ? "" : "none";
@@ -2779,6 +2826,7 @@ async function updateDriveBackupUI() {
 
   const connected = await isDriveConnected();
   if (!connected) {
+    resetDisconnectButton();
     statusEl.textContent = t("drive_status_not_connected");
     statusEl.className = "backup-status";
     if (connectBtn) connectBtn.classList.remove("hidden");
@@ -2809,8 +2857,14 @@ async function updateDriveBackupUI() {
 }
 
 async function performDriveBackupUpload(showSuccessToast = true) {
-  if (!sessionPin) return;
-  if (!(await isDriveConnected())) return;
+  if (!sessionPin) {
+    if (showSuccessToast) throw new Error("not_unlocked");
+    return;
+  }
+  if (!(await isDriveConnected())) {
+    if (showSuccessToast) throw new Error("not_connected");
+    return;
+  }
   const bundle = await buildBackupBundle();
   const syncDate = await uploadDriveBackup(bundle);
   await setInDB(BACKUP_KEY, syncDate);
@@ -2818,6 +2872,18 @@ async function performDriveBackupUpload(showSuccessToast = true) {
   updateBackupStatus();
   updateDriveBackupUI();
   if (showSuccessToast) showToast(t("drive_sync_success_toast"));
+}
+
+function driveSyncErrorMessage(err) {
+  const code = String(err?.message || "");
+  if (code === "reconnect_required") return t("drive_reconnect_msg");
+  if (code === "not_connected") return t("drive_sync_not_connected");
+  if (code === "not_unlocked") return t("drive_sync_not_unlocked");
+  if (code === "offline") return t("drive_sync_offline");
+  if (code.startsWith("drive_verify_failed") || code.startsWith("drive_upload_failed")) {
+    return t("drive_sync_failed_msg");
+  }
+  return t("drive_sync_failed_msg");
 }
 
 async function connectGoogleDrive() {
@@ -2849,14 +2915,10 @@ async function syncGoogleDriveNow() {
   try {
     await performDriveBackupUpload(true);
   } catch (err) {
-    const msg =
-      err?.message === "reconnect_required"
-        ? t("drive_reconnect_msg")
-        : t("drive_sync_failed_msg");
     showModal({
       icon: "⚠️",
       title: t("drive_sync_failed_title"),
-      msg,
+      msg: driveSyncErrorMessage(err),
       cancelText: "",
       confirmText: t("ok"),
     });
@@ -2864,20 +2926,47 @@ async function syncGoogleDriveNow() {
   }
 }
 
+let _disconnectArmed = false;
+let _disconnectArmTimer = null;
+
+function resetDisconnectButton() {
+  _disconnectArmed = false;
+  clearTimeout(_disconnectArmTimer);
+  const btn = document.getElementById("btn-drive-disconnect");
+  if (!btn) return;
+  btn.classList.remove("danger-btn");
+  btn.classList.add("apply-btn", "btn--secondary");
+  btn.textContent = t("drive_disconnect_btn");
+}
+
+async function performDriveDisconnect() {
+  resetDisconnectButton();
+  try {
+    cancelScheduledDriveBackupUpload();
+    await disconnectDrive();
+    await updateDriveBackupUI();
+    showToast(t("drive_disconnected_toast"));
+  } catch (err) {
+    console.error("[Drive] disconnect failed:", err);
+    showToast(t("drive_sync_failed_msg"));
+  }
+}
+
 function disconnectGoogleDrive() {
-  showModal({
-    icon: "☁️",
-    title: t("drive_disconnect_confirm_title"),
-    msg: t("drive_disconnect_confirm_msg"),
-    confirmText: t("drive_disconnect_btn"),
-    cancelText: t("cancel"),
-    onConfirm: async () => {
-      cancelScheduledDriveBackupUpload();
-      await disconnectDrive();
-      updateDriveBackupUI();
-      showToast(t("drive_disconnected_toast"));
-    },
-  });
+  if (!_disconnectArmed) {
+    _disconnectArmed = true;
+    const btn = document.getElementById("btn-drive-disconnect");
+    if (btn) {
+      btn.textContent = t("drive_disconnect_confirm_btn");
+      btn.classList.remove("btn--secondary");
+      btn.classList.add("danger-btn");
+    }
+    showToast(t("drive_disconnect_tap_again"), 4000);
+    clearTimeout(_disconnectArmTimer);
+    _disconnectArmTimer = setTimeout(resetDisconnectButton, 8000);
+    return;
+  }
+  performDriveDisconnect();
 }
 
 async function toggleDriveAutoBackup() {
@@ -4057,6 +4146,7 @@ window.showChangePinModal = showChangePinModal;
 window.exportToDrip = exportToDrip;
 window.triggerInstall = triggerInstall;
 window.exportData = exportData;
+window.closeAppModal = closeAppModal;
 window.connectGoogleDrive = connectGoogleDrive;
 window.disconnectGoogleDrive = disconnectGoogleDrive;
 window.syncGoogleDriveNow = syncGoogleDriveNow;

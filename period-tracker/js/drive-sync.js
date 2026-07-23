@@ -258,6 +258,7 @@ async function getAccessToken() {
       grant_type: "refresh_token",
       refresh_token: refresh,
     });
+    if (!data?.access_token) throw new Error("token_refresh_failed");
     return data.access_token;
   } catch (e) {
     const msg = String(e.message || "");
@@ -267,6 +268,32 @@ async function getAccessToken() {
     }
     throw new Error("token_refresh_failed");
   }
+}
+
+async function driveApiError(prefix, res) {
+  let detail = `http_${res.status}`;
+  try {
+    const body = await res.json();
+    detail =
+      body?.error?.message ||
+      body?.error_description ||
+      body?.error ||
+      detail;
+  } catch (_) {
+    /* non-JSON error body */
+  }
+  return new Error(`${prefix}:${res.status}:${detail}`);
+}
+
+async function verifyBackupOnDrive(fileId, accessToken) {
+  const res = await fetch(
+    `https://www.googleapis.com/drive/v3/files/${fileId}?fields=id,name,modifiedTime,size`,
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  );
+  if (!res.ok) throw await driveApiError("drive_verify_failed", res);
+  const meta = await res.json();
+  if (!meta?.id) throw new Error("drive_verify_failed");
+  return meta;
 }
 
 async function finishConnectFlow(pendingConnect) {
@@ -439,6 +466,12 @@ export async function startDriveConnect() {
 export async function disconnectDrive() {
   await idbDel(DRIVE_REFRESH_TOKEN_KEY);
   await idbDel(DRIVE_FILE_ID_KEY);
+  await idbDel(DRIVE_LAST_SYNC_KEY);
+  await idbDel(DRIVE_AUTO_KEY);
+  await idbDel(DRIVE_PENDING_RESTORE_KEY);
+  await idbDel(OAUTH_PENDING_EXCHANGE_KEY);
+  await idbDel(OAUTH_ERROR_KEY);
+  await clearOAuthSessionKeys();
 }
 
 export async function findExistingBackup() {
@@ -496,7 +529,7 @@ export async function uploadDriveBackup(bundleString) {
         body: bundleString,
       }
     );
-    if (!res.ok) throw new Error("drive_upload_failed");
+    if (!res.ok) throw await driveApiError("drive_upload_failed", res);
   } else {
     const metadata = { name: BACKUP_FILENAME, parents: ["appDataFolder"] };
     const boundary = "mycyclekeeper_" + Date.now();
@@ -517,10 +550,14 @@ export async function uploadDriveBackup(bundleString) {
         body,
       }
     );
-    if (!res.ok) throw new Error("drive_upload_failed");
+    if (!res.ok) throw await driveApiError("drive_upload_failed", res);
     const data = await res.json();
-    await idbSet(DRIVE_FILE_ID_KEY, data.id);
+    if (!data?.id) throw new Error("drive_upload_failed:no_file_id");
+    fileId = data.id;
+    await idbSet(DRIVE_FILE_ID_KEY, fileId);
   }
+
+  await verifyBackupOnDrive(fileId, accessToken);
 
   const syncDate = new Date().toISOString().slice(0, 10);
   await idbSet(DRIVE_LAST_SYNC_KEY, syncDate);

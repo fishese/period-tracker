@@ -388,6 +388,9 @@ const LOCALES = {
     drive_status_never_synced: "Connected — no backup uploaded yet",
     drive_connect_btn: "Connect Google Drive",
     drive_disconnect_btn: "Disconnect",
+    drive_disconnect_confirm_btn: "Confirm disconnect",
+    drive_disconnect_tap_again:
+      "Tap the red button again to disconnect Google Drive on this device.",
     drive_sync_now_btn: "Back up now",
     drive_auto_label: "Automatically back up after changes (when online)",
     drive_auto_hint:
@@ -396,7 +399,14 @@ const LOCALES = {
       "Google Drive backup needs an OAuth Client ID and token proxy URL in js/drive-config.js (see drive-config.example.js and drive-oauth-proxy/README.md).",
     drive_connected_toast: "Google Drive connected",
     drive_disconnected_toast: "Google Drive disconnected",
-    drive_sync_success_toast: "Backup uploaded to Google Drive",
+    drive_sync_success_toast:
+      "Backup uploaded (hidden app folder — not visible at drive.google.com)",
+    drive_sync_not_connected:
+      "Google Drive is not connected on this device. Tap Connect Google Drive first.",
+    drive_sync_not_unlocked:
+      "Unlock the app with your PIN before backing up to Google Drive.",
+    drive_sync_offline:
+      "You are offline. Connect to the internet and try again.",
     drive_sync_failed_title: "Google Drive backup failed",
     drive_sync_failed_msg:
       "Could not complete the Google Drive backup. Check your connection and try again.",
@@ -1324,6 +1334,9 @@ const LOCALES = {
     drive_status_never_synced: "Conectado — aún no se subió ninguna copia",
     drive_connect_btn: "Conectar Google Drive",
     drive_disconnect_btn: "Desconectar",
+    drive_disconnect_confirm_btn: "Confirmar desconexión",
+    drive_disconnect_tap_again:
+      "Pulsa otra vez el botón rojo para desconectar Google Drive en este dispositivo.",
     drive_sync_now_btn: "Copiar ahora",
     drive_auto_label: "Copiar automáticamente tras cambios (con conexión)",
     drive_auto_hint:
@@ -1332,7 +1345,14 @@ const LOCALES = {
       "La copia en Google Drive no está configurada (faltan el ID OAuth y la URL del proxy en drive-config.js; ver drive-oauth-proxy/README.md).",
     drive_connected_toast: "Google Drive conectado",
     drive_disconnected_toast: "Google Drive desconectado",
-    drive_sync_success_toast: "Copia subida a Google Drive",
+    drive_sync_success_toast:
+      "Copia subida (carpeta oculta de la app — no visible en drive.google.com)",
+    drive_sync_not_connected:
+      "Google Drive no está conectado en este dispositivo. Pulsa Conectar Google Drive primero.",
+    drive_sync_not_unlocked:
+      "Desbloquea la app con tu PIN antes de hacer copia en Google Drive.",
+    drive_sync_offline:
+      "Sin conexión. Conéctate a internet e inténtalo de nuevo.",
     drive_sync_failed_title: "Error de copia en Google Drive",
     drive_sync_failed_msg:
       "No se pudo completar la copia en Google Drive. Comprueba tu conexión e inténtalo de nuevo.",
@@ -1748,6 +1768,9 @@ const LOCALES = {
     drive_status_never_synced: "接続済み — まだバックアップがアップロードされていません",
     drive_connect_btn: "Google Driveに接続",
     drive_disconnect_btn: "切断",
+    drive_disconnect_confirm_btn: "切断を確認",
+    drive_disconnect_tap_again:
+      "赤いボタンをもう一度タップして、この端末から Google Drive を切断します。",
     drive_sync_now_btn: "今すぐバックアップ",
     drive_auto_label: "変更後に自動バックアップ（オンライン時）",
     drive_auto_hint:
@@ -1756,7 +1779,14 @@ const LOCALES = {
       "このビルドではGoogle Driveバックアップが未設定です（drive-config.jsにOAuthクライアントIDとトークンプロキシURLがありません。drive-oauth-proxy/README.mdを参照）。",
     drive_connected_toast: "Google Driveに接続しました",
     drive_disconnected_toast: "Google Driveから切断しました",
-    drive_sync_success_toast: "Google Driveにバックアップをアップロードしました",
+    drive_sync_success_toast:
+      "バックアップをアップロードしました（アプリ専用フォルダ — drive.google.com では表示されません）",
+    drive_sync_not_connected:
+      "この端末では Google Drive に接続されていません。先に「Google Drive に接続」をタップしてください。",
+    drive_sync_not_unlocked:
+      "Google Drive にバックアップする前に PIN でロック解除してください。",
+    drive_sync_offline:
+      "オフラインです。インターネットに接続してからもう一度お試しください。",
     drive_sync_failed_title: "Google Driveバックアップに失敗",
     drive_sync_failed_msg:
       "Google Driveバックアップを完了できませんでした。接続を確認して再試行してください。",
@@ -2168,6 +2198,9 @@ const LOCALES = {
     drive_status_never_synced: "已連線 — 尚未上傳備份",
     drive_connect_btn: "連線 Google Drive",
     drive_disconnect_btn: "中斷連線",
+    drive_disconnect_confirm_btn: "確認中斷",
+    drive_disconnect_tap_again:
+      "再按一次紅色按鈕，即可在此裝置中斷 Google Drive。",
     drive_sync_now_btn: "立即備份",
     drive_auto_label: "變更後自動備份（需連線）",
     drive_auto_hint:
@@ -2176,7 +2209,14 @@ const LOCALES = {
       "此版本未設定 Google Drive 備份（drive-config.js 缺少 OAuth 用戶端 ID 與 token proxy URL；見 drive-oauth-proxy/README.md）。",
     drive_connected_toast: "已連線 Google Drive",
     drive_disconnected_toast: "已中斷 Google Drive",
-    drive_sync_success_toast: "已上傳備份至 Google Drive",
+    drive_sync_success_toast:
+      "已上傳備份（應用程式隱藏資料夾 — 在 drive.google.com 看不到）",
+    drive_sync_not_connected:
+      "此裝置尚未連線 Google Drive。請先點「連線 Google Drive」。",
+    drive_sync_not_unlocked:
+      "請先用 PIN 解鎖，再備份至 Google Drive。",
+    drive_sync_offline:
+      "目前離線。請連上網路後再試。",
     drive_sync_failed_title: "Google Drive 備份失敗",
     drive_sync_failed_msg:
       "無法完成 Google Drive 備份。請檢查連線後再試。",
