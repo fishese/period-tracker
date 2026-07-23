@@ -2320,14 +2320,18 @@ body {
   background: var(--card);
   border: 1px solid var(--border);
   color: var(--text);
-  padding: 0.6rem 1.2rem;
-  border-radius: 2rem;
+  padding: 0.6rem 1rem;
+  border-radius: 1rem;
   font-size: 0.875rem;
+  line-height: 1.35;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s, transform 0.2s;
   z-index: 9999;
-  white-space: nowrap;
+  max-width: min(20rem, calc(100vw - 2rem));
+  text-align: center;
+  white-space: normal;
+  box-sizing: border-box;
 }
 #toast.visible {
   opacity: 1;

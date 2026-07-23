@@ -226,3 +226,14 @@ async function calculateDBStorageUsage() {
     return 0;
   }
 }
+
+// ES modules (drive-sync.js) read these from globalThis explicitly.
+Object.assign(globalThis, {
+  initIndexedDB,
+  getFromDB,
+  setInDB,
+  deleteFromDB,
+  clearDB,
+  getAllKeysFromDB,
+  calculateDBStorageUsage,
+});

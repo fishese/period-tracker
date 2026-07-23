@@ -68,11 +68,10 @@ async function idbSet(key, value) {
 }
 
 async function idbDel(key) {
-  try {
-    await idb().deleteFromDB(key);
-  } catch (err) {
-    console.warn("[Drive] idbDel failed:", key, err);
+  if (typeof globalThis.deleteFromDB !== "function") {
+    throw new Error("idb_unavailable");
   }
+  await globalThis.deleteFromDB(key);
 }
 
 function lsSuffix(idbKey) {
@@ -472,6 +471,9 @@ export async function disconnectDrive() {
   await idbDel(OAUTH_PENDING_EXCHANGE_KEY);
   await idbDel(OAUTH_ERROR_KEY);
   await clearOAuthSessionKeys();
+  if (await idbGet(DRIVE_REFRESH_TOKEN_KEY)) {
+    throw new Error("disconnect_failed");
+  }
 }
 
 export async function findExistingBackup() {

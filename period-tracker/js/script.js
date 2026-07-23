@@ -156,27 +156,16 @@ let backupReminderShownThisSession = false;
 // Reset on any user interaction (deferred until DOM ready)
 function bindTap(el, handler) {
   if (!el || typeof handler !== "function") return;
-  let suppressClick = false;
-  el.addEventListener(
-    "touchend",
-    (e) => {
-      suppressClick = true;
-      e.preventDefault();
-      handler(e);
-      setTimeout(() => {
-        suppressClick = false;
-      }, 400);
-    },
-    { passive: false }
-  );
-  el.addEventListener("click", (e) => {
-    if (suppressClick) {
-      e.preventDefault();
-      return;
-    }
+  let lastRun = 0;
+  const run = (e) => {
     e.preventDefault();
+    const now = Date.now();
+    if (now - lastRun < 500) return;
+    lastRun = now;
     handler(e);
-  });
+  };
+  el.addEventListener("touchend", run, { passive: false });
+  el.addEventListener("click", run);
 }
 
 function setupEventListeners() {
@@ -2928,6 +2917,7 @@ async function syncGoogleDriveNow() {
 
 let _disconnectArmed = false;
 let _disconnectArmTimer = null;
+let _disconnectInProgress = false;
 
 function resetDisconnectButton() {
   _disconnectArmed = false;
@@ -2940,19 +2930,34 @@ function resetDisconnectButton() {
 }
 
 async function performDriveDisconnect() {
-  resetDisconnectButton();
+  if (_disconnectInProgress) return;
+  _disconnectInProgress = true;
+  _disconnectArmed = false;
+  clearTimeout(_disconnectArmTimer);
+  const btn = document.getElementById("btn-drive-disconnect");
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = t("drive_disconnecting");
+  }
   try {
     cancelScheduledDriveBackupUpload();
     await disconnectDrive();
+    resetDisconnectButton();
     await updateDriveBackupUI();
     showToast(t("drive_disconnected_toast"));
   } catch (err) {
     console.error("[Drive] disconnect failed:", err);
-    showToast(t("drive_sync_failed_msg"));
+    resetDisconnectButton();
+    await updateDriveBackupUI();
+    showToast(t("drive_disconnect_failed"));
+  } finally {
+    if (btn) btn.disabled = false;
+    _disconnectInProgress = false;
   }
 }
 
 function disconnectGoogleDrive() {
+  if (_disconnectInProgress) return;
   if (!_disconnectArmed) {
     _disconnectArmed = true;
     const btn = document.getElementById("btn-drive-disconnect");
@@ -2961,12 +2966,12 @@ function disconnectGoogleDrive() {
       btn.classList.remove("btn--secondary");
       btn.classList.add("danger-btn");
     }
-    showToast(t("drive_disconnect_tap_again"), 4000);
+    showToast(t("drive_disconnect_tap_again"), 3500);
     clearTimeout(_disconnectArmTimer);
     _disconnectArmTimer = setTimeout(resetDisconnectButton, 8000);
     return;
   }
-  performDriveDisconnect();
+  void performDriveDisconnect();
 }
 
 async function toggleDriveAutoBackup() {
