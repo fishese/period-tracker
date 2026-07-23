@@ -16,7 +16,7 @@ let db = null;
  * Initialize IndexedDB database with schema
  * @returns {Promise<IDBDatabase>}
  */
-async function initIndexedDB() {
+export async function initIndexedDB() {
   return new Promise((resolve, reject) => {
     if (db) {
       resolve(db);
@@ -56,7 +56,7 @@ async function initIndexedDB() {
  * @param {string} key - The key to retrieve
  * @returns {Promise<any>} The stored value or null
  */
-async function getFromDB(key) {
+export async function getFromDB(key) {
   try {
     await initIndexedDB();
 
@@ -88,23 +88,19 @@ async function getFromDB(key) {
  * @param {any} value - The value to store
  * @returns {Promise<void>}
  */
-async function setInDB(key, value) {
+export async function setInDB(key, value) {
   try {
     await initIndexedDB();
 
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([STORE_NAME], "readwrite");
       const store = transaction.objectStore(STORE_NAME);
-      const request = store.put(value, key);
-
-      request.onsuccess = () => {
-        resolve();
-      };
-
-      request.onerror = () => {
-        console.error(`❌ Failed to write key "${key}":`, request.error);
+      store.put(value, key);
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => {
+        console.error(`❌ Failed to write key "${key}":`, transaction.error);
         reject(
-          new Error(`Failed to write to database: ${request.error?.message}`)
+          new Error(`Failed to write to database: ${transaction.error?.message}`)
         );
       };
     });
@@ -119,23 +115,19 @@ async function setInDB(key, value) {
  * @param {string} key - The key to delete
  * @returns {Promise<void>}
  */
-async function deleteFromDB(key) {
+export async function deleteFromDB(key) {
   try {
     await initIndexedDB();
 
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([STORE_NAME], "readwrite");
       const store = transaction.objectStore(STORE_NAME);
-      const request = store.delete(key);
-
-      request.onsuccess = () => {
-        resolve();
-      };
-
-      request.onerror = () => {
-        console.error(`❌ Failed to delete key "${key}":`, request.error);
+      store.delete(key);
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => {
+        console.error(`❌ Failed to delete key "${key}":`, transaction.error);
         reject(
-          new Error(`Failed to delete from database: ${request.error?.message}`)
+          new Error(`Failed to delete from database: ${transaction.error?.message}`)
         );
       };
     });
@@ -149,7 +141,7 @@ async function deleteFromDB(key) {
  * Clear all data from IndexedDB
  * @returns {Promise<void>}
  */
-async function clearDB() {
+export async function clearDB() {
   try {
     await initIndexedDB();
 
@@ -180,7 +172,7 @@ async function clearDB() {
  * Get all keys from IndexedDB
  * @returns {Promise<Array<string>>}
  */
-async function getAllKeysFromDB() {
+export async function getAllKeysFromDB() {
   try {
     await initIndexedDB();
 
@@ -212,7 +204,7 @@ async function getAllKeysFromDB() {
  * Calculate total storage usage in IndexedDB
  * @returns {Promise<number>} Approximate storage size in bytes
  */
-async function calculateDBStorageUsage() {
+export async function calculateDBStorageUsage() {
   try {
     if (!navigator.storage || !navigator.storage.estimate) {
       console.warn("⚠️ Storage API not available");
@@ -226,14 +218,3 @@ async function calculateDBStorageUsage() {
     return 0;
   }
 }
-
-// ES modules (drive-sync.js) read these from globalThis explicitly.
-Object.assign(globalThis, {
-  initIndexedDB,
-  getFromDB,
-  setInDB,
-  deleteFromDB,
-  clearDB,
-  getAllKeysFromDB,
-  calculateDBStorageUsage,
-});
