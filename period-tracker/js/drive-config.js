@@ -11,7 +11,7 @@ export const GOOGLE_CLIENT_ID =
 
 /**
  * URL of the token-exchange worker (Cloudflare Worker, etc.).
- * Example: "https://mycyclekeeper-drive-oauth.YOUR_SUBDOMAIN.workers.dev"
+ * Example: "https://mycyclekeeper-drive-oauth.fishese.workers.dev"
  * Leave empty until the proxy is deployed — Drive connect stays disabled.
  */
 export const DRIVE_TOKEN_PROXY_URL = "";
