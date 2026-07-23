@@ -16,7 +16,7 @@ let db = null;
  * Initialize IndexedDB database with schema
  * @returns {Promise<IDBDatabase>}
  */
-export async function initIndexedDB() {
+async function initIndexedDB() {
   return new Promise((resolve, reject) => {
     if (db) {
       resolve(db);
@@ -56,7 +56,7 @@ export async function initIndexedDB() {
  * @param {string} key - The key to retrieve
  * @returns {Promise<any>} The stored value or null
  */
-export async function getFromDB(key) {
+async function getFromDB(key) {
   try {
     await initIndexedDB();
 
@@ -88,7 +88,7 @@ export async function getFromDB(key) {
  * @param {any} value - The value to store
  * @returns {Promise<void>}
  */
-export async function setInDB(key, value) {
+async function setInDB(key, value) {
   try {
     await initIndexedDB();
 
@@ -115,7 +115,7 @@ export async function setInDB(key, value) {
  * @param {string} key - The key to delete
  * @returns {Promise<void>}
  */
-export async function deleteFromDB(key) {
+async function deleteFromDB(key) {
   try {
     await initIndexedDB();
 
@@ -141,7 +141,7 @@ export async function deleteFromDB(key) {
  * Clear all data from IndexedDB
  * @returns {Promise<void>}
  */
-export async function clearDB() {
+async function clearDB() {
   try {
     await initIndexedDB();
 
@@ -172,7 +172,7 @@ export async function clearDB() {
  * Get all keys from IndexedDB
  * @returns {Promise<Array<string>>}
  */
-export async function getAllKeysFromDB() {
+async function getAllKeysFromDB() {
   try {
     await initIndexedDB();
 
@@ -204,7 +204,7 @@ export async function getAllKeysFromDB() {
  * Calculate total storage usage in IndexedDB
  * @returns {Promise<number>} Approximate storage size in bytes
  */
-export async function calculateDBStorageUsage() {
+async function calculateDBStorageUsage() {
   try {
     if (!navigator.storage || !navigator.storage.estimate) {
       console.warn("⚠️ Storage API not available");
@@ -218,3 +218,13 @@ export async function calculateDBStorageUsage() {
     return 0;
   }
 }
+
+Object.assign(globalThis, {
+  initIndexedDB,
+  getFromDB,
+  setInDB,
+  deleteFromDB,
+  clearDB,
+  getAllKeysFromDB,
+  calculateDBStorageUsage,
+});

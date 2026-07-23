@@ -1,7 +1,6 @@
 "use strict";
 
 import { GOOGLE_CLIENT_ID, DRIVE_TOKEN_PROXY_URL } from "./drive-config.js";
-import { getFromDB, setInDB, deleteFromDB } from "./indexeddb-storage.js";
 
 const DRIVE_REFRESH_TOKEN_KEY = "mycyclekeeper_drive_refresh_token_v1";
 const DRIVE_FILE_ID_KEY = "mycyclekeeper_drive_file_id_v1";
@@ -45,7 +44,7 @@ export function getDriveRedirectUri() {
 
 async function idbGet(key) {
   try {
-    return await getFromDB(key);
+    return await globalThis.getFromDB(key);
   } catch (err) {
     console.warn("[Drive] idbGet failed:", key, err);
     return null;
@@ -53,11 +52,14 @@ async function idbGet(key) {
 }
 
 async function idbSet(key, value) {
-  await setInDB(key, value);
+  await globalThis.setInDB(key, value);
 }
 
 async function idbDel(key) {
-  await deleteFromDB(key);
+  if (typeof globalThis.deleteFromDB !== "function") {
+    throw new Error("idb_unavailable");
+  }
+  await globalThis.deleteFromDB(key);
 }
 
 function lsSuffix(idbKey) {
@@ -457,7 +459,7 @@ export async function disconnectDrive() {
   await idbDel(OAUTH_PENDING_EXCHANGE_KEY);
   await idbDel(OAUTH_ERROR_KEY);
   await clearOAuthSessionKeys();
-  const remaining = await getFromDB(DRIVE_REFRESH_TOKEN_KEY);
+  const remaining = await globalThis.getFromDB(DRIVE_REFRESH_TOKEN_KEY);
   if (remaining) {
     throw new Error("disconnect_failed");
   }

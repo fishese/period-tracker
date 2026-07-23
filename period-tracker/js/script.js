@@ -48,11 +48,6 @@ import {
 import { buildDripCsv } from "./export-drip.js";
 import { buildCycleHistoryFromLogs, parseDripCsv } from "./import-drip.js";
 import {
-  initIndexedDB,
-  getFromDB,
-  setInDB,
-} from "./indexeddb-storage.js";
-import {
   isDriveConfigured,
   isDriveConnected,
   isDriveAutoBackupEnabled,
