@@ -617,6 +617,9 @@ export function getDriveOAuthErrorDetail(err) {
   return tail.slice(colon + 1);
 }
 
+/** Debounced auto-backup timer id (module scope). */
+let _uploadTimer = null;
+
 /** Debounced upload hook — call from save() when auto-backup is enabled. */
 export function scheduleDriveBackupUpload(uploadFn) {
   clearTimeout(_uploadTimer);
@@ -626,5 +629,8 @@ export function scheduleDriveBackupUpload(uploadFn) {
 }
 
 export function cancelScheduledDriveBackupUpload() {
-  clearTimeout(_uploadTimer);
+  if (_uploadTimer != null) {
+    clearTimeout(_uploadTimer);
+    _uploadTimer = null;
+  }
 }
