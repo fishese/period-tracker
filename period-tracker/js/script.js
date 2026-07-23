@@ -67,6 +67,7 @@ import {
   uploadDriveBackup,
   scheduleDriveBackupUpload,
   cancelScheduledDriveBackupUpload,
+  wireDriveDb,
 } from "./drive-sync.js";
 
 const STORE_KEY = "mycyclekeeper_enc_v1"; // encrypted blob
@@ -3892,6 +3893,11 @@ async function init() {
   try {
     // Initialize IndexedDB
     await initIndexedDB();
+    wireDriveDb({
+      getFromDB: (key) => window.getFromDB(key),
+      setInDB: (key, value) => window.setInDB(key, value),
+      deleteFromDB: (key) => window.deleteFromDB(key),
+    });
 
     await handleDriveOAuthReturn();
 

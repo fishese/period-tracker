@@ -42,9 +42,33 @@ export function getDriveRedirectUri() {
   return window.location.origin + normalizeRedirectPath(window.location.pathname);
 }
 
+/** Wired from script.js init — ES modules cannot rely on classic-script globals alone. */
+let _getFromDB = null;
+let _setInDB = null;
+let _deleteFromDB = null;
+
+export function wireDriveDb(api) {
+  if (api?.getFromDB) _getFromDB = api.getFromDB;
+  if (api?.setInDB) _setInDB = api.setInDB;
+  if (api?.deleteFromDB) _deleteFromDB = api.deleteFromDB;
+}
+
+function dbApi() {
+  if (_getFromDB && _setInDB && _deleteFromDB) {
+    return { get: _getFromDB, set: _setInDB, del: _deleteFromDB };
+  }
+  const get = globalThis.getFromDB;
+  const set = globalThis.setInDB;
+  const del = globalThis.deleteFromDB;
+  if (typeof get === "function" && typeof set === "function" && typeof del === "function") {
+    return { get, set, del };
+  }
+  throw new Error("idb_unavailable");
+}
+
 async function idbGet(key) {
   try {
-    return await globalThis.getFromDB(key);
+    return await dbApi().get(key);
   } catch (err) {
     console.warn("[Drive] idbGet failed:", key, err);
     return null;
@@ -52,14 +76,11 @@ async function idbGet(key) {
 }
 
 async function idbSet(key, value) {
-  await globalThis.setInDB(key, value);
+  await dbApi().set(key, value);
 }
 
 async function idbDel(key) {
-  if (typeof globalThis.deleteFromDB !== "function") {
-    throw new Error("idb_unavailable");
-  }
-  await globalThis.deleteFromDB(key);
+  await dbApi().del(key);
 }
 
 function lsSuffix(idbKey) {
@@ -450,6 +471,14 @@ export async function startDriveConnect() {
   window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
 }
 
+function clearOAuthLocalStorage() {
+  for (const suffix of ["verifier", "state", "pending", "redirect", "code_used"]) {
+    try {
+      localStorage.removeItem(OAUTH_LS_PREFIX + suffix);
+    } catch (_) {}
+  }
+}
+
 export async function disconnectDrive() {
   await idbDel(DRIVE_REFRESH_TOKEN_KEY);
   await idbDel(DRIVE_FILE_ID_KEY);
@@ -459,8 +488,8 @@ export async function disconnectDrive() {
   await idbDel(OAUTH_PENDING_EXCHANGE_KEY);
   await idbDel(OAUTH_ERROR_KEY);
   await clearOAuthSessionKeys();
-  const remaining = await globalThis.getFromDB(DRIVE_REFRESH_TOKEN_KEY);
-  if (remaining) {
+  clearOAuthLocalStorage();
+  if (await isDriveConnected()) {
     throw new Error("disconnect_failed");
   }
 }
