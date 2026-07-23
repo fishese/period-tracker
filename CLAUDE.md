@@ -18,16 +18,25 @@ python -m http.server 8000
 # or
 npx http-server
 
-# Access at http://localhost:8000 (NOT file://)
+# Access at http://localhost:8000/period-tracker/ (NOT file://)
 
 # Deploy: push to fishese/period-tracker (GitHub Pages). Root firebase.json is upstream-only.
+git push period-tracker master   # NOT origin — origin is upstream pythonime-lab
 ```
+
+### Git remotes (this fork)
+
+| Remote | URL | Use |
+|--------|-----|-----|
+| `period-tracker` | `https://github.com/fishese/period-tracker.git` | **Push here** (`master`) → GitHub Pages |
+| `origin` | `https://github.com/pythonime-lab/yourcyclekeeper.git` | Upstream only — do not push fork work here |
 
 ### Pre-Deploy Checklist
 
-1. Bump `CACHE_VERSION` in `service-worker.js` (e.g., `v20260307`)
-2. Update `?v=` query param in `index.html` for CSS/JS cache busting
-3. Test offline: DevTools → Network → Offline → Reload
+1. Bump `CACHE_VERSION` in `period-tracker/service-worker.js` (e.g., `v20260723h`)
+2. Test offline: DevTools → Network → Offline → Reload
+3. Push: `git push period-tracker master`
+4. Hard-refresh or unregister Service Worker after deploy (avoids mixed-cache JS errors)
 
 ## Architecture
 
@@ -58,7 +67,7 @@ state = {
 
 ### Storage Layer: IndexedDB → AES-GCM → State
 
-1. **IndexedDB** (`js/indexeddb-storage.js`): Persistent key-value store
+1. **IndexedDB** (`period-tracker/js/indexeddb-storage.js`): Persistent key-value store — loaded as a **classic script** before modules; exposes `getFromDB` / `setInDB` / `deleteFromDB` on `globalThis`
 2. **Encryption** (`js/crypto.js`): PBKDF2 (250k iterations) + AES-256-GCM with 12-byte IV
 3. **Session** (`js/session.js`): PIN held in memory only, auto-lock after 5 min idle
 
@@ -75,7 +84,9 @@ state = {
 | `js/dateUtils.js` | ISO date utilities (`toISO`, `fromISO`, `addDays`, `diffDays`) |
 | `js/session.js` | Timeout warnings, countdown timers, lock triggers |
 | `js/navigation.js` | Keyboard accessibility and focus management |
-| `js/drive-sync.js` | Optional Google Drive one-way backup (OAuth PKCE, upload/download) |
+| `js/drive-sync.js` | Optional Google Drive one-way backup (OAuth PKCE, token proxy, upload/download, two-tap disconnect) |
+| `js/drive-config.js` | OAuth Client ID + `DRIVE_TOKEN_PROXY_URL` only (no Client secret) |
+| `period-tracker/drive-oauth-proxy/` | Cloudflare Worker — holds Client secret |
 | `js/drive-config.js` | OAuth Client ID + Client secret (see `drive-config.example.js`) |
 
 ### Cycle Prediction Algorithm
@@ -148,4 +159,4 @@ Canvas-based with DPR scaling for retina displays:
 - Session timeout: Wait 5 min idle, verify auto-lock with countdown
 - Wrong PIN: Should fail fast with HMAC check (no decryption attempt)
 - Period marking: Toggle start/end, verify cleanup of consecutive markers
-- Drive backup (optional): connect as test user, back up now; confirm normal saves still work
+- Drive backup (optional): connect as test user, back up now, two-tap disconnect, reconnect; confirm normal saves still work without Drive

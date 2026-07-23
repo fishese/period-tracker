@@ -1,6 +1,6 @@
 # My Cycle Keeper — Handoff Document
 
-**Last updated:** 2026-07-08 (bug-fix + feature session closed)  
+**Last updated:** 2026-07-23 (Google Drive disconnect + deploy fixes)  
 **Maintainer:** Personal fork (fishese)  
 **Status:** Stable for personal use. Latest on `period-tracker/master`. Come back in a new chat with the prompt in §13.
 
@@ -40,7 +40,9 @@ fishese/period-tracker/           # GitHub repo (GitHub Pages hosts the app)
     │   ├── script.js             # UI, state, onboarding, settings
     │   ├── cycles.js             # Predictions, rolling stats, day types
     │   ├── crypto.js             # PIN, AES-GCM, PBKDF2
-    │   ├── indexeddb-storage.js  # IndexedDB key-value
+    │   ├── indexeddb-storage.js  # IndexedDB key-value (classic script; loaded before modules)
+    │   ├── drive-sync.js         # Google Drive OAuth + one-way backup
+    │   ├── drive-config.js       # OAuth Client ID + token proxy URL (no secret)
     │   ├── import-drip.js        # drip CSV parser
     │   ├── export-drip.js        # drip CSV export
     │   ├── periodMarking.js      # Menses episode logic
@@ -52,7 +54,7 @@ fishese/period-tracker/           # GitHub repo (GitHub Pages hosts the app)
     ├── docs/
     │   ├── HANDOFF.md            # ← this file
     │   └── google-drive-sync-plan.md
-    └── service-worker.js         # CACHE_VERSION currently v20260720a
+    └── service-worker.js         # CACHE_VERSION currently v20260723h
 ```
 
 ---
@@ -63,7 +65,14 @@ fishese/period-tracker/           # GitHub repo (GitHub Pages hosts the app)
 
 **Live app:** https://fishese.github.io/period-tracker/period-tracker/
 
-Push to `period-tracker` remote `master`; GitHub Pages serves from repo root, so the app path is **double** `period-tracker/` (repo name + app folder).
+Push to `period-tracker` remote **`master`** (not `origin`, not `main`):
+
+```bash
+git push period-tracker master
+# or, after tracking is set: git push
+```
+
+Typo `masterx` will fail with “src refspec does not match any”.
 
 Root `firebase.json` is leftover from upstream — **not used** for this fork unless you switch to Firebase hosting.
 
@@ -114,6 +123,13 @@ Note: local path is single `period-tracker/`; GitHub Pages uses double — OAuth
 | `mycyclekeeper_ph_v1` | PIN HMAC (fast wrong-PIN check) |
 | `mycyclekeeper_lastbackup_v1` | ISO date of last manual export |
 | `mycyclekeeper_theme` | Theme preference (localStorage, not encrypted) |
+| `mycyclekeeper_drive_*` | Google Drive OAuth tokens, file id, last sync, auto-backup flag (see [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)) |
+
+**Settings → “Storage used”** shows `navigator.storage.estimate()` for the **whole origin** (IndexedDB + Service Worker cache + localStorage), not the size of cycle logs alone. Mobile PWA often reports much higher numbers than desktop because of offline cache.
+
+**IndexedDB loader:** `indexeddb-storage.js` is a **classic script** (`defer`, before `script.js` module). Do not convert it to ES-module-only without updating `index.html` — mixed cache broke startup in Jul 2026.
+
+**Deletes:** `deleteFromDB()` waits for `transaction.oncomplete` (not just `request.onsuccess`) so Drive disconnect can verify the refresh token is gone.
 
 **Migration note:** Keys renamed from `yourcyclekeeper_*`. Old encrypted blobs are not auto-migrated — re-onboard + re-import CSV/backup.
 
@@ -304,6 +320,20 @@ My Calendar export
 - ru/be i18n rollout — personal fork with no current ru/be users; revisit if that changes.
 - Smarter CSV-import merge (auto-resolving near-duplicate records) — intentionally *not* wanted; current Merge/Replace choice is enough, and auto-merging risks silently "fixing" what might actually be a misclick.
 
+### Google Drive + deploy session (2026-07-23, `v20260723h`)
+
+**Shipped / fixed:**
+
+1. **Token proxy** — Client secret removed from SPA; Cloudflare Worker (`drive-oauth-proxy/`) handles code + refresh exchange; `DRIVE_TOKEN_PROXY_URL` in `drive-config.js`.
+2. **Drive disconnect** — Two-tap confirm (no broken modal on mobile); clears refresh token, file id, auto-backup, OAuth keys + localStorage mirrors.
+3. **`wireDriveDb()`** — `script.js` passes `window.getFromDB/setInDB/deleteFromDB` into `drive-sync.js` after `initIndexedDB()` (ES modules cannot rely on globals alone for deletes).
+4. **`_uploadTimer`** — Missing module variable crashed disconnect at `cancelScheduledDriveBackupUpload()` (root cause of “Could not disconnect” on PC).
+5. **Upload verify** — Post-upload Drive API check before success toast; shorter mobile toasts; toast CSS wraps text.
+6. **`save()` isolation** — Drive auto-backup errors no longer fail local encrypt/save.
+7. **Startup recovery** — Reverted ES-module-only IndexedDB loader after cache mismatch caused “Database Error” / blank screen.
+
+**Verified working:** Connect → back up now → two-tap Disconnect → Connect again; restore from Drive on fresh device.
+
 ---
 
 ## 9. Older work
@@ -319,7 +349,7 @@ See `README-Fork.md` §§1–20 (drip tools, crypto chunks, auto-fill, themes, P
 Spec (as-built): [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
 
 - One-way encrypted upload to Drive `appDataFolder` (`js/drive-sync.js` + `drive-config.js`)
-- Settings → Security (**below** local export/import): Connect / Back up now / Disconnect + auto-backup (~45s debounce after `save()`)
+- Settings → Security (**below** local export/import): Connect / Back up now / **Disconnect** (two-tap confirm) + auto-backup (~45s debounce after `save()`)
 - First connect: optional restore from Drive (replaces local; PIN required)
 - OAuth: Web client + **Client ID in SPA**; **Client secret only on `drive-oauth-proxy` Worker**; consent **Testing** + test users
 - Origins/redirects: GitHub Pages double path + localhost (see `drive-config.example.js`)
@@ -365,6 +395,10 @@ Spec (as-built): [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
 10. `log.flow` is truthy-checked pervasively (`if (log.flow)`) — a future 4th flow level must not be `0`/falsy, or it'll silently behave like "not set" everywhere. This is exactly why `spotting` was added as its own boolean field instead of `flow: 0`.  
 11. If cycle history / predictions ever look wrong, try Settings → Cycle → "Recalculate Cycle History" before debugging further — it's a safe, non-destructive rebuild from logs.  
 12. Local `save()` must not fail because of Drive — auto-backup scheduling is outside the encrypt/IndexedDB try/catch.  
+13. **Git push:** use remote `period-tracker`, branch `master` — `origin` is upstream pythonime-lab.  
+14. **Drive backup file** is in hidden `appDataFolder` — not visible at drive.google.com; restore prompt on connect confirms it exists.  
+15. **`indexeddb-storage.js`** must stay classic-script + `defer` before `type="module" script.js` unless you migrate HTML and bust SW cache everywhere.  
+16. After deploy: hard-refresh or unregister Service Worker once if JS behaves oddly (mixed cache versions).  
 
 ---
 
@@ -382,7 +416,7 @@ Spec (as-built): [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
 - [ ] Settings → Cycle → "Recalculate Cycle History" rebuilds without errors on real data  
 - [ ] Import a drip CSV with a `bleeding.value=0` (spotting) row — check it doesn't inflate period count, and round-trips on export  
 - [ ] Print summary opens print dialog with populated stats + history table  
-- [ ] Drive: connect (test user) → back up now → disconnect; auto-backup optional; fertility toggle still saves without error  
+- [x] Drive: connect (test user) → back up now → two-tap disconnect → Connect again; fertility toggle still saves without error  
 
 ---
 
@@ -408,6 +442,10 @@ Read period-tracker/docs/HANDOFF.md and period-tracker/docs/google-drive-sync-pl
 | `js/export-drip.js` | CSV export (incl. spotting round-trip) |
 | `js/periodMarking.js` | Menses episode logic, `cleanupEmptyLogs()` |
 | `js/i18n.js` | Locales |
+| `js/drive-sync.js` | Google Drive OAuth, upload/download, disconnect, auto-backup |
+| `js/drive-config.js` | Public OAuth Client ID + token proxy URL |
+| `js/indexeddb-storage.js` | IndexedDB (classic script globals) |
+| `drive-oauth-proxy/` | Cloudflare Worker — OAuth Client secret |
 | `index.html` | Structure / About / Layout / log panel / print container |
 | `style.css` | Themes, calendar, history footer, `@media print` |
 | `service-worker.js` | Offline cache |
