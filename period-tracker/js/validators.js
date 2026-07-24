@@ -14,6 +14,35 @@ export function getFlowValueFromLog(log) {
   return null;
 }
 
+/** UI / drip level: 0 = spotting, 1–3 = light/medium/heavy */
+export function normalizeFlowLevel(value, fallback = 1) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.max(0, Math.min(3, Math.round(n)));
+}
+
+export function getFlowLevelFromLog(log) {
+  if (!log) return null;
+  if (log.spotting) return 0;
+  if (typeof log.flow === "number" && Number.isFinite(log.flow)) {
+    return normalizeFlowLevel(log.flow, 1);
+  }
+  if (log.flow === true) return 1;
+  return null;
+}
+
+export function applyFlowLevelToLog(log, level) {
+  const l = normalizeFlowLevel(level, 1);
+  if (l === 0) {
+    delete log.flow;
+    log.spotting = true;
+  } else {
+    delete log.spotting;
+    log.flow = l;
+  }
+  return log;
+}
+
 export function normalizePainValue(value, fallback = 5) {
   const n = Number(value);
   if (!Number.isFinite(n)) return fallback;

@@ -13,8 +13,9 @@ import {
   setLockApp,
 } from "./session.js";
 import {
-  normalizeFlowValue,
-  getFlowValueFromLog,
+  normalizeFlowLevel,
+  getFlowLevelFromLog,
+  applyFlowLevelToLog,
   normalizePainValue,
   getPainValueFromLog,
   normalizeMoodValue,
@@ -767,9 +768,11 @@ async function autoSaveSymptomSelection() {
   const forceNewCycle = getForceNewCycleFlag();
 
   if (currentFlowSet) {
-    log.flow = normalizeFlowValue(currentFlowValue, 1);
-    updateCycleHistory(selectedDate, forceNewCycle);
-    recalculatePeriodDuration();
+    applyFlowLevelToLog(log, currentFlowValue);
+    if (log.flow) {
+      updateCycleHistory(selectedDate, forceNewCycle);
+      recalculatePeriodDuration();
+    }
   }
 
   if (currentPainSet) {
@@ -783,7 +786,10 @@ async function autoSaveSymptomSelection() {
   log.note = rawNote.slice(0, 500).replace(/[<>]/g, "");
 
   state.logs[selectedDate] = log;
-  const didAutoFill = currentFlowSet ? applyAutoFill(selectedDate, log.flow, forceNewCycle) : false;
+  const didAutoFill =
+    currentFlowSet && log.flow
+      ? applyAutoFill(selectedDate, log.flow, forceNewCycle)
+      : false;
   cleanupEmptyLogs();
   await save();
   renderCalendar();
@@ -875,21 +881,23 @@ async function deleteLog() {
 }
 
 function flowIconFromValue(value) {
-  const v = normalizeFlowValue(value, 1);
+  const v = normalizeFlowLevel(value, 1);
+  if (v === 0) return "💧";
   if (v === 1) return "🩸";
   if (v === 2) return "🩸🩸";
   return "🩸🩸🩸";
 }
 
 function flowLabelFromValue(value) {
-  const v = normalizeFlowValue(value, 1);
+  const v = normalizeFlowLevel(value, 1);
+  if (v === 0) return "💧";
   if (v === 1) return "🩸";
   if (v === 2) return "🩸🩸";
   return "🩸🩸🩸";
 }
 
 function updateFlowButtonVisual(value, isSet = true) {
-  const v = normalizeFlowValue(value, 1);
+  const v = normalizeFlowLevel(value, 1);
   currentFlowValue = v;
   currentFlowSet = isSet;
 
@@ -913,7 +921,8 @@ function updateFlowButtonVisual(value, isSet = true) {
 }
 
 function flowWordLabelFromValue(value) {
-  const v = normalizeFlowValue(value, 1);
+  const v = normalizeFlowLevel(value, 1);
+  if (v === 0) return t("flow_spotting");
   if (v === 1) return t("flow_light");
   if (v === 2) return t("flow_medium");
   return t("flow_heavy");
@@ -924,7 +933,7 @@ function updateFlowModalPreview(value) {
   const label = document.getElementById("flow-modal-value");
   const wordLabel = document.getElementById("flow-modal-word");
   if (!slider || !label) return;
-  const v = normalizeFlowValue(value, 1);
+  const v = normalizeFlowLevel(value, 1);
   slider.style.accentColor = "#FF3D6B";
   label.textContent = flowLabelFromValue(v);
   label.style.color = "var(--rose)";
@@ -959,7 +968,7 @@ function showFlowModal() {
   wordEl.style.cssText = "font-size:0.875rem;color:var(--text-muted);margin-top:0.25rem;text-align:center;";
   const slider = document.createElement("input");
   slider.type = "range";
-  slider.min = "1";
+  slider.min = "0";
   slider.max = "3";
   slider.step = "1";
   slider.value = String(currentFlowValue);
@@ -980,7 +989,7 @@ function showFlowModal() {
   updateFlowModalPreview(currentFlowValue);
 
   confirmBtn.onclick = async () => {
-    const v = normalizeFlowValue(slider.value, 1);
+    const v = normalizeFlowLevel(slider.value, 1);
     updateFlowButtonVisual(v, true);
     overlay.classList.remove("visible");
     await autoSaveSymptomSelection();
@@ -2231,14 +2240,14 @@ function getPainDataMonth(year, month) {
     ).padStart(2, "0")}`;
     const dayType = getDayType(dateStr);
     const log = state.logs[dateStr] || {};
-    const flowValue = getFlowValueFromLog(log);
+    const flowLevel = getFlowLevelFromLog(log);
     const painValue = getPainValueFromLog(log);
     const moodValue = getMoodValueFromLog(log);
 
     data.push({
       label: String(d),
-      hasFlow: flowValue !== null,
-      flowIntensity: flowValue === null ? 0 : flowValue / 3,
+      hasFlow: flowLevel !== null,
+      flowIntensity: flowLevel === null ? 0 : flowLevel / 3,
       hasPain: painValue !== null,
       painIntensity: painValue === null ? 0 : painValue / 10,
       hasMood: moodValue !== null,
@@ -2278,12 +2287,12 @@ function getPainDataYear(year) {
       ).padStart(2, "0")}`;
       const log = state.logs[dateStr] || {};
       const dayType = getDayType(dateStr);
-      const flowValue = getFlowValueFromLog(log);
+      const flowLevel = getFlowLevelFromLog(log);
       const painValue = getPainValueFromLog(log);
       const moodValue = getMoodValueFromLog(log);
 
-      if (flowValue !== null) {
-        flowSum += flowValue;
+      if (flowLevel !== null) {
+        flowSum += flowLevel;
         flowCount++;
       }
       if (painValue !== null) {
@@ -2626,10 +2635,10 @@ function selectDay(dateStr) {
   );
 
   const log = state.logs[dateStr] || {};
-  const flowValue = getFlowValueFromLog(log);
+  const flowLevel = getFlowLevelFromLog(log);
   updateFlowButtonVisual(
-    flowValue === null ? 1 : flowValue,
-    flowValue !== null
+    flowLevel === null ? 1 : flowLevel,
+    flowLevel !== null
   );
 
   const painValue = getPainValueFromLog(log);
@@ -2675,7 +2684,7 @@ async function saveLog() {
   if (!selectedDate || !/^\d{4}-\d{2}-\d{2}$/.test(selectedDate)) return;
   const log = {};
   if (currentFlowSet) {
-    log.flow = normalizeFlowValue(currentFlowValue, 1);
+    applyFlowLevelToLog(log, currentFlowValue);
   }
 
   if (currentPainSet) {
@@ -2696,7 +2705,9 @@ async function saveLog() {
     recalculatePeriodDuration();
   }
 
-  const didAutoFill = applyAutoFill(selectedDate, log.flow, forceNewCycle);
+  const didAutoFill = log.flow
+    ? applyAutoFill(selectedDate, log.flow, forceNewCycle)
+    : false;
 
   cleanupEmptyLogs();
   await save();

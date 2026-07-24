@@ -462,6 +462,7 @@ const LOCALES = {
     timeout_after: "s of inactivity — tap to reset",
 
     // Flow labels
+    flow_spotting: "Spotting",
     flow_light: "Light",
     flow_medium: "Medium",
     flow_heavy: "Heavy",
@@ -797,6 +798,7 @@ const LOCALES = {
     timeout_after: "с бездействия — нажмите для сброса",
 
     // Flow labels
+    flow_spotting: "Мазня",
     flow_light: "Слабые",
     flow_medium: "Умеренные",
     flow_heavy: "Обильные",
@@ -1049,6 +1051,7 @@ const LOCALES = {
     timeout_after: "с бяздзейнасці — націсніце для скіду",
 
     // Flow labels
+    flow_spotting: "Мазня",
     flow_light: "Слабыя",
     flow_medium: "Умераныя",
     flow_heavy: "Абутныя",
@@ -1404,6 +1407,7 @@ const LOCALES = {
     timeout_after: "s de inactividad — toca para restablecer",
 
     // Flow labels
+    flow_spotting: "Manchado",
     flow_light: "Ligero",
     flow_medium: "Moderado",
     flow_heavy: "Abundante",
@@ -1831,6 +1835,7 @@ const LOCALES = {
     timeout_before: "⏱️ セッションが",
     timeout_after: "秒後に期限切れになります — タップしてリセット",
 
+    flow_spotting: "点滴出血",
     flow_light: "少ない",
     flow_medium: "普通",
     flow_heavy: "多い",
@@ -2258,6 +2263,7 @@ const LOCALES = {
     timeout_before: "⏱️ 工作階段將在",
     timeout_after: "秒無操作後過期 — 點擊重置",
 
+    flow_spotting: "點狀出血",
     flow_light: "少量",
     flow_medium: "中量",
     flow_heavy: "大量",
