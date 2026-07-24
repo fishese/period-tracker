@@ -2533,6 +2533,8 @@ function renderCalendar() {
     ).padStart(2, "0")}`;
     const cell = document.createElement("div");
     const dayType = getDayType(dateStr);
+    const log = state.logs[dateStr];
+    const flowLevel = getFlowLevelFromLog(log);
     let cls = "cal-day";
     if (dayType === "period") cls += " period";
     else if (dayType === "predicted-period") cls += " predicted-period";
@@ -2540,12 +2542,17 @@ function renderCalendar() {
     else if (dayType === "fertile" && isFertilityVisible()) cls += " fertile";
     if (dateStr === todayStr) cls += " today";
     if (dateStr === selectedDate) cls += " selected-log";
-    if (state.logs[dateStr]) cls += " has-log";
+    if (flowLevel !== null) cls += ` flow-${flowLevel}`;
+    else if (log) cls += " has-log";
     cell.className = cls;
     cell.textContent = d; // safe: numeric only
     cell.dataset.date = dateStr; // used internally only
     cell.tabIndex = 0; // Make focusable
     cell.setAttribute("role", "button");
+    const flowSuffix =
+      flowLevel !== null
+        ? `, ${[t("flow_spotting"), t("flow_light"), t("flow_medium"), t("flow_heavy")][flowLevel]}`
+        : "";
     cell.setAttribute(
       "aria-label",
       `${d}, ${
@@ -2558,7 +2565,7 @@ function renderCalendar() {
           : dayType === "predicted-period"
           ? t("calendar_day_period_possible")
           : t("calendar_day_regular")
-      }`
+      }${flowSuffix}`
     );
     cell.addEventListener("click", () => selectDay(dateStr));
     cell.addEventListener("keydown", (e) => {
