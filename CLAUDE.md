@@ -20,9 +20,11 @@ npx http-server
 
 # Access at http://localhost:8000/period-tracker/ (NOT file://)
 
-# Deploy: push to fishese/period-tracker (GitHub Pages). Root firebase.json is upstream-only.
+# Deploy: push to fishese/period-tracker (GitHub Pages). Root index.html redirects to period-tracker/ app folder.
 git push period-tracker master   # NOT origin — origin is upstream pythonime-lab
 ```
+
+**Repo layout:** Root = redirect only. App code in `period-tracker/`. Live app URL remains `…/period-tracker/period-tracker/` (repo name + app folder on GitHub Pages).
 
 ### Git remotes (this fork)
 

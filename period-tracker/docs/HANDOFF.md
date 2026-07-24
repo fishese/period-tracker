@@ -30,32 +30,21 @@ This document is the **current source of truth** for continuing work. Older deta
 ## 2. Repository layout
 
 ```
-fishese/period-tracker/           # GitHub repo (GitHub Pages hosts the app)
-├── index.html                    # Upstream marketing landing (optional on Pages)
-├── firebase.json                 # Upstream Firebase config — NOT used for this fork's hosting
-├── README.md / README-Fork.md
-└── period-tracker/               # ★ THE WEB APP ★ (served at …/period-tracker/period-tracker/ on Pages)
-    ├── index.html                # Main PWA
+fishese/period-tracker/           # GitHub repo (GitHub Pages)
+├── index.html                    # Redirect → period-tracker/ (app folder)
+├── README.md                     # Fork readme (this repo)
+├── LICENSE.txt                   # GPL v3
+├── CLAUDE.md                     # AI / dev notes
+└── period-tracker/               # ★ THE WEB APP ★
+    ├── index.html
     ├── js/
-    │   ├── script.js             # UI, state, onboarding, settings
-    │   ├── cycles.js             # Predictions, rolling stats, day types
-    │   ├── crypto.js             # PIN, AES-GCM, PBKDF2
-    │   ├── indexeddb-storage.js  # IndexedDB key-value (classic script; loaded before modules)
-    │   ├── drive-sync.js         # Google Drive OAuth + one-way backup
-    │   ├── drive-config.js       # OAuth Client ID + token proxy URL (no secret)
-    │   ├── import-drip.js        # drip CSV parser
-    │   ├── export-drip.js        # drip CSV export
-    │   ├── periodMarking.js      # Menses episode logic
-    │   ├── session.js            # Auto-lock, timeout
-    │   ├── i18n.js               # en, ru, be, es, ja, zh-TW
-    │   └── ...
-    ├── import-drip.html          # Standalone encrypted import tool
-    ├── mycalendar-to-drip.html   # My Calendar → drip converter
     ├── docs/
-    │   ├── HANDOFF.md            # ← this file
+    │   ├── HANDOFF.md
     │   └── google-drive-sync-plan.md
-    └── service-worker.js         # CACHE_VERSION currently v20260723h
+    └── service-worker.js
 ```
+
+**Pages URLs:** repo root `…/period-tracker/` redirects to app `…/period-tracker/period-tracker/`.
 
 ---
 
@@ -74,7 +63,7 @@ git push period-tracker master
 
 Typo `masterx` will fail with “src refspec does not match any”.
 
-Root `firebase.json` is leftover from upstream — **not used** for this fork unless you switch to Firebase hosting.
+Root `firebase.json`, upstream marketing site, and Firebase hosting are **removed** — not used for this fork (GitHub Pages only).
 
 ### Local dev (required for SW + Web Crypto)
 
