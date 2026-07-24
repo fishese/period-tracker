@@ -1839,12 +1839,13 @@ body {
 .logo-lock {
   width: 4rem;
   height: 4rem;
+  object-fit: contain;
 }
 
 .logo-onboard {
   width: 5rem;
   height: 5rem;
-  border-radius: 1.25rem;
+  object-fit: contain;
 }
 
 /* Forgot PIN Button */

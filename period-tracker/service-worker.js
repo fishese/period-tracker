@@ -19,7 +19,7 @@ const IS_DEV =
   self.location.hostname === "localhost" ||
   self.location.hostname === "127.0.0.1";
 
-const CACHE_VERSION = "v20260725a";
+const CACHE_VERSION = "v20260725b";
 const CACHE_NAME = `mycyclekeeper-${CACHE_VERSION}`;
 
 // Derive base path from the SW's own URL so this works on both localhost
@@ -50,6 +50,7 @@ const ASSETS_TO_CACHE = [
   BASE_PATH + "js/drive-sync.js",
   BASE_PATH + "js/drive-config.js",
   BASE_PATH + "import-drip.html",
+  BASE_PATH + "logo/my_cycle_keeper_logo.png",
   BASE_PATH + "icons/favicon-16x16.png",
   BASE_PATH + "icons/favicon-32x32.png",
   BASE_PATH + "icons/favicon-48x48.png",
