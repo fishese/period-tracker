@@ -237,7 +237,7 @@
         // Drop entries with no meaningful data
         for (const date in mergedLogs) {
           const l = mergedLogs[date];
-          if (!l.flow && !l.pain && l.mood == null && !(l.note && l.note.trim()))
+          if (!l.flow && !l.spotting && l.pain == null && l.mood == null && !(l.note && l.note.trim()))
             delete mergedLogs[date];
         }
 

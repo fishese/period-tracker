@@ -46,7 +46,7 @@ export function applyFlowLevelToLog(log, level) {
 export function normalizePainValue(value, fallback = 5) {
   const n = Number(value);
   if (!Number.isFinite(n)) return fallback;
-  const clamped = Math.max(1, Math.min(10, n));
+  const clamped = Math.max(0, Math.min(10, n));
   return Math.round(clamped * 2) / 2;
 }
 

@@ -131,14 +131,17 @@ state = {
   periodDuration: 5,            // synced from rolling flow duration when logs exist
   toleranceDays: null,          // null = auto (±1/±2 from stats), 0–5 manual
   autoFillDays: null,           // null = auto from logs; 0 = off; 1–10 = days ahead (not including start day)
-  showFertility: false,         // default OFF — calendar highlights only when true
-  logs: { "YYYY-MM-DD": { flow?, spotting?, pain?, mood?, note? } },
+  showFertility: false,         // default OFF — fertility-specific calendar/status/stats content
+  showCyclePhases: true,        // default ON — independent cycle phase timeline setting
+  logs: { "YYYY-MM-DD": { flow?, spotting?, flowEstimated?, pain?, mood?, note? } },
   cycleHistory: [{ start, length }],
 }
 ```
 
 - `flow` (1–3) is a real period day and counts toward cycle-length/period-duration stats.
 - `spotting: true` is tracked separately (currently only set via drip CSV import, `bleeding.value === 0`) — shows as a logged day (calendar dot) but is **excluded** from `flow`-based cycle/period calculations so it doesn't skew predictions. Round-trips back to drip's `bleeding.value=0` on export.
+- `flowEstimated: true` marks light-flow days created by auto-fill. The day editor identifies these until the user confirms or changes the flow.
+- `pain: 0` means explicitly **no pain**; a missing `pain` property means pain was not recorded. Never use truthy checks for pain.
 
 `setState()` in `cycles.js` / `periodMarking.js` holds a **reference** — never pass copies.
 
@@ -205,20 +208,23 @@ Only while **actively bleeding** (`isPeriodEpisodeActive`).
 
 | Area | Notes |
 |------|--------|
-| Calendar tab | Status → **calendar** → **timeline bar** (bar under calendar) |
-| Insights | History / Predictions / How it works |
-| Settings Layout | Calendar toggle → **Language** → Theme |
+| Calendar tab | Status → **calendar** → **timeline bar** (bar under calendar); tapping a day opens the compact accordion editor |
+| Insights | Recent period profile with adaptive flow/pain/mood tracks; the six recent History rows combine dates, duration, cycle length, and a compact daily flow/pain/mood SVG chart / Predictions / How it works |
+| Settings Layout | Fertility estimates + cycle phase timeline toggles → **Language** → Theme |
 | About → Developer | Combined About (no PayPal); separate **About This Fork** summary |
 | zh-TW terminology | 經期 / 月經 (not 生理期 / 生理) |
 
-### Fertility toggle
+### Fertility and timeline toggles
 
-**Default `false`.** Affects calendar highlights + status phase labels only — **not** timeline legend.
+- **Show fertility estimates** defaults to `false`. It controls fertile/ovulation calendar highlights, fertility-specific status labels, and the **Fertile Days** insight.
+- **Show cycle phase timeline** defaults to `true` and is independent of fertility estimates. On, the timeline shows **Menstrual / Follicular / Ovulation / Luteal**; off, it shows a neutral **Period / Other cycle days** progress view.
+- Existing encrypted state without `showCyclePhases` migrates to `true`.
 
 ### Cycle history
 
 - Compact dates: `Jun 4–Jun 9, 2026`
-- Columns: Dates \| Period \| Cycle
+- History columns: Dates \| Period \| Cycle \| Daily pattern. The daily pattern is a compact, theme-safe SVG with flow bars plus overlaid pain and mood lines; its own `var(--bg2)` background keeps it readable across themes.
+- Both the recent-six table and full-history overlay use the same chart component and aligned four-column grid.
 - Footer row: “Showing last N of M cycles” + small **share icon** (mailto, last 6 periods as plain text) + **print icon** (`printCycleSummary()`)
 - `shareRecentPeriodHistory()` in `script.js`
 
@@ -226,7 +232,7 @@ Only while **actively bleeding** (`isPeriodEpisodeActive`).
 
 - `printCycleSummary()` / `buildPrintSummaryContent()` in `script.js`, print icon next to the share icon on the History tab footer row.
 - Builds a hidden `#print-summary` element (direct child of `<body>`), then `window.print()`. `@media print` in `style.css` hides everything else (`body > *:not(.print-summary)`) and forces black-on-white regardless of active theme.
-- Content: rolling/overall cycle stats, next predicted period, and a full cycle history table with per-cycle avg pain/mood + note count (`summarizeCycleSymptoms()`), plus a "not medical advice" disclaimer.
+- Privacy prompt defaults to dates/durations only on every print. Two independent opt-ins can add symptom summaries and/or daily notes. The medical disclaimer appears when symptoms are included.
 
 ### Symptom chart
 

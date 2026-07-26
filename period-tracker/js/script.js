@@ -134,12 +134,17 @@ let state = {
   toleranceDays: null,
   autoFillDays: null,
   showFertility: false,
+  showCyclePhases: true,
   logs: {},
   cycleHistory: [],
 };
 
 function isFertilityVisible() {
   return state.showFertility === true;
+}
+
+function isCyclePhaseTimelineVisible() {
+  return state.showCyclePhases !== false;
 }
 
 // Initialize modular state references
@@ -358,6 +363,7 @@ async function submitPin() {
         state = await decryptData(blob, pin, salt);
         // Default fields added in later versions (migration from older saves)
         state.autoFillDays = state.autoFillDays ?? null;
+        state.showCyclePhases = state.showCyclePhases ?? true;
         // Re-initialize module state references after loading encrypted data
         setCyclesState(state);
         setPeriodMarkingState(state);
@@ -402,6 +408,7 @@ function lockApp() {
     toleranceDays: null,
     autoFillDays: null,
     showFertility: false,
+    showCyclePhases: true,
     logs: {},
     cycleHistory: [],
   };
@@ -463,6 +470,7 @@ async function _executeForgotPinReset() {
       toleranceDays: null,
       autoFillDays: null,
       showFertility: false,
+      showCyclePhases: true,
       logs: {},
       cycleHistory: [],
     };
@@ -714,6 +722,7 @@ function updateNoteCount() {
 
 let currentFlowValue = 1;
 let currentFlowSet = false;
+let currentFlowEstimated = false;
 let currentMoodValue = 50;
 let currentMoodSet = false;
 let currentPainValue = 5;
@@ -751,7 +760,11 @@ function applyAutoFill(dateStr, flow, forceNewCycle = false) {
   for (let i = 1; i <= fillDays; i++) {
     const next = toISO(addDays(start, i));
     if (!state.logs[next]?.flow) {
-      state.logs[next] = { ...(state.logs[next] || {}), flow: 1 };
+      state.logs[next] = {
+        ...(state.logs[next] || {}),
+        flow: 1,
+        flowEstimated: true,
+      };
     }
   }
   autoFillDatesThisSession.add(dateStr);
@@ -763,12 +776,15 @@ async function autoSaveSymptomSelection() {
 
   const noteEl = document.getElementById("log-note");
   const rawNote = noteEl ? noteEl.value : "";
+  const previousLog = state.logs[selectedDate] || {};
+  const hadFlow = !!previousLog.flow;
   const log = {};
 
   const forceNewCycle = getForceNewCycleFlag();
 
   if (currentFlowSet) {
     applyFlowLevelToLog(log, currentFlowValue);
+    if (currentFlowEstimated && log.flow) log.flowEstimated = true;
     if (log.flow) {
       updateCycleHistory(selectedDate, forceNewCycle);
       recalculatePeriodDuration();
@@ -787,14 +803,19 @@ async function autoSaveSymptomSelection() {
 
   state.logs[selectedDate] = log;
   const didAutoFill =
-    currentFlowSet && log.flow
+    !hadFlow && currentFlowSet && log.flow
       ? applyAutoFill(selectedDate, log.flow, forceNewCycle)
       : false;
   cleanupEmptyLogs();
+  if (hadFlow && !log.flow) {
+    rebuildCycleHistoryFromLogs();
+    recalculatePeriodDuration();
+  }
   await save();
   renderCalendar();
   updateStatusCard();
   updateInsights();
+  updateLogEditorUI();
   if (didAutoFill) {
     try { showAutoFillBanner(getAutoFillDayCount()); } catch (_) {}
   }
@@ -806,7 +827,7 @@ function scheduleAutoSaveNote() {
   // Show "saving…" feel
   const indicator = document.getElementById("autosave-indicator");
   if (indicator) {
-    indicator.textContent = "Saving…";
+    indicator.textContent = t("log_saving");
     indicator.classList.add("visible");
   }
   clearTimeout(_noteSaveTimer);
@@ -819,11 +840,8 @@ function scheduleAutoSaveNote() {
 function showAutosaveIndicator() {
   const indicator = document.getElementById("autosave-indicator");
   if (!indicator) return;
-  indicator.textContent = "All changes saved \u2713";
+  indicator.textContent = t("log_saved");
   indicator.classList.add("visible");
-  setTimeout(() => {
-    indicator.classList.remove("visible");
-  }, 2500);
 }
 
 async function resetLogWithConfirm() {
@@ -852,6 +870,22 @@ async function resetLogWithConfirm() {
   }
 }
 
+function deleteLogWithConfirm() {
+  if (!state.logs[selectedDate]) return;
+  showModal({
+    icon: "\uD83D\uDDD1\uFE0F",
+    title: t("log_delete_title"),
+    msg: t("log_delete_message"),
+    cancelText: t("cancel"),
+    confirmText: t("log_delete_entry"),
+    onConfirm: async () => {
+      await deleteLog();
+      updateLogEditorUI();
+      showToast(t("log_entry_deleted"));
+    },
+  });
+}
+
 async function deleteLog() {
   if (!selectedDate || !/^\d{4}-\d{2}-\d{2}$/.test(selectedDate)) return;
 
@@ -860,6 +894,7 @@ async function deleteLog() {
 
   // Clear the UI
   currentFlowSet = false;
+  currentFlowEstimated = false;
   currentPainSet = false;
   currentMoodSet = false;
   updateFlowButtonVisual(1, false);
@@ -878,6 +913,162 @@ async function deleteLog() {
   renderCalendar();
   updateStatusCard();
   updateInsights();
+}
+
+function toggleLogSection(sectionName) {
+  document.querySelectorAll(".log-section").forEach((section) => {
+    const isTarget = section.id === `log-section-${sectionName}`;
+    section.classList.toggle("open", isTarget);
+    const toggle = section.querySelector(".log-section-toggle");
+    const panel = section.querySelector(".log-section-panel");
+    const chevron = section.querySelector(".log-section-chevron");
+    if (toggle) toggle.setAttribute("aria-expanded", String(isTarget));
+    if (panel) panel.hidden = !isTarget;
+    if (chevron) chevron.textContent = isTarget ? "⌄" : "›";
+  });
+  if (sectionName === "note") {
+    setTimeout(() => document.getElementById("log-note")?.focus(), 0);
+  }
+}
+
+function setLogEditorSaving() {
+  const indicator = document.getElementById("autosave-indicator");
+  if (indicator) {
+    indicator.textContent = t("log_saving");
+    indicator.classList.add("visible");
+  }
+}
+
+async function selectFlowValue(value) {
+  currentFlowEstimated = false;
+  if (value === null) {
+    currentFlowSet = false;
+  } else {
+    currentFlowValue = normalizeFlowLevel(value, 1);
+    currentFlowSet = true;
+  }
+  updateLogEditorUI();
+  setLogEditorSaving();
+  await autoSaveSymptomSelection();
+  showAutosaveIndicator();
+}
+
+function previewInlinePain(value) {
+  const v = normalizePainValue(value, 5);
+  const label = document.getElementById("log-pain-value");
+  if (label) label.textContent = `${v.toFixed(v % 1 ? 1 : 0)} / 10`;
+}
+
+async function selectPainValue(value) {
+  currentPainValue = normalizePainValue(value, 5);
+  currentPainSet = true;
+  updateLogEditorUI();
+  setLogEditorSaving();
+  await autoSaveSymptomSelection();
+  showAutosaveIndicator();
+}
+
+async function selectMoodValue(value) {
+  currentMoodValue = normalizeMoodValue(value, 50);
+  currentMoodSet = true;
+  updateLogEditorUI();
+  setLogEditorSaving();
+  await autoSaveSymptomSelection();
+  showAutosaveIndicator();
+}
+
+async function clearLogField(field, event) {
+  event?.stopPropagation();
+  if (field === "flow") {
+    currentFlowSet = false;
+    currentFlowEstimated = false;
+  } else if (field === "pain") {
+    currentPainSet = false;
+  } else if (field === "mood") {
+    currentMoodSet = false;
+  } else if (field === "note") {
+    const note = document.getElementById("log-note");
+    if (note) note.value = "";
+    updateNoteCount();
+  }
+  updateLogEditorUI();
+  setLogEditorSaving();
+  await autoSaveSymptomSelection();
+  showAutosaveIndicator();
+}
+
+function updateLogEditorUI() {
+  const noteValue = document.getElementById("log-note")?.value.trim() || "";
+  const entryExists =
+    currentFlowSet || currentPainSet || currentMoodSet || !!noteValue;
+  const entryMode = document.getElementById("log-entry-mode");
+  if (entryMode)
+    entryMode.textContent = entryExists ? t("log_edit_entry") : t("log_add_entry");
+
+  const flowSummary = document.getElementById("log-flow-summary");
+  const flowIcon = document.getElementById("log-flow-icon");
+  if (flowIcon) flowIcon.textContent = currentFlowSet ? flowIconFromValue(currentFlowValue) : "🩸";
+  if (flowSummary) {
+    flowSummary.textContent = currentFlowSet
+      ? `${currentFlowEstimated ? "Estimated · " : ""}${flowWordLabelFromValue(currentFlowValue)}`
+      : t("log_not_recorded");
+    flowSummary.classList.toggle("is-set", currentFlowSet);
+  }
+  document.getElementById("log-flow-clear")?.classList.toggle("visible", currentFlowSet);
+  document.getElementById("log-flow-estimated")?.classList.toggle("hidden", !currentFlowEstimated);
+  document.querySelectorAll("[data-flow-value]").forEach((button) => {
+    const selected = currentFlowSet
+      ? button.dataset.flowValue === String(currentFlowValue)
+      : button.dataset.flowValue === "none";
+    button.classList.toggle("selected", selected);
+    button.setAttribute("aria-pressed", String(selected));
+  });
+
+  const painSummary = document.getElementById("log-pain-summary");
+  if (painSummary) {
+    painSummary.textContent = !currentPainSet
+      ? t("log_not_recorded")
+      : currentPainValue === 0
+        ? t("log_no_pain")
+        : `${currentPainValue.toFixed(currentPainValue % 1 ? 1 : 0)} / 10`;
+    painSummary.classList.toggle("is-set", currentPainSet);
+  }
+  document.getElementById("log-pain-clear")?.classList.toggle("visible", currentPainSet);
+  const noPainButton = document.getElementById("log-no-pain");
+  const noPainSelected = currentPainSet && currentPainValue === 0;
+  noPainButton?.classList.toggle("selected", noPainSelected);
+  noPainButton?.setAttribute("aria-pressed", String(noPainSelected));
+  const painSlider = document.getElementById("log-pain-slider");
+  if (painSlider && currentPainValue > 0) painSlider.value = String(currentPainValue);
+  previewInlinePain(currentPainValue > 0 ? currentPainValue : painSlider?.value || 5);
+
+  const moodSummary = document.getElementById("log-mood-summary");
+  const moodIcon = document.getElementById("log-mood-icon");
+  if (moodIcon) moodIcon.textContent = currentMoodSet ? moodIconFromValue(currentMoodValue) : "😐";
+  if (moodSummary) {
+    moodSummary.textContent = currentMoodSet
+      ? moodLabelFromValue(currentMoodValue)
+      : t("log_not_recorded");
+    moodSummary.classList.toggle("is-set", currentMoodSet);
+  }
+  document.getElementById("log-mood-clear")?.classList.toggle("visible", currentMoodSet);
+  document.querySelectorAll("[data-mood-value]").forEach((button) => {
+    const selected =
+      currentMoodSet && button.dataset.moodValue === String(currentMoodValue);
+    button.classList.toggle("selected", selected);
+    button.setAttribute("aria-pressed", String(selected));
+  });
+
+  const noteSummary = document.getElementById("log-note-summary");
+  if (noteSummary) {
+    noteSummary.textContent = noteValue
+      ? noteValue.replace(/\s+/g, " ").slice(0, 34)
+      : t("log_add_note");
+    noteSummary.classList.toggle("is-set", !!noteValue);
+  }
+  document.getElementById("log-note-clear")?.classList.toggle("visible", !!noteValue);
+  const deleteButton = document.getElementById("log-reset-btn");
+  if (deleteButton) deleteButton.hidden = !entryExists;
 }
 
 function flowIconFromValue(value) {
@@ -918,6 +1109,7 @@ function updateFlowButtonVisual(value, isSet = true) {
     }
   }
   if (flowIcon) flowIcon.textContent = flowIconFromValue(v);
+  updateLogEditorUI();
 }
 
 function flowWordLabelFromValue(value) {
@@ -1011,7 +1203,7 @@ function showFlowModal() {
 
 function painColorFromValue(value) {
   const v = normalizePainValue(value, 5);
-  const t = (v - 1) / 9;
+  const t = v / 10;
   const low = { r: 255, g: 179, b: 71 }; // #FFB347 (light orange)
   const high = { r: 255, g: 140, b: 0 }; // #FF8C00 (dark orange)
   const r = Math.round(low.r + (high.r - low.r) * t);
@@ -1050,6 +1242,7 @@ function updatePainButtonVisual(value, isSet = true) {
   if (painIcon) painIcon.textContent = "🤕";
   const painLabel = document.getElementById("log-pain-label");
   if (painLabel) painLabel.textContent = isSet ? `Pain: ${v.toFixed(1)}/10` : "Pain";
+  updateLogEditorUI();
 }
 
 function updatePainModalPreview(value) {
@@ -1173,6 +1366,7 @@ function updateMoodButtonVisual(value, isSet = true) {
     }
   }
   if (moodIcon) moodIcon.textContent = moodIconFromValue(v);
+  updateLogEditorUI();
 }
 
 function updateMoodModalPreview(value) {
@@ -1452,23 +1646,66 @@ function updateReminderBanner(info) {
 
 function updateCycleBar(info) {
   const bar = document.getElementById("cycle-bar");
+  if (!bar) return;
   safeText("bar-cycle-end", t("bar_day", { n: info.cl }));
-  const segs = [
-    { c: "linear-gradient(90deg,#FF3D6B,#FF6B4A)", w: info.pd },
-    {
-      c: "linear-gradient(90deg,#FF6B4A,#FFB347)",
-      w: info.fertileStart - info.pd - 1,
-    },
-    {
-      c: "linear-gradient(90deg,#34D399,#2DD4BF)",
-      w: info.fertileEnd - info.fertileStart + 1,
-    },
-    { c: "#F59E0B", w: 1 },
-    {
-      c: "linear-gradient(90deg,#A78BFA,#7C3AED)",
-      w: info.cl - info.fertileEnd - 1,
-    },
-  ];
+  const showPhases = isCyclePhaseTimelineVisible();
+  const primaryLabel = document.getElementById("cycle-legend-primary-label");
+  const secondaryLabel = document.getElementById("cycle-legend-secondary-label");
+  const secondaryDot = document.getElementById("cycle-legend-secondary-dot");
+  const ovulationLegend = document.getElementById("cycle-legend-ovulation");
+  const lutealLegend = document.getElementById("cycle-legend-luteal");
+
+  if (primaryLabel) {
+    primaryLabel.dataset.i18n = showPhases ? "menstrual" : "period_short";
+    primaryLabel.textContent = t(showPhases ? "menstrual" : "period_short");
+  }
+  if (secondaryLabel) {
+    secondaryLabel.dataset.i18n = showPhases
+      ? "follicular"
+      : "other_cycle_days";
+    secondaryLabel.textContent = t(
+      showPhases ? "follicular" : "other_cycle_days"
+    );
+  }
+  if (secondaryDot) {
+    secondaryDot.className = `legend-dot ${
+      showPhases ? "legend-dot--fertile" : "legend-dot--neutral"
+    }`;
+  }
+  if (ovulationLegend) ovulationLegend.hidden = !showPhases;
+  if (lutealLegend) lutealLegend.hidden = !showPhases;
+
+  const menstrualDays = Math.min(Math.max(info.pd, 0), info.cl);
+  const follicularDays = Math.max(
+    0,
+    Math.min(info.ovulationDay - menstrualDays - 1, info.cl - menstrualDays)
+  );
+  const ovulationDays =
+    info.ovulationDay > menstrualDays && info.ovulationDay <= info.cl ? 1 : 0;
+  const lutealDays = Math.max(
+    0,
+    info.cl - menstrualDays - follicularDays - ovulationDays
+  );
+  const segs = showPhases
+    ? [
+        { c: "linear-gradient(90deg,#FF3D6B,#FF6B4A)", w: menstrualDays },
+        {
+          c: "linear-gradient(90deg,#34D399,#2DD4BF)",
+          w: follicularDays,
+        },
+        { c: "#F59E0B", w: ovulationDays },
+        {
+          c: "linear-gradient(90deg,#A78BFA,#7C3AED)",
+          w: lutealDays,
+        },
+      ]
+    : [
+        { c: "linear-gradient(90deg,#FF3D6B,#FF6B4A)", w: menstrualDays },
+        {
+          c: "linear-gradient(90deg,#64748B,#475569)",
+          w: info.cl - menstrualDays,
+        },
+      ];
   bar.innerHTML = "";
   let left = 0;
   segs.forEach((s) => {
@@ -1485,7 +1722,7 @@ function updateCycleBar(info) {
     bar.appendChild(seg);
     left += s.w;
   });
-  const todayPct = ((getCycleInfo().cycleDay - 1) / info.cl) * 100;
+  const todayPct = ((info.cycleDay - 1) / info.cl) * 100;
   if (todayPct >= 0 && todayPct <= 100) {
     const m = document.createElement("div");
     m.className = "today-marker";
@@ -1548,6 +1785,22 @@ function formatPeriodDateRange(startIso, endIso) {
   return `${startLabel}, ${start.getFullYear()}–${endLabel}, ${year}`;
 }
 
+function formatPeriodDateRangeCompact(startIso, endIso) {
+  const start = fromISO(startIso);
+  const end = fromISO(endIso);
+  const lang = getLanguage();
+  const startMonth = start.toLocaleDateString(lang, { month: "short" });
+  const endMonth = end.toLocaleDateString(lang, { month: "short" });
+  const shortYear = (date) => `’${String(date.getFullYear()).slice(-2)}`;
+
+  if (toISO(start) === toISO(end))
+    return `${startMonth} ${start.getDate()}, ${shortYear(start)}`;
+  if (start.getFullYear() === end.getFullYear()) {
+    return `${startMonth} ${start.getDate()}–${endMonth} ${end.getDate()}, ${shortYear(end)}`;
+  }
+  return `${startMonth} ${start.getDate()}, ${shortYear(start)}–${endMonth} ${end.getDate()}, ${shortYear(end)}`;
+}
+
 function getPeriodEndDate(startDateStr) {
   const start = fromISO(startDateStr);
   let hasFlow = false;
@@ -1568,11 +1821,181 @@ function getPeriodEndDate(startDateStr) {
     : toISO(addDays(start, getPredictionPeriodDuration() - 1));
 }
 
+function createHistoryDailyChart(periodDays, startStr, endStr) {
+  const svgNS = "http://www.w3.org/2000/svg";
+  const width = 120;
+  const height = 30;
+  const sidePadding = 5;
+  const plotTop = 3;
+  const plotBottom = 27;
+  const plotHeight = plotBottom - plotTop;
+  const usableWidth = width - sidePadding * 2;
+  const pointSpacing =
+    periodDays.length <= 1
+      ? 0
+      : Math.min(15, usableWidth / (periodDays.length - 1));
+  const seriesWidth = pointSpacing * Math.max(periodDays.length - 1, 0);
+  const seriesStart = (width - seriesWidth) / 2;
+  const xForIndex = (index) =>
+    periodDays.length <= 1
+      ? width / 2
+      : seriesStart + index * pointSpacing;
+  const makeSvgElement = (tag, attributes = {}) => {
+    const element = document.createElementNS(svgNS, tag);
+    Object.entries(attributes).forEach(([name, value]) =>
+      element.setAttribute(name, String(value))
+    );
+    return element;
+  };
+
+  const chart = makeSvgElement("svg", {
+    class: "history-daily-chart",
+    viewBox: `0 0 ${width} ${height}`,
+    role: "img",
+    "aria-label": `${t("flow")}, ${t("pain")}, ${t("mood")}: ${formatPeriodDateRange(startStr, endStr)}`,
+  });
+  const title = makeSvgElement("title");
+  title.textContent = `${t("flow")}, ${t("pain")}, ${t("mood")} — ${formatPeriodDateRange(startStr, endStr)}`;
+  chart.appendChild(title);
+  chart.appendChild(
+    makeSvgElement("rect", {
+      class: "history-daily-chart-bg",
+      x: 0.5,
+      y: 0.5,
+      width: width - 1,
+      height: height - 1,
+      rx: 4,
+    })
+  );
+  [11, 19].forEach((y) =>
+    chart.appendChild(
+      makeSvgElement("line", {
+        class: "history-daily-chart-divider",
+        x1: 4,
+        y1: y,
+        x2: width - 4,
+        y2: y,
+      })
+    )
+  );
+
+  const barWidth = Math.max(2, Math.min(8.5, pointSpacing * 0.57 || 8.5));
+  periodDays.forEach((day, index) => {
+    if (!(day.flow > 0)) return;
+    const flowLevel = Math.min(day.flow, 3);
+    const barHeight = (flowLevel / 3) * plotHeight;
+    chart.appendChild(
+      makeSvgElement("rect", {
+        class: "history-daily-chart-flow",
+        x: xForIndex(index) - barWidth / 2,
+        y: plotBottom - barHeight,
+        width: barWidth,
+        height: barHeight,
+        opacity: 0.18 + flowLevel * 0.23,
+        rx: 1,
+      })
+    );
+  });
+
+  const addLineSeries = (key, className) => {
+    const segments = [];
+    const points = [];
+    let segment = [];
+    const flushSegment = () => {
+      if (segment.length) segments.push(segment);
+      segment = [];
+    };
+
+    periodDays.forEach((day, index) => {
+      const value = day[key];
+      if (value == null) {
+        flushSegment();
+        return;
+      }
+      const maximum = key === "pain" ? 10 : 100;
+      const normalized = Math.max(0, Math.min(value / maximum, 1));
+      const point = {
+        x: xForIndex(index),
+        y: plotBottom - normalized * plotHeight,
+        value,
+      };
+      segment.push(point);
+      points.push(point);
+    });
+    flushSegment();
+
+    segments.forEach((pointsInSegment) => {
+      if (pointsInSegment.length < 2) return;
+      const pathData = pointsInSegment
+        .map(
+          (point, index) =>
+            `${index === 0 ? "M" : "L"}${point.x.toFixed(2)} ${point.y.toFixed(2)}`
+        )
+        .join(" ");
+      chart.append(
+        makeSvgElement("path", {
+          class: "history-daily-chart-line-halo",
+          d: pathData,
+        }),
+        makeSvgElement("path", {
+          class: `history-daily-chart-line ${className}`,
+          d: pathData,
+        })
+      );
+    });
+
+    points.forEach((point) => {
+      const pointClass =
+        key === "mood"
+          ? point.value < 35
+            ? "history-daily-chart-point--mood-low"
+            : point.value > 65
+              ? "history-daily-chart-point--mood-high"
+              : "history-daily-chart-point--mood-neutral"
+          : "history-daily-chart-point--pain";
+      chart.appendChild(
+        makeSvgElement("circle", {
+          class: `history-daily-chart-point ${pointClass}`,
+          cx: point.x,
+          cy: point.y,
+          r: 1.2,
+        })
+      );
+    });
+  };
+
+  addLineSeries("pain", "history-daily-chart-line--pain");
+  addLineSeries("mood", "history-daily-chart-line--mood");
+  return chart;
+}
+
+function createHistoryPatternKey() {
+  const key = document.createElement("span");
+  key.className = "history-pattern-key";
+  key.setAttribute("aria-label", t("history_daily_pattern"));
+  [
+    ["flow", "history-pattern-key-item--flow"],
+    ["pain", "history-pattern-key-item--pain"],
+    ["mood", "history-pattern-key-item--mood"],
+  ].forEach(([labelKey, className]) => {
+    const item = document.createElement("span");
+    item.className = `history-pattern-key-item ${className}`;
+    item.textContent = t(labelKey);
+    key.appendChild(item);
+  });
+  return key;
+}
+
 function buildHistoryRow(c, options = {}) {
-  const { isCurrentCycle = false, shiftedStarts = null, rollingAvg = null } =
-    options;
+  const {
+    isCurrentCycle = false,
+    shiftedStarts = null,
+    rollingAvg = null,
+    dailyChart = false,
+  } = options;
   const row = document.createElement("div");
   row.className = "history-row";
+  if (dailyChart) row.classList.add("history-row--chart");
   if (!isCurrentCycle && shiftedStarts?.has(c.start)) {
     row.classList.add("history-row--shifted");
   }
@@ -1581,7 +2004,8 @@ function buildHistoryRow(c, options = {}) {
 
   const dateEl = document.createElement("span");
   dateEl.className = "history-date";
-  dateEl.textContent = formatPeriodDateRange(c.start, endStr);
+  dateEl.textContent = formatPeriodDateRangeCompact(c.start, endStr);
+  dateEl.title = formatPeriodDateRange(c.start, endStr);
 
   const durEl = document.createElement("span");
   durEl.className = "history-dur";
@@ -1591,17 +2015,76 @@ function buildHistoryRow(c, options = {}) {
   lenEl.className = "history-len";
   const col = c.length < 26 ? "#34D399" : c.length > 32 ? "#FF6B4A" : "#A78BFA";
   lenEl.style.cssText = `background:${col}22;color:${col}`;
-  lenEl.textContent = isCurrentCycle
-    ? t("history_current")
-    : tp("history_days", parseInt(c.length));
+  lenEl.textContent = isCurrentCycle ? "—" : `${parseInt(c.length)}d`;
+  if (isCurrentCycle) {
+    lenEl.title = t("history_current");
+    lenEl.setAttribute("aria-label", t("history_current"));
+  }
   if (!isCurrentCycle && shiftedStarts?.has(c.start) && rollingAvg != null) {
     const shiftDays = Math.abs(c.length - rollingAvg);
     lenEl.title = tp("cycle_shift_tooltip", shiftDays, { days: shiftDays });
   }
 
-  row.appendChild(dateEl);
-  row.appendChild(durEl);
-  row.appendChild(lenEl);
+  const periodDays = Array.from({ length: durDays }, (_, index) => {
+    const log = state.logs[toISO(addDays(fromISO(c.start), index))] || {};
+    return {
+      flow: getFlowLevelFromLog(log),
+      pain: getPainValueFromLog(log),
+      mood: getMoodValueFromLog(log),
+    };
+  });
+
+  if (dailyChart) {
+    row.append(
+      dateEl,
+      durEl,
+      lenEl,
+      createHistoryDailyChart(periodDays, c.start, endStr)
+    );
+    return row;
+  }
+
+  const flowEl = document.createElement("span");
+  flowEl.className = "history-flow-spark";
+  flowEl.setAttribute("aria-label", `Flow pattern: ${formatPeriodDateRange(c.start, endStr)}`);
+  periodDays.forEach((day) => {
+    const bar = document.createElement("span");
+    const level = day.flow > 0 ? day.flow : 0;
+    bar.style.height = level ? `${25 + level * 25}%` : "0.125rem";
+    bar.style.opacity = level ? String(0.35 + level * 0.2) : "0.15";
+    flowEl.appendChild(bar);
+  });
+
+  const painEl = document.createElement("span");
+  painEl.className = "history-pain";
+  const painValues = periodDays
+    .map((day) => day.pain)
+    .filter((value) => value != null);
+  if (painValues.length) {
+    const peakPain = Math.max(...painValues);
+    painEl.textContent = peakPain === 0 ? "0" : String(peakPain);
+    painEl.title = peakPain === 0 ? t("log_no_pain") : `${t("pain")} ${peakPain}/10`;
+  } else {
+    painEl.textContent = "—";
+    painEl.title = t("log_not_recorded");
+  }
+
+  const moodEl = document.createElement("span");
+  moodEl.className = "history-mood";
+  const moodValues = periodDays
+    .map((day) => day.mood)
+    .filter((value) => value != null);
+  if (moodValues.length) {
+    const averageMood =
+      moodValues.reduce((sum, value) => sum + value, 0) / moodValues.length;
+    moodEl.textContent = moodIconFromValue(averageMood);
+    moodEl.title = moodLabelFromValue(averageMood);
+  } else {
+    moodEl.textContent = "";
+    moodEl.title = t("log_not_recorded");
+  }
+
+  row.append(dateEl, durEl, lenEl, flowEl, painEl, moodEl);
   return row;
 }
 
@@ -1636,12 +2119,18 @@ function showHistoryFullPage() {
 
   // Column labels pinned at the top of the scrollable body
   const subheader = document.createElement("div");
-  subheader.className = "history-fullpage-subheader";
-  [t("history_col_dates"), t("history_col_period"), t("history_col_cycle")].forEach((label) => {
+  subheader.className =
+    "history-fullpage-subheader history-col-labels--chart";
+  [
+    t("history_col_dates"),
+    t("history_col_period"),
+    t("history_col_cycle"),
+  ].forEach((label) => {
     const s = document.createElement("span");
     s.textContent = label;
     subheader.appendChild(s);
   });
+  subheader.appendChild(createHistoryPatternKey());
   body.appendChild(subheader);
 
   if (!state.cycleHistory || state.cycleHistory.length === 0) {
@@ -1661,6 +2150,7 @@ function showHistoryFullPage() {
           isCurrentCycle: idx === 0 && isPeriodEpisodeActive(c.start),
           shiftedStarts,
           rollingAvg,
+          dailyChart: true,
         })
       )
     );
@@ -1694,38 +2184,54 @@ function shareRecentPeriodHistory() {
   window.location.href = mailto;
 }
 
-/** Average pain/mood + note count over a period's days, for the print summary. */
+/** Optional flow/pain/mood summary over a period's days. */
 function summarizeCycleSymptoms(startStr, endStr) {
   const start = fromISO(startStr);
   const days = diffDays(start, fromISO(endStr)) + 1;
-  let painSum = 0, painCount = 0, moodSum = 0, moodCount = 0, noteCount = 0;
+  let heavyDays = 0, peakPain = null, painCount = 0;
+  const moodCounts = { low: 0, neutral: 0, happy: 0 };
   for (let i = 0; i < days; i++) {
     const log = state.logs[toISO(addDays(start, i))];
     if (!log) continue;
+    if (getFlowLevelFromLog(log) === 3) heavyDays++;
     const painVal = getPainValueFromLog(log);
-    if (painVal != null) { painSum += painVal; painCount++; }
+    if (painVal != null) {
+      peakPain = peakPain == null ? painVal : Math.max(peakPain, painVal);
+      painCount++;
+    }
     const moodVal = getMoodValueFromLog(log);
-    if (moodVal != null) { moodSum += moodVal; moodCount++; }
-    if (log.note && log.note.trim()) noteCount++;
+    if (moodVal != null) {
+      if (moodVal < 35) moodCounts.low++;
+      else if (moodVal > 65) moodCounts.happy++;
+      else moodCounts.neutral++;
+    }
   }
-  const parts = [];
-  if (painCount > 0) {
-    parts.push(t("print_summary_avg_pain", { value: (painSum / painCount).toFixed(1) }));
-  }
-  if (moodCount > 0) {
-    parts.push(t("print_summary_avg_mood", { value: Math.round(moodSum / moodCount) }));
-  }
-  if (noteCount > 0) {
-    parts.push(tp("print_summary_notes_count", noteCount));
-  }
-  return parts.length ? parts.join(" · ") : "—";
+  const parts = [`Heavy flow: ${heavyDays}d`];
+  if (painCount > 0)
+    parts.push(peakPain === 0 ? "Pain: none recorded" : `Peak pain: ${peakPain}/10`);
+  const typicalMood = Object.entries(moodCounts).sort((a, b) => b[1] - a[1])[0];
+  if (typicalMood?.[1] > 0) parts.push(`Mood: mostly ${typicalMood[0]}`);
+  return parts.join(" · ");
 }
 
-function buildPrintSummaryContent() {
-  const rollingStats = getRollingStatisticalCycleData(fromISO(today()), 1);
-  const rollingDetailed = getRollingStatisticalCycleData(fromISO(today()), 3);
-  const overallStats = getOverallStatisticalCycleData(3);
-  const info = getCycleInfo();
+function collectCycleNotes(startStr, endStr) {
+  const start = fromISO(startStr);
+  const days = diffDays(start, fromISO(endStr)) + 1;
+  const notes = [];
+  for (let i = 0; i < days; i++) {
+    const date = addDays(start, i);
+    const note = state.logs[toISO(date)]?.note?.trim();
+    if (!note) continue;
+    notes.push(
+      `${date.toLocaleDateString(getLanguage(), { month: "short", day: "numeric" })}: ${note}`
+    );
+  }
+  return notes.length ? notes.join(" · ") : "—";
+}
+
+function buildPrintSummaryContent(options = {}) {
+  const includeSymptoms = !!options.includeSymptoms;
+  const includeNotes = !!options.includeNotes;
 
   const wrap = document.createElement("div");
 
@@ -1745,41 +2251,6 @@ function buildPrintSummaryContent() {
   });
   wrap.appendChild(generated);
 
-  const statsTitle = document.createElement("div");
-  statsTitle.className = "print-summary__section-title";
-  statsTitle.textContent = t("print_summary_stats_title");
-  wrap.appendChild(statsTitle);
-
-  const statsGrid = document.createElement("div");
-  statsGrid.className = "print-summary__stats";
-  const statEntries = [
-    [t("avg_length_rolling"), rollingStats ? `${Math.round(rollingStats.mean)}d` : "—"],
-    [t("avg_length_overall"), overallStats ? `${Math.round(overallStats.mean)}d` : "—"],
-    [t("avg_period"), info ? `${info.pd}d` : "—"],
-    [
-      t("stat_std_dev"),
-      rollingDetailed?.stdDeviation != null ? `±${rollingDetailed.stdDeviation}d` : "—",
-    ],
-    [t("cycles_logged"), state.cycleHistory?.length ? String(state.cycleHistory.length) : "—"],
-    [
-      t("print_summary_next_period"),
-      info?.nextPeriod ? formatDateLocale(info.nextPeriod) : "—",
-    ],
-  ];
-  statEntries.forEach(([label, value]) => {
-    const box = document.createElement("div");
-    const l = document.createElement("div");
-    l.className = "print-summary__stat-label";
-    l.textContent = label;
-    const v = document.createElement("div");
-    v.className = "print-summary__stat-value";
-    v.textContent = value;
-    box.appendChild(l);
-    box.appendChild(v);
-    statsGrid.appendChild(box);
-  });
-  wrap.appendChild(statsGrid);
-
   const histTitle = document.createElement("div");
   histTitle.className = "print-summary__section-title";
   histTitle.textContent = t("cycle_history");
@@ -1794,12 +2265,10 @@ function buildPrintSummaryContent() {
     table.className = "print-summary__table";
     const thead = document.createElement("thead");
     const headRow = document.createElement("tr");
-    [
-      t("history_col_dates"),
-      t("history_col_period"),
-      t("history_col_cycle"),
-      t("print_summary_col_symptoms"),
-    ].forEach((label) => {
+    const headings = [t("history_col_dates"), t("history_col_period")];
+    if (includeSymptoms) headings.push(t("print_summary_col_symptoms"));
+    if (includeNotes) headings.push("Notes");
+    headings.forEach((label) => {
       const th = document.createElement("th");
       th.textContent = label;
       headRow.appendChild(th);
@@ -1808,8 +2277,7 @@ function buildPrintSummaryContent() {
     table.appendChild(thead);
 
     const tbody = document.createElement("tbody");
-    [...state.cycleHistory].reverse().forEach((c, idx) => {
-      const isCurrentCycle = idx === 0 && isPeriodEpisodeActive(c.start);
+    [...state.cycleHistory].reverse().forEach((c) => {
       const endStr = getPeriodEndDate(c.start);
       const durDays = diffDays(fromISO(c.start), fromISO(endStr)) + 1;
 
@@ -1818,42 +2286,208 @@ function buildPrintSummaryContent() {
       dateTd.textContent = formatPeriodDateRange(c.start, endStr);
       const durTd = document.createElement("td");
       durTd.textContent = `${durDays}d`;
-      const lenTd = document.createElement("td");
-      lenTd.textContent = isCurrentCycle
-        ? t("history_current")
-        : tp("history_days", parseInt(c.length));
-      const symTd = document.createElement("td");
-      symTd.textContent = summarizeCycleSymptoms(c.start, endStr);
-
       tr.appendChild(dateTd);
       tr.appendChild(durTd);
-      tr.appendChild(lenTd);
-      tr.appendChild(symTd);
+      if (includeSymptoms) {
+        const symTd = document.createElement("td");
+        symTd.textContent = summarizeCycleSymptoms(c.start, endStr);
+        tr.appendChild(symTd);
+      }
+      if (includeNotes) {
+        const notesTd = document.createElement("td");
+        notesTd.textContent = collectCycleNotes(c.start, endStr);
+        tr.appendChild(notesTd);
+      }
       tbody.appendChild(tr);
     });
     table.appendChild(tbody);
     wrap.appendChild(table);
   }
 
-  const disclaimer = document.createElement("div");
-  disclaimer.className = "print-summary__disclaimer";
-  disclaimer.textContent = t("print_summary_disclaimer");
-  wrap.appendChild(disclaimer);
+  if (includeSymptoms) {
+    const disclaimer = document.createElement("div");
+    disclaimer.className = "print-summary__disclaimer";
+    disclaimer.textContent = t("print_summary_disclaimer");
+    wrap.appendChild(disclaimer);
+  }
 
   return wrap;
 }
 
-/** Builds a print-friendly cycle + symptom summary and opens the print dialog. */
+/** Opens privacy choices; both sensitive options default off every time. */
 function printCycleSummary() {
   if (!state.cycleHistory?.length) {
     showToast(t("share_history_empty"));
     return;
   }
+  const symptoms = document.getElementById("print-include-symptoms");
+  const notes = document.getElementById("print-include-notes");
+  if (symptoms) symptoms.checked = false;
+  if (notes) notes.checked = false;
+  document.getElementById("print-options-overlay")?.classList.add("visible");
+  setTimeout(() => symptoms?.focus(), 0);
+}
+
+function closePrintOptions() {
+  document.getElementById("print-options-overlay")?.classList.remove("visible");
+}
+
+function confirmPrintCycleSummary() {
   const container = document.getElementById("print-summary");
   if (!container) return;
-  container.replaceChildren(buildPrintSummaryContent());
+  const options = {
+    includeSymptoms: !!document.getElementById("print-include-symptoms")?.checked,
+    includeNotes: !!document.getElementById("print-include-notes")?.checked,
+  };
+  container.replaceChildren(buildPrintSummaryContent(options));
+  closePrintOptions();
   // Let the browser paint the freshly-built content before opening the dialog.
   setTimeout(() => window.print(), 50);
+}
+
+function renderPeriodProfile() {
+  const card = document.getElementById("period-profile-card");
+  const stats = document.getElementById("period-profile-stats");
+  const tracks = document.getElementById("period-profile-tracks");
+  if (!card || !stats || !tracks) return;
+  if (!state.cycleHistory?.length) {
+    card.hidden = true;
+    return;
+  }
+
+  const latest = state.cycleHistory[state.cycleHistory.length - 1];
+  const endStr = getPeriodEndDate(latest.start);
+  const duration = diffDays(fromISO(latest.start), fromISO(endStr)) + 1;
+  if (duration < 1) {
+    card.hidden = true;
+    return;
+  }
+
+  const rows = [];
+  for (let i = 0; i < duration; i++) {
+    const dateStr = toISO(addDays(fromISO(latest.start), i));
+    const log = state.logs[dateStr] || {};
+    rows.push({
+      dateStr,
+      flow: getFlowLevelFromLog(log),
+      flowEstimated: !!log.flowEstimated,
+      pain: getPainValueFromLog(log),
+      mood: getMoodValueFromLog(log),
+    });
+  }
+  if (!rows.some((row) => row.flow != null && row.flow > 0)) {
+    card.hidden = true;
+    return;
+  }
+
+  card.hidden = false;
+  stats.replaceChildren();
+  tracks.replaceChildren();
+  document.getElementById("period-profile-date").textContent =
+    formatPeriodDateRange(latest.start, endStr);
+  document.getElementById("period-profile-caption").textContent =
+    "Latest recorded period";
+
+  const addStat = (value, label) => {
+    const box = document.createElement("div");
+    box.className = "profile-stat";
+    const strong = document.createElement("strong");
+    strong.textContent = value;
+    const span = document.createElement("span");
+    span.textContent = label;
+    box.append(strong, span);
+    stats.appendChild(box);
+  };
+
+  const flowRows = rows.filter((row) => row.flow != null && row.flow > 0);
+  const heavyDays = flowRows.filter((row) => row.flow === 3).length;
+  const peakFlow = Math.max(...flowRows.map((row) => row.flow));
+  const peakFlowDay = rows.findIndex((row) => row.flow === peakFlow) + 1;
+  addStat(`${duration}d`, "Duration");
+  addStat(String(heavyDays), "Heavy-flow days");
+  addStat(`Day ${peakFlowDay}`, "Peak flow");
+
+  const painRows = rows.filter((row) => row.pain != null);
+  if (painRows.length) {
+    const peakPain = Math.max(...painRows.map((row) => row.pain));
+    addStat(peakPain === 0 ? "None" : `${peakPain}/10`, "Peak pain");
+  }
+
+  const moodRows = rows.filter((row) => row.mood != null);
+  if (moodRows.length) {
+    const counts = { Low: 0, Neutral: 0, Happy: 0 };
+    moodRows.forEach((row) => {
+      if (row.mood < 35) counts.Low++;
+      else if (row.mood > 65) counts.Happy++;
+      else counts.Neutral++;
+    });
+    const typical = Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
+    addStat(typical, "Typical mood");
+  }
+
+  const addTrack = (label, values, renderCell) => {
+    const row = document.createElement("div");
+    row.className = "profile-track";
+    const rowLabel = document.createElement("div");
+    rowLabel.className = "profile-track-label";
+    rowLabel.textContent = label;
+    const days = document.createElement("div");
+    days.className = "profile-track-days";
+    days.style.setProperty("--profile-days", String(values.length));
+    values.forEach((value, index) => {
+      const cell = document.createElement("div");
+      cell.className = "profile-day";
+      cell.setAttribute("aria-label", `${label}, day ${index + 1}`);
+      renderCell(cell, value, index);
+      days.appendChild(cell);
+    });
+    row.append(rowLabel, days);
+    tracks.appendChild(row);
+  };
+
+  addTrack("Flow", rows, (cell, row, index) => {
+    if (row.flow > 0) cell.classList.add(`profile-day--flow-${row.flow}`);
+    cell.textContent = String(index + 1);
+    const flowLabel =
+      row.flow == null ? t("log_not_recorded") : flowWordLabelFromValue(row.flow);
+    cell.title = row.flowEstimated
+      ? `Day ${index + 1}: estimated ${flowLabel}`
+      : `Day ${index + 1}: ${flowLabel}`;
+  });
+  if (painRows.length) {
+    addTrack("Pain", rows, (cell, row) => {
+      if (row.pain == null) {
+        cell.textContent = "—";
+        return;
+      }
+      cell.classList.add("profile-day--pain");
+      cell.style.setProperty("--pain-alpha", String(Math.max(0.12, row.pain / 10)));
+      cell.textContent = row.pain === 0 ? "0" : String(row.pain);
+    });
+  }
+  if (moodRows.length) {
+    addTrack("Mood", rows, (cell, row) => {
+      if (row.mood == null) {
+        cell.textContent = "—";
+        return;
+      }
+      if (row.mood < 35) {
+        cell.classList.add("profile-day--mood-low");
+        cell.textContent = "😔";
+      } else if (row.mood > 65) {
+        cell.classList.add("profile-day--mood-high");
+        cell.textContent = "😊";
+      } else {
+        cell.classList.add("profile-day--mood-neutral");
+        cell.textContent = "😐";
+      }
+    });
+  }
+
+  const totalPeriods = state.cycleHistory.length;
+  const hasEstimatedFlow = rows.some((row) => row.flowEstimated);
+  document.getElementById("period-profile-footnote").textContent =
+    `Peak flow was recorded on Day ${peakFlowDay}. Based on ${totalPeriods} recorded period${totalPeriods === 1 ? "" : "s"}; missing symptoms are not treated as zero.${hasEstimatedFlow ? " Some flow days are estimated." : ""}`;
 }
 
 function fillStatsBlock(prefix, statsData) {
@@ -1887,6 +2521,7 @@ function fillStatsBlock(prefix, statsData) {
 function updateInsights() {
   const info = getCycleInfo();
   if (!info) return;
+  renderPeriodProfile();
 
   const rollingStats = getRollingStatisticalCycleData(fromISO(today()), 1);
   const rollingDetailed = getRollingStatisticalCycleData(fromISO(today()), 3);
@@ -1905,6 +2540,8 @@ function updateInsights() {
     "tracked-cycles",
     state.cycleHistory?.length ? String(state.cycleHistory.length) : "—"
   );
+  const fertileDaysStat = document.getElementById("fertile-days-stat");
+  if (fertileDaysStat) fertileDaysStat.hidden = !isFertilityVisible();
   safeText("fertile-window", info.fertileEnd - info.fertileStart + 1);
 
   const statsPanel = document.getElementById("cycle-stats-panel");
@@ -1961,6 +2598,7 @@ function updateInsights() {
           isCurrentCycle: idx === 0 && isPeriodEpisodeActive(c.start),
           shiftedStarts,
           rollingAvg,
+          dailyChart: true,
         })
       )
     );
@@ -2643,6 +3281,7 @@ function selectDay(dateStr) {
 
   const log = state.logs[dateStr] || {};
   const flowLevel = getFlowLevelFromLog(log);
+  currentFlowEstimated = !!log.flowEstimated;
   updateFlowButtonVisual(
     flowLevel === null ? 1 : flowLevel,
     flowLevel !== null
@@ -2664,6 +3303,8 @@ function selectDay(dateStr) {
   const noteEl = document.getElementById("log-note");
   noteEl.value = (log.note || "").slice(0, 500);
   updateNoteCount();
+  updateLogEditorUI();
+  toggleLogSection("flow");
 
   // "Force new cycle" is a one-time action for the next save, not a stored
   // property of the log — always reset when switching days. Only show the
@@ -2680,7 +3321,7 @@ function selectDay(dateStr) {
 
   // Move focus into modal immediately (accessibility standard for modal dialogs)
   setTimeout(() => {
-    const firstButton = document.getElementById("log-flow");
+    const firstButton = document.querySelector("#log-section-flow .log-section-toggle");
     if (firstButton) {
       firstButton.focus();
     }
@@ -2689,9 +3330,11 @@ function selectDay(dateStr) {
 
 async function saveLog() {
   if (!selectedDate || !/^\d{4}-\d{2}-\d{2}$/.test(selectedDate)) return;
+  const hadFlow = !!state.logs[selectedDate]?.flow;
   const log = {};
   if (currentFlowSet) {
     applyFlowLevelToLog(log, currentFlowValue);
+    if (currentFlowEstimated && log.flow) log.flowEstimated = true;
   }
 
   if (currentPainSet) {
@@ -2712,11 +3355,15 @@ async function saveLog() {
     recalculatePeriodDuration();
   }
 
-  const didAutoFill = log.flow
+  const didAutoFill = !hadFlow && log.flow
     ? applyAutoFill(selectedDate, log.flow, forceNewCycle)
     : false;
 
   cleanupEmptyLogs();
+  if (hadFlow && !log.flow) {
+    rebuildCycleHistoryFromLogs();
+    recalculatePeriodDuration();
+  }
   await save();
 
   renderCalendar();
@@ -3110,6 +3757,9 @@ function loadSettingsFields() {
   const cbFertility = document.getElementById("s-show-fertility");
   if (cbFertility) cbFertility.checked = isFertilityVisible();
 
+  const cbCyclePhases = document.getElementById("s-show-cycle-phases");
+  if (cbCyclePhases) cbCyclePhases.checked = isCyclePhaseTimelineVisible();
+
   const afInput = document.getElementById("s-autofill-days");
   if (afInput) {
     afInput.value =
@@ -3122,12 +3772,21 @@ function loadSettingsFields() {
   updateDriveBackupUI();
 }
 
-function toggleFertility() {
+async function toggleFertility() {
   const cb = document.getElementById("s-show-fertility");
   if (!cb) return;
   state.showFertility = cb.checked;
-  save();
+  await save();
   renderCalendar();
+  updateStatusCard();
+  updateInsights();
+}
+
+async function toggleCyclePhaseTimeline() {
+  const cb = document.getElementById("s-show-cycle-phases");
+  if (!cb) return;
+  state.showCyclePhases = cb.checked;
+  await save();
   updateStatusCard();
 }
 
@@ -3197,7 +3856,7 @@ function exportToDrip() {
   const logs = state.logs || {};
   const count = Object.keys(logs).filter(d => {
     const l = logs[d];
-    return l.flow || l.spotting || l.pain || l.mood != null || (l.note && l.note.trim());
+    return l.flow || l.spotting || l.pain != null || l.mood != null || (l.note && l.note.trim());
   }).length;
 
   if (count === 0) {
@@ -3444,7 +4103,7 @@ async function _applyDripCsvToState(parsed) {
   const mergedLogs = { ...parsed.logs };
   for (const date in mergedLogs) {
     const l = mergedLogs[date];
-    if (!l.flow && !l.spotting && !l.pain && l.mood == null && !(l.note && l.note.trim())) {
+    if (!l.flow && !l.spotting && l.pain == null && l.mood == null && !(l.note && l.note.trim())) {
       delete mergedLogs[date];
     }
   }
@@ -3568,7 +4227,7 @@ function _pickDripCsvFile({ onboarding = false } = {}) {
           const merged = { ...parsed.logs, ...(state.logs || {}) };
           for (const date in merged) {
             const l = merged[date];
-            if (!l.flow && !l.spotting && !l.pain && l.mood == null && !(l.note && l.note.trim())) {
+            if (!l.flow && !l.spotting && l.pain == null && l.mood == null && !(l.note && l.note.trim())) {
               delete merged[date];
             }
           }
@@ -4121,6 +4780,18 @@ window.addEventListener("appinstalled", () => {
   if (btn) btn.classList.add("hidden");
 });
 
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  if (document.getElementById("print-options-overlay")?.classList.contains("visible")) {
+    closePrintOptions();
+    document.getElementById("history-print-btn")?.focus();
+    return;
+  }
+  if (document.getElementById("log-modal-overlay")?.classList.contains("visible")) {
+    closeLogPanel();
+  }
+});
+
 function triggerInstall() {
   if (!deferredInstallPrompt) return;
   deferredInstallPrompt.prompt();
@@ -4156,7 +4827,15 @@ window.showPainModal = showPainModal;
 window.showMoodModal = showMoodModal;
 window.saveLog = saveLog;
 window.deleteLog = deleteLog;
+window.deleteLogWithConfirm = deleteLogWithConfirm;
 window.resetLogWithConfirm = resetLogWithConfirm;
+window.toggleLogSection = toggleLogSection;
+window.selectFlowValue = selectFlowValue;
+window.selectPainValue = selectPainValue;
+window.selectMoodValue = selectMoodValue;
+window.previewInlinePain = previewInlinePain;
+window.clearLogField = clearLogField;
+window.updateLogEditorUI = updateLogEditorUI;
 window.scheduleAutoSaveNote = scheduleAutoSaveNote;
 window.downloadChart = downloadChart;
 window.setChartFilter = setChartFilter;
@@ -4165,12 +4844,15 @@ window.updateNoteCount = updateNoteCount;
 window.savePeriodDuration = savePeriodDuration;
 window.saveTolerance = saveTolerance;
 window.toggleFertility = toggleFertility;
+window.toggleCyclePhaseTimeline = toggleCyclePhaseTimeline;
 window.saveAutoFillDays = saveAutoFillDays;
 window.recalculateCycleHistoryWithConfirm = recalculateCycleHistoryWithConfirm;
 window.dismissAutoFillBanner = dismissAutoFillBanner;
 window.showHistoryFullPage = showHistoryFullPage;
 window.shareRecentPeriodHistory = shareRecentPeriodHistory;
 window.printCycleSummary = printCycleSummary;
+window.closePrintOptions = closePrintOptions;
+window.confirmPrintCycleSummary = confirmPrintCycleSummary;
 window.showChangePinModal = showChangePinModal;
 window.exportToDrip = exportToDrip;
 window.triggerInstall = triggerInstall;

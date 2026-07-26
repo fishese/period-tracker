@@ -20,6 +20,15 @@ function dripBleedingToFlow(value) {
 // More flags present = higher severity.
 function dripPainToPainValue(pain) {
   if (!pain) return null;
+  const numericNote = Number(pain.note);
+  if (
+    pain.note !== "" &&
+    Number.isFinite(numericNote) &&
+    numericNote >= 0 &&
+    numericNote <= 10
+  ) {
+    return Math.round(numericNote * 2) / 2;
+  }
   const count = [
     pain.cramps, pain.ovulationPain, pain.headache, pain.backache,
     pain.nausea, pain.tenderBreasts, pain.migraine, pain.other,
@@ -32,6 +41,14 @@ function dripPainToPainValue(pain) {
 // Baseline 50; each positive flag +15, each negative flag -15.
 function dripMoodToMoodValue(mood) {
   if (!mood) return null;
+  const numericNote = Number(mood.note);
+  if (
+    mood.note !== "" &&
+    Number.isFinite(numericNote) &&
+    [0, 50, 100].includes(numericNote)
+  ) {
+    return numericNote;
+  }
   const pos = [mood.happy, mood.energetic, mood.fine, mood.balanced].filter(Boolean).length;
   const neg = [mood.sad, mood.stressed, mood.anxious, mood.fatigue, mood.angry].filter(Boolean).length;
   if (pos === 0 && neg === 0) return null;
@@ -221,8 +238,10 @@ export function parseDripCsv(csvText) {
     // Combine main note + pain note + mood note
     const noteParts = [];
     if (row.noteValue) noteParts.push(row.noteValue);
-    if (row.pain?.note) noteParts.push(row.pain.note);
-    if (row.mood?.note) noteParts.push(row.mood.note);
+    if (row.pain?.note && !/^(?:10|[0-9](?:\.5)?)$/.test(row.pain.note.trim()))
+      noteParts.push(row.pain.note);
+    if (row.mood?.note && !/^(?:0|50|100)$/.test(row.mood.note.trim()))
+      noteParts.push(row.mood.note);
     if (noteParts.length > 0) log.note = noteParts.join(" | ").slice(0, 500);
 
     if (Object.keys(log).length > 0) logs[row.date] = log;

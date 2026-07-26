@@ -495,19 +495,19 @@
             </div>
             <div class="cycle-bar" id="cycle-bar"></div>
             <div class="bar-legend">
-              <div class="legend-item">
-                <div class="legend-dot legend-dot--rose"></div>
-                <span data-i18n="period_short">Period</span>
+              <div class="legend-item" id="cycle-legend-primary">
+                <div class="legend-dot legend-dot--rose" id="cycle-legend-primary-dot"></div>
+                <span id="cycle-legend-primary-label" data-i18n="menstrual">Menstrual</span>
               </div>
-              <div class="legend-item">
-                <div class="legend-dot legend-dot--fertile"></div>
-                <span data-i18n="fertile">Fertile</span>
+              <div class="legend-item" id="cycle-legend-secondary">
+                <div class="legend-dot legend-dot--fertile" id="cycle-legend-secondary-dot"></div>
+                <span id="cycle-legend-secondary-label" data-i18n="follicular">Follicular</span>
               </div>
-              <div class="legend-item">
+              <div class="legend-item" id="cycle-legend-ovulation">
                 <div class="legend-dot legend-dot--ovulation"></div>
                 <span data-i18n="ovulation_short">Ovulation</span>
               </div>
-              <div class="legend-item">
+              <div class="legend-item" id="cycle-legend-luteal">
                 <div class="legend-dot legend-dot--lavender"></div>
                 <span data-i18n="luteal">Luteal</span>
               </div>
@@ -522,46 +522,97 @@
           >
             <div class="log-panel" id="log-panel">
               <div class="log-header">
-                <div class="log-date-title" id="log-panel-date">
-                  Log for Today
+                <div>
+                  <div class="log-entry-mode" id="log-entry-mode" data-i18n="log_add_entry">Add entry</div>
+                  <div class="log-date-title" id="log-panel-date">Today</div>
                 </div>
                 <button class="close-btn" onclick="closeLogPanel()" aria-label="Close">×</button>
               </div>
-              <p class="calendar-empty-text" data-i18n="flow_question">What's your flow today? 🌊</p>
-              <div class="log-options">
-                <div
-                  class="log-btn"
-                  id="log-flow"
-                  onclick="showFlowModal()"
-                  tabindex="0"
-                  role="button"
-                  aria-label="Set flow intensity"
-                  onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showFlowModal();}"
-                >
-                  <span class="icon" id="log-flow-icon">🩸</span><span data-i18n="flow">Flow</span>
-                </div>
-                <div
-                  class="log-btn"
-                  id="log-headache"
-                  onclick="showPainModal()"
-                  tabindex="0"
-                  role="button"
-                  aria-label="Set pain level"
-                  onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showPainModal();}"
-                >
-                  <span class="icon" id="log-pain-icon">🤕</span><span id="log-pain-label" data-i18n="pain">Pain</span>
-                </div>
-                <div
-                  class="log-btn mood-btn"
-                  id="log-mood"
-                  onclick="showMoodModal()"
-                  tabindex="0"
-                  role="button"
-                  aria-label="Set mood"
-                  onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showMoodModal();}"
-                >
-                  <span class="icon" id="log-mood-icon">😐</span><span data-i18n="mood">Mood</span>
-                </div>
+              <div class="log-save-status" id="log-save-status" aria-live="polite" data-i18n="log_auto_save">Changes save automatically</div>
+              <div class="log-accordion">
+                <section class="log-section open" id="log-section-flow">
+                  <div class="log-section-head">
+                    <button class="log-section-toggle log-section-toggle--flow" type="button" onclick="toggleLogSection('flow')" aria-expanded="true" aria-controls="log-panel-flow">
+                      <span class="log-section-label" data-i18n="flow">Flow</span>
+                      <span class="log-section-icon" id="log-flow-icon">🩸</span>
+                      <span class="log-section-summary" id="log-flow-summary">Not recorded</span>
+                      <span class="log-section-chevron" aria-hidden="true">⌄</span>
+                    </button>
+                    <button class="log-field-clear" id="log-flow-clear" type="button" onclick="clearLogField('flow', event)" data-i18n="log_clear">Clear</button>
+                  </div>
+                  <div class="log-section-panel" id="log-panel-flow">
+                    <div class="log-choice-grid log-choice-grid--flow" role="group" aria-label="Flow intensity">
+                      <button type="button" class="log-choice" data-flow-value="none" onclick="selectFlowValue(null)" data-i18n="log_none">None</button>
+                      <button type="button" class="log-choice" data-flow-value="0" onclick="selectFlowValue(0)" data-i18n="flow_spotting">Spotting</button>
+                      <button type="button" class="log-choice" data-flow-value="1" onclick="selectFlowValue(1)" data-i18n="flow_light">Light</button>
+                      <button type="button" class="log-choice" data-flow-value="2" onclick="selectFlowValue(2)" data-i18n="flow_medium">Medium</button>
+                      <button type="button" class="log-choice" data-flow-value="3" onclick="selectFlowValue(3)" data-i18n="flow_heavy">Heavy</button>
+                    </div>
+                    <div class="log-estimated-hint hidden" id="log-flow-estimated" data-i18n="log_estimated_flow">Estimated light flow — choose a value to confirm it.</div>
+                  </div>
+                </section>
+                <section class="log-section" id="log-section-pain">
+                  <div class="log-section-head">
+                    <button class="log-section-toggle" type="button" onclick="toggleLogSection('pain')" aria-expanded="false" aria-controls="log-panel-pain">
+                      <span class="log-section-icon">🤕</span>
+                      <span class="log-section-label" data-i18n="pain">Pain</span>
+                      <span class="log-section-summary" id="log-pain-summary">Not recorded</span>
+                      <span class="log-section-chevron" aria-hidden="true">›</span>
+                    </button>
+                    <button class="log-field-clear" id="log-pain-clear" type="button" onclick="clearLogField('pain', event)" data-i18n="log_clear">Clear</button>
+                  </div>
+                  <div class="log-section-panel" id="log-panel-pain" hidden>
+                    <div class="pain-direct-row">
+                      <button type="button" class="log-choice log-choice--no-pain" id="log-no-pain" onclick="selectPainValue(0)" data-i18n="log_no_pain">No pain</button>
+                      <div class="pain-direct-slider">
+                        <label for="log-pain-slider" id="log-pain-value">5 / 10</label>
+                        <input id="log-pain-slider" class="pain-modal-slider" type="range" min="1" max="10" step="0.5" value="5" oninput="previewInlinePain(this.value)" onchange="selectPainValue(this.value)">
+                      </div>
+                    </div>
+                  </div>
+                </section>
+                <section class="log-section" id="log-section-mood">
+                  <div class="log-section-head">
+                    <button class="log-section-toggle" type="button" onclick="toggleLogSection('mood')" aria-expanded="false" aria-controls="log-panel-mood">
+                      <span class="log-section-icon" id="log-mood-icon">😐</span>
+                      <span class="log-section-label" data-i18n="mood">Mood</span>
+                      <span class="log-section-summary" id="log-mood-summary">Not recorded</span>
+                      <span class="log-section-chevron" aria-hidden="true">›</span>
+                    </button>
+                    <button class="log-field-clear" id="log-mood-clear" type="button" onclick="clearLogField('mood', event)" data-i18n="log_clear">Clear</button>
+                  </div>
+                  <div class="log-section-panel" id="log-panel-mood" hidden>
+                    <div class="log-choice-grid log-choice-grid--mood" role="group" aria-label="Mood">
+                      <button type="button" class="log-choice" data-mood-value="0" onclick="selectMoodValue(0)">😔 <span data-i18n="mood_low">Low</span></button>
+                      <button type="button" class="log-choice" data-mood-value="50" onclick="selectMoodValue(50)">😐 <span data-i18n="mood_neutral">Neutral</span></button>
+                      <button type="button" class="log-choice" data-mood-value="100" onclick="selectMoodValue(100)">😊 <span data-i18n="mood_happy">Happy</span></button>
+                    </div>
+                  </div>
+                </section>
+                <section class="log-section" id="log-section-note">
+                  <div class="log-section-head">
+                    <button class="log-section-toggle" type="button" onclick="toggleLogSection('note')" aria-expanded="false" aria-controls="log-panel-note">
+                      <span class="log-section-icon">📝</span>
+                      <span class="log-section-label" data-i18n="log_note">Note</span>
+                      <span class="log-section-summary" id="log-note-summary">Add note</span>
+                      <span class="log-section-chevron" aria-hidden="true">›</span>
+                    </button>
+                    <button class="log-field-clear" id="log-note-clear" type="button" onclick="clearLogField('note', event)" data-i18n="log_clear">Clear</button>
+                  </div>
+                  <div class="log-section-panel" id="log-panel-note" hidden>
+                    <textarea
+                      class="log-note"
+                      id="log-note"
+                      rows="2"
+                      data-i18n-placeholder="note_placeholder" placeholder="Add a note…"
+                      maxlength="500"
+                      oninput="updateNoteCount(); updateLogEditorUI(); scheduleAutoSaveNote()"
+                    ></textarea>
+                    <div class="note-footer-row">
+                      <div class="note-limit" id="note-limit">0 / 500</div>
+                    </div>
+                  </div>
+                </section>
               </div>
               <div class="toggle-row log-new-cycle-row" id="log-new-cycle-row" style="display:none">
                 <label class="toggle-label">
@@ -570,23 +621,12 @@
                 </label>
               </div>
               <div class="field-hint log-new-cycle-hint" id="log-new-cycle-hint" style="display:none" data-i18n="log_force_new_cycle_hint">Only applies if Flow is set. Use this to split off a new period the app would otherwise group with a recent one.</div>
-              <textarea
-                class="log-note"
-                id="log-note"
-                rows="2"
-                data-i18n-placeholder="note_placeholder" placeholder="Add a note…"
-                maxlength="500"
-                oninput="updateNoteCount(); scheduleAutoSaveNote()"
-              ></textarea>
-              <div class="note-footer-row">
-                <div class="note-limit" id="note-limit">0 / 500</div>
-                <div class="autosave-indicator" id="autosave-indicator">All changes saved ✓</div>
-              </div>
               <div class="log-actions">
-                <button class="log-reset-btn" id="log-reset-btn" onclick="resetLogWithConfirm()">
-                  ↺ Reset day
+                <button class="log-reset-btn" id="log-reset-btn" onclick="deleteLogWithConfirm()">
+                  <span data-i18n="log_delete_entry">Delete entry</span>
                 </button>
-                <button class="log-done-btn" onclick="closeLogPanel()">
+                <div class="autosave-indicator visible" id="autosave-indicator" data-i18n="log_saved">Saved ✓</div>
+                <button class="log-done-btn" onclick="closeLogPanel()" data-i18n="log_done">
                   Done
                 </button>
               </div>
@@ -612,7 +652,7 @@
               <div class="big stat-color--teal" id="tracked-cycles">—</div>
               <div class="sm" data-i18n="cycles_logged">Cycles Logged</div>
             </div>
-            <div class="stat-box">
+            <div class="stat-box" id="fertile-days-stat">
               <div class="big stat-color--fertile" id="fertile-window">—</div>
               <div class="sm" data-i18n="fertile_days">Fertile Days</div>
             </div>
@@ -681,6 +721,18 @@
             </div>
           </div>
         </div>
+        <div class="insight-card period-profile-card" id="period-profile-card" hidden>
+          <div class="period-profile-heading">
+            <div>
+              <h3>Recent period profile</h3>
+              <p id="period-profile-caption">Based on recorded flow</p>
+            </div>
+            <span class="period-profile-date" id="period-profile-date"></span>
+          </div>
+          <div class="period-profile-stats" id="period-profile-stats"></div>
+          <div class="period-profile-tracks" id="period-profile-tracks"></div>
+          <p class="period-profile-footnote" id="period-profile-footnote"></p>
+        </div>
         <div class="insight-card" id="insight-tabs-card">
           <div class="insight-tabs-nav">
             <button id="tab-btn-history" class="insight-tab-btn active" onclick="switchInsightTab('history')">
@@ -705,10 +757,15 @@
           </div>
           <div id="insight-tab-history" class="insight-tab-content">
             <h3 class="mobile-only-title" data-i18n="cycle_history">Cycle History</h3>
-            <div class="history-col-labels">
+            <div class="history-col-labels history-col-labels--chart">
               <span data-i18n="history_col_dates">Dates</span>
               <span data-i18n="history_col_period">Period</span>
               <span data-i18n="history_col_cycle">Cycle</span>
+              <span class="history-pattern-key" aria-label="Daily pattern: flow, pain, and mood" data-i18n-aria="history_daily_pattern">
+                <span class="history-pattern-key-item history-pattern-key-item--flow" data-i18n="flow">Flow</span>
+                <span class="history-pattern-key-item history-pattern-key-item--pain" data-i18n="pain">Pain</span>
+                <span class="history-pattern-key-item history-pattern-key-item--mood" data-i18n="mood">Mood</span>
+              </span>
             </div>
             <div id="cycle-history">
               <p class="empty-history" data-i18n="cycle_history_empty">No history yet.</p>
@@ -954,8 +1011,16 @@
             <div class="toggle-row" style="margin-top:0">
               <label class="toggle-label">
                 <input type="checkbox" id="s-show-fertility" onchange="toggleFertility()">
-                <span data-i18n="settings_show_fertility">Show fertile window in calendar</span>
+                <span data-i18n="settings_show_fertility">Show fertility estimates</span>
               </label>
+              <div class="field-hint" data-i18n="settings_show_fertility_hint">Shows estimated fertile and ovulation days in the calendar and Fertile Days in stats.</div>
+            </div>
+            <div class="toggle-row">
+              <label class="toggle-label">
+                <input type="checkbox" id="s-show-cycle-phases" onchange="toggleCyclePhaseTimeline()">
+                <span data-i18n="settings_show_cycle_timeline">Show cycle phase timeline</span>
+              </label>
+              <div class="field-hint" data-i18n="settings_show_cycle_timeline_hint">Shows the Menstrual, Follicular, Ovulation, and Luteal phases. Turn off for a simple period progress timeline.</div>
             </div>
           </div>
 
@@ -1187,6 +1252,25 @@
       <a href="#" class="autofill-banner__link" id="autofill-banner-settings-link" data-i18n="autofill_banner_settings">Adjust in Settings</a>
       <span class="autofill-banner__backup-wrap"><span class="autofill-banner__backup-pre" data-i18n="autofill_banner_backup_pre">Reminder to </span><a href="#" class="autofill-banner__link" id="autofill-banner-backup-link" data-i18n="autofill_banner_backup">back up</a></span>
       <button class="autofill-banner__close" onclick="dismissAutoFillBanner()" aria-label="Dismiss">&#x2715;</button>
+    </div>
+
+    <div class="print-options-overlay" id="print-options-overlay" role="dialog" aria-modal="true" aria-labelledby="print-options-title" onclick="if(event.target === this) closePrintOptions()">
+      <div class="print-options-box">
+        <div class="print-options-title" id="print-options-title" data-i18n="print_options_title">Print period history</div>
+        <p data-i18n="print_options_intro">Period dates and durations are always included. Additional details are optional.</p>
+        <label class="print-option-row">
+          <input type="checkbox" id="print-include-symptoms">
+          <span><strong data-i18n="print_options_symptoms">Include symptom details</strong><small data-i18n="print_options_symptoms_hint">Flow, pain, and mood summaries</small></span>
+        </label>
+        <label class="print-option-row">
+          <input type="checkbox" id="print-include-notes">
+          <span><strong data-i18n="print_options_notes">Include notes</strong><small data-i18n="print_options_notes_hint">Your private daily notes</small></span>
+        </label>
+        <div class="print-options-actions">
+          <button type="button" class="modal-btn secondary" onclick="closePrintOptions()" data-i18n="cancel">Cancel</button>
+          <button type="button" class="modal-btn primary" onclick="confirmPrintCycleSummary()" data-i18n="continue">Continue</button>
+        </div>
+      </div>
     </div>
 
     <!-- Print-only cycle summary (populated by printCycleSummary() before window.print()) -->

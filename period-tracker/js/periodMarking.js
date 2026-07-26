@@ -31,7 +31,7 @@ export function cleanupEmptyLogs() {
     const empty =
       !log.flow &&
       !log.spotting &&
-      !log.pain &&
+      (log.pain === undefined || log.pain === null) &&
       (log.mood === undefined || log.mood === null) &&
       !(log.note && log.note.trim());
     if (empty) delete state.logs[dateStr];

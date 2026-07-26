@@ -95,7 +95,7 @@ export function buildDripCsv(logs) {
   const dates = Object.keys(logs)
     .filter(d => {
       const l = logs[d];
-      return l.flow || l.spotting || l.pain || l.mood != null || (l.note && l.note.trim());
+      return l.flow || l.spotting || l.pain != null || l.mood != null || (l.note && l.note.trim());
     })
     .sort((a, b) => (a < b ? 1 : -1)); // newest first
 
@@ -121,7 +121,7 @@ export function buildDripCsv(logs) {
       cols[COL.noteVal] = csvField(log.note.trim());
     }
 
-    if (log.pain) {
+    if (log.pain != null) {
       painToCols(cols, log.pain);
     }
 
