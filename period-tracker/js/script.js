@@ -289,6 +289,7 @@ function showModal({
 }
 
 let pinBuffer = "";
+let unlockInProgress = false;
 let pinAttempts = 0;
 let pinLockUntil = 0; // timestamp: locked until this ms (brute-force delay)
 const MAX_ATTEMPTS = 5;
@@ -303,6 +304,7 @@ function updatePinDots(buf, prefix = "d") {
 }
 
 async function pinInput(digit) {
+  if (unlockInProgress) return;
   if (pinBuffer.length >= 4) return;
   pinBuffer += digit;
   updatePinDots(pinBuffer);
@@ -310,12 +312,15 @@ async function pinInput(digit) {
 }
 
 function pinDelete() {
+  if (unlockInProgress) return;
   pinBuffer = pinBuffer.slice(0, -1);
   updatePinDots(pinBuffer);
   document.getElementById("lock-error").textContent = "";
 }
 
 async function submitPin() {
+  if (unlockInProgress) return;
+  unlockInProgress = true;
   const pin = pinBuffer;
   pinBuffer = "";
   updatePinDots("");
@@ -326,6 +331,7 @@ async function submitPin() {
     document.getElementById(
       "lock-error"
     ).textContent = t("too_many_attempts", { secs: secsLeft });
+    unlockInProgress = false;
     return;
   }
 
@@ -401,6 +407,8 @@ async function submitPin() {
     console.error("🚨 PIN submission error:", error);
     document.getElementById("lock-error").textContent =
       t("error_try_again");
+  } finally {
+    unlockInProgress = false;
   }
 }
 
@@ -1788,13 +1796,20 @@ function renderPredictionsTab() {
   }
 }
 
+function formatPeriodMonthDay(date, lang) {
+  if (lang === "ja" || lang.startsWith("zh")) {
+    const month = date.toLocaleDateString(lang, { month: "short" });
+    return `${month}${date.getDate()}日`;
+  }
+  return date.toLocaleDateString(lang, { month: "short", day: "numeric" });
+}
+
 function formatPeriodDateRange(startIso, endIso) {
   const start = fromISO(startIso);
   const end = fromISO(endIso);
   const lang = getLanguage();
-  const monthDay = { month: "short", day: "numeric" };
-  const startLabel = start.toLocaleDateString(lang, monthDay);
-  const endLabel = end.toLocaleDateString(lang, monthDay);
+  const startLabel = formatPeriodMonthDay(start, lang);
+  const endLabel = formatPeriodMonthDay(end, lang);
   const year = end.getFullYear();
 
   if (toISO(start) === toISO(end)) {
@@ -1810,16 +1825,16 @@ function formatPeriodDateRangeCompact(startIso, endIso) {
   const start = fromISO(startIso);
   const end = fromISO(endIso);
   const lang = getLanguage();
-  const startMonth = start.toLocaleDateString(lang, { month: "short" });
-  const endMonth = end.toLocaleDateString(lang, { month: "short" });
+  const startLabel = formatPeriodMonthDay(start, lang);
+  const endLabel = formatPeriodMonthDay(end, lang);
   const shortYear = (date) => `’${String(date.getFullYear()).slice(-2)}`;
 
   if (toISO(start) === toISO(end))
-    return `${startMonth} ${start.getDate()}, ${shortYear(start)}`;
+    return `${startLabel}, ${shortYear(start)}`;
   if (start.getFullYear() === end.getFullYear()) {
-    return `${startMonth} ${start.getDate()}–${endMonth} ${end.getDate()}, ${shortYear(end)}`;
+    return `${startLabel}–${endLabel}, ${shortYear(end)}`;
   }
-  return `${startMonth} ${start.getDate()}, ${shortYear(start)}–${endMonth} ${end.getDate()}, ${shortYear(end)}`;
+  return `${startLabel}, ${shortYear(start)}–${endLabel}, ${shortYear(end)}`;
 }
 
 function getPeriodEndDate(startDateStr) {
@@ -4670,7 +4685,7 @@ async function init() {
         const u = new URL(window.location.href);
         if (u.searchParams.has("code") || u.searchParams.has("error")) return;
         if (serviceWorkerReloading) return;
-        if (sessionPin) {
+        if (sessionPin || unlockInProgress || pinBuffer.length > 0) {
           serviceWorkerReloadPending = true;
           if (!serviceWorkerReloadDeadlineTimer) {
             serviceWorkerReloadDeadlineTimer = setTimeout(() => {
