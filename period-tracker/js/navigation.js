@@ -20,6 +20,7 @@ export function initKeyboardNavigation(callbacks) {
     setupPinInput,
     setupPinDelete,
     changePinInput,
+    importPinInput,
     closeLogPanel,
     renderCalendar,
   } = callbacks;
@@ -121,6 +122,27 @@ export function initKeyboardNavigation(callbacks) {
       return;
     }
 
+    // Backup import can also be opened during onboarding, so it must take
+    // precedence over the general onboarding PIN handler below.
+    const importModalOverlay = document.getElementById("modal-overlay");
+    if (
+      importModalOverlay &&
+      importModalOverlay.classList.contains("visible")
+    ) {
+      const importModalBox = importModalOverlay.querySelector(".modal-box");
+      const importPinDots = importModalBox?.querySelector("#ipin-dots");
+      if (importPinDots) {
+        if (e.key >= "0" && e.key <= "9") {
+          e.preventDefault();
+          importPinInput(e.key);
+        } else if (e.key === "Backspace") {
+          e.preventDefault();
+          importPinInput("âŒ«");
+        }
+        return;
+      }
+    }
+
     // Handle keyboard PIN entry on lock screen
     const lockScreen = document.getElementById("lock-screen");
     if (lockScreen && !lockScreen.classList.contains("hidden")) {
@@ -153,7 +175,7 @@ export function initKeyboardNavigation(callbacks) {
       return;
     }
 
-    // Handle keyboard PIN entry in change PIN modal
+    // Handle keyboard PIN entry in the change-PIN modal
     const modalOverlay = document.getElementById("modal-overlay");
     if (modalOverlay && modalOverlay.classList.contains("visible")) {
       const modalBox = modalOverlay.querySelector(".modal-box");

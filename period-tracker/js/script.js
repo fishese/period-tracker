@@ -159,6 +159,10 @@ let viewMonth = new Date();
 let selectedDate = null;
 let currentTab = "calendar";
 let backupReminderShownThisSession = false;
+let serviceWorkerReloadPending = false;
+let serviceWorkerReloading = false;
+let serviceWorkerReloadDeadlineTimer = null;
+const SERVICE_WORKER_RELOAD_MAX_DELAY_MS = 5 * 60 * 1000;
 
 // Reset on any user interaction (deferred until DOM ready)
 function bindTap(el, handler) {
@@ -237,6 +241,7 @@ function _ensureModalBox() {
 function closeAppModal() {
   const overlay = document.getElementById("modal-overlay");
   if (overlay) overlay.classList.remove("visible");
+  _clearImportPinContext();
   _ensureModalBox();
 }
 
@@ -401,6 +406,8 @@ async function submitPin() {
 
 function lockApp() {
   sessionPin = null;
+  clearTimeout(serviceWorkerReloadDeadlineTimer);
+  serviceWorkerReloadDeadlineTimer = null;
   state = {
     lastPeriodStart: null,
     cycleLength: 28,
@@ -412,15 +419,29 @@ function lockApp() {
     logs: {},
     cycleHistory: [],
   };
+  setCyclesState(state);
+  setPeriodMarkingState(state);
   hideBanner();
   document.getElementById("app").style.display = "none";
   document.getElementById("bottom-nav").style.display = "none";
   document.getElementById("lock-screen").classList.remove("hidden");
   const logModal = document.getElementById("log-modal-overlay");
   if (logModal) logModal.classList.remove("visible");
+  document.getElementById("history-fullpage-overlay")?.remove();
+  document.body.style.overflow = "";
+  document.getElementById("print-options-overlay")?.classList.remove("visible");
+  document.getElementById("print-summary")?.replaceChildren();
+  closeAppModal();
   pinBuffer = "";
   updatePinDots("");
   document.getElementById("lock-error").textContent = "";
+
+  // Lock and clear sensitive UI first. If navigation is blocked for any
+  // reason, the app must remain securely locked rather than fail open.
+  if (serviceWorkerReloadPending && !serviceWorkerReloading) {
+    serviceWorkerReloading = true;
+    window.location.reload();
+  }
 }
 
 // Initialize session module with lockApp function
@@ -3925,8 +3946,26 @@ async function exportData() {
 
 let _importPinBuffer = "";
 let _importOnSuccessCallback = null;
+let _importPinContext = null;
+let _importPinSubmitting = false;
+
+function _clearImportPinContext() {
+  _importPinBuffer = "";
+  _importPinContext = null;
+  _importPinSubmitting = false;
+}
+
+function _handleImportPinKeyboardInput(key) {
+  if (!_importPinContext) return;
+  _importPinInput(
+    key,
+    _importPinContext.bundle,
+    _importPinContext.backupSalt
+  );
+}
 
 function _restoreModalBox() {
+  _clearImportPinContext();
   const box = document.querySelector("#modal-overlay .modal-box");
   if (!box) return;
   const icon = document.createElement("div");
@@ -3948,6 +3987,8 @@ function _restoreModalBox() {
 
 function _showImportPinModal(bundle, backupSalt) {
   _importPinBuffer = "";
+  _importPinContext = { bundle, backupSalt };
+  _importPinSubmitting = false;
   const overlay = document.getElementById("modal-overlay");
   const box = overlay.querySelector(".modal-box");
 
@@ -3965,6 +4006,7 @@ function _showImportPinModal(bundle, backupSalt) {
   msgEl.textContent = t("enter_backup_pin_msg");
 
   const dotsWrap = document.createElement("div");
+  dotsWrap.id = "ipin-dots";
   dotsWrap.style.cssText =
     "display:flex;gap:0.75rem;justify-content:center;margin:1rem 0";
   for (let i = 0; i < 4; i++) {
@@ -3982,7 +4024,8 @@ function _showImportPinModal(bundle, backupSalt) {
       padWrap.appendChild(document.createElement("div"));
       return;
     }
-    const btn = document.createElement("div");
+    const btn = document.createElement("button");
+    btn.type = "button";
     btn.className = "num-btn";
     btn.style.cssText = "width:4.25rem;height:4.25rem";
     btn.textContent = k;
@@ -3999,15 +4042,18 @@ function _showImportPinModal(bundle, backupSalt) {
   cancelBtn.textContent = t("cancel");
   cancelBtn.addEventListener("click", () => {
     overlay.classList.remove("visible");
+    _clearImportPinContext();
     _restoreModalBox();
   });
   btnsDiv.appendChild(cancelBtn);
 
   box.replaceChildren(iconEl, titleEl, msgEl, dotsWrap, padWrap, btnsDiv);
   overlay.classList.add("visible");
+  setTimeout(() => padWrap.querySelector("button")?.focus(), 0);
 }
 
 function _importPinInput(key, bundle, backupSalt) {
+  if (_importPinSubmitting) return;
   if (key === "⌫") {
     _importPinBuffer = _importPinBuffer.slice(0, -1);
     for (let i = 0; i < 4; i++) {
@@ -4016,6 +4062,7 @@ function _importPinInput(key, bundle, backupSalt) {
     }
     return;
   }
+  if (!/^\d$/.test(key)) return;
   if (_importPinBuffer.length >= 4) return;
   _importPinBuffer += key;
   for (let i = 0; i < 4; i++) {
@@ -4023,6 +4070,7 @@ function _importPinInput(key, bundle, backupSalt) {
     if (el) el.classList.toggle("filled", i < _importPinBuffer.length);
   }
   if (_importPinBuffer.length === 4) {
+    _importPinSubmitting = true;
     setTimeout(() => _submitImportPin(bundle, backupSalt), 150);
   }
 }
@@ -4042,6 +4090,7 @@ async function _submitImportPin(bundle, backupSalt) {
         const el = document.getElementById("ipd" + i);
         if (el) el.classList.remove("filled");
       }
+      _importPinSubmitting = false;
       return;
     }
     // Decryption succeeded — restore data, keep current session PIN and salt
@@ -4050,6 +4099,7 @@ async function _submitImportPin(bundle, backupSalt) {
     setPeriodMarkingState(state);
     await save(); // re-encrypts with current sessionPin + current salt
     document.getElementById("modal-overlay").classList.remove("visible");
+    _clearImportPinContext();
     _restoreModalBox();
 
     if (_importOnSuccessCallback) {
@@ -4080,6 +4130,7 @@ async function _submitImportPin(bundle, backupSalt) {
       const el = document.getElementById("ipd" + i);
       if (el) el.classList.remove("filled");
     }
+    _importPinSubmitting = false;
   }
 }
 
@@ -4588,6 +4639,7 @@ async function init() {
       setupPinInput,
       setupPinDelete,
       changePinInput,
+      importPinInput: _handleImportPinKeyboardInput,
       closeLogPanel,
       renderCalendar,
     });
@@ -4611,11 +4663,25 @@ async function init() {
           console.warn("Service Worker registration failed:", err);
         });
 
-      // When a new SW takes over (skipWaiting + clients.claim), reload so
-      // the page runs the latest JS instead of the old in-memory version.
+      // A newly activated worker may claim this page at any time. Reloading an
+      // unlocked page would discard the memory-only PIN and immediately show
+      // the lock screen again, so defer that refresh until the app next locks.
       navigator.serviceWorker.addEventListener("controllerchange", () => {
         const u = new URL(window.location.href);
         if (u.searchParams.has("code") || u.searchParams.has("error")) return;
+        if (serviceWorkerReloading) return;
+        if (sessionPin) {
+          serviceWorkerReloadPending = true;
+          if (!serviceWorkerReloadDeadlineTimer) {
+            serviceWorkerReloadDeadlineTimer = setTimeout(() => {
+              if (serviceWorkerReloadPending && !serviceWorkerReloading) {
+                lockApp();
+              }
+            }, SERVICE_WORKER_RELOAD_MAX_DELAY_MS);
+          }
+          return;
+        }
+        serviceWorkerReloading = true;
         window.location.reload();
       });
     } else if (!("serviceWorker" in navigator)) {

@@ -378,8 +378,8 @@ Spec (as-built): [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
 
 ## 11. Known gotchas
 
-1. Hard-refresh / unregister SW after JS/CSS deploys; bump `CACHE_VERSION`  
-2. PIN modal: `_restoreModalBox()` after import / change-PIN  
+1. Hard-refresh / unregister SW after JS/CSS deploys; bump `CACHE_VERSION`. A `controllerchange` while unlocked is deferred until the session next locks, with a five-minute maximum deferral, so an update cannot force an immediate second PIN entry or leave stale code running indefinitely. `lockApp()` clears state and sensitive overlays before attempting the pending reload so navigation failure cannot leave the app exposed.
+2. PIN modal: `_restoreModalBox()` after import / change-PIN. Encrypted-backup PIN entry uses `#ipin-dots` and must remain wired into `initKeyboardNavigation()` for digits + Backspace; its keypad controls are semantic buttons for Tab / Enter / Space. `_importPinSubmitting` keeps backup decryption single-flight.
 3. Dates: `toISO()` / `fromISO()` — never `Date.toISOString()` for day keys (this bit `import-drip.js` once already — fixed, see §8, but stay alert for new occurrences)  
 4. State by reference after decrypt  
 5. `autoFillDays`: `null` = auto (rolling avg), `0` = off, `1–10` = days ahead after start (not including the start day itself)  
@@ -401,7 +401,9 @@ Spec (as-built): [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
 
 - [ ] Onboarding / CSV import / unlock  
 - [ ] Late period message + dashed predicted days  
-- [ ] Fertility toggle: calendar only; legend stays  
+- [ ] Fertility estimates toggle: calendar highlights + Fertile Days stat; cycle phase timeline remains independently configurable
+- [ ] Activate a new service worker while unlocked — app stays open, then refreshes when the session locks
+- [ ] Encrypted-backup PIN modal accepts digits and Backspace before any click; keypad also works with Tab + Enter/Space
 - [ ] History compact dates + share icon + print icon  
 - [ ] Status phase line in zh-TW / ja / es  
 - [ ] Layout: Language above Theme; About has no PayPal  

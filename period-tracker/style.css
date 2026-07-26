@@ -233,7 +233,9 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 1.375rem;
+  font-family: inherit;
   font-weight: 600;
+  padding: 0;
   cursor: pointer;
   transition: all 0.15s;
   user-select: none;
@@ -243,6 +245,10 @@ body {
   transform: scale(0.88);
   background: rgba(255, 61, 107, 0.2);
   border-color: var(--rose);
+}
+.num-btn:focus-visible {
+  outline: 0.125rem solid var(--rose-light);
+  outline-offset: 0.125rem;
 }
 .num-btn.del {
   font-size: 1.125rem;
