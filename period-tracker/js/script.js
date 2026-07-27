@@ -47,7 +47,17 @@ import {
   setState as setPeriodMarkingState,
 } from "./periodMarking.js";
 import { buildDripCsv } from "./export-drip.js";
-import { buildCycleHistoryFromLogs, parseDripCsv } from "./import-drip.js";
+import { buildCycleHistoryFromLogs } from "./import/adapters/drip.js";
+import { parseMyCalendarText } from "./import/adapters/mycalendar.js";
+import { parseDripCsvToPreview } from "./import/adapters/drip.js";
+import {
+  parseFlowPattern,
+  applyFlowPattern,
+  previewToLogs,
+  buildReportText,
+  buildReportCsv,
+  countPreview,
+} from "./import/import-core.js";
 import {
   isDriveConfigured,
   isDriveConnected,
@@ -217,6 +227,8 @@ function setupEventListeners() {
   bindTap(document.getElementById("btn-drive-connect"), connectGoogleDrive);
   bindTap(document.getElementById("btn-drive-sync"), syncGoogleDriveNow);
   bindTap(document.getElementById("btn-drive-disconnect"), disconnectGoogleDrive);
+
+  document.getElementById("import-flow-presets")?.addEventListener("click", _handleImportPresetClick);
 }
 
 function showToast(msg, duration = 2500) {
@@ -4168,8 +4180,32 @@ async function importDataOnboarding() {
   _pickAndImportBackup();
 }
 
-async function _applyDripCsvToState(parsed) {
-  const mergedLogs = { ...parsed.logs };
+async function _finishOnboardingAfterImport(successTitle, successMsg, dayCount) {
+  try {
+    const salt = await getOrCreateSalt();
+    const pinHash = await hashPin(setupPin, salt);
+    await setInDB(PINHASH_KEY, pinHash);
+    await finishOnboarding();
+    showModal({
+      icon: "✅",
+      title: successTitle,
+      msg: typeof successMsg === "function" ? successMsg(dayCount) : successMsg,
+      cancelText: "",
+      confirmText: t("ok"),
+    });
+  } catch (error) {
+    console.error("🚨 Onboarding import error:", error);
+    showModal({
+      icon: "⚠️",
+      title: t("setup_error_title"),
+      msg: t("setup_error_msg"),
+      confirmText: t("ok"),
+    });
+  }
+}
+
+async function _applyImportLogsToState(logs) {
+  const mergedLogs = { ...logs };
   for (const date in mergedLogs) {
     const l = mergedLogs[date];
     if (!l.flow && !l.spotting && l.pain == null && l.mood == null && !(l.note && l.note.trim())) {
@@ -4196,21 +4232,322 @@ async function _applyDripCsvToState(parsed) {
   return Object.keys(mergedLogs).length;
 }
 
-async function _finishOnboardingAfterImport(successTitle, successMsg, dayCount) {
-  try {
-    const salt = await getOrCreateSalt();
-    const pinHash = await hashPin(setupPin, salt);
-    await setInDB(PINHASH_KEY, pinHash);
-    await finishOnboarding();
+let _importOnboarding = false;
+let _importSource = null;
+/** @type {import("./import/import-core.js").ImportPreview | null} */
+let _importPreview = null;
+let _lastImportReport = null;
+
+function downloadText(filename, text, mime) {
+  const blob = new Blob([text], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function _resetImportWizardState() {
+  _importSource = null;
+  _importPreview = null;
+  const patternInput = document.getElementById("import-flow-pattern");
+  if (patternInput) patternInput.value = "";
+  const patternError = document.getElementById("import-pattern-error");
+  if (patternError) {
+    patternError.textContent = "";
+    patternError.classList.add("hidden");
+  }
+}
+
+function showImportWizardStep(step) {
+  for (const id of ["source", "file", "review", "report"]) {
+    document.getElementById(`import-step-${id}`)?.classList.toggle("hidden", id !== step);
+  }
+}
+
+function _updateReviewStepUI() {
+  if (!_importPreview) return;
+  const counts = countPreview(_importPreview);
+  const countsEl = document.getElementById("import-review-counts");
+  if (countsEl) {
+    countsEl.textContent = t("app_import_review_counts", {
+      periods: counts.periods,
+      withFlow: counts.periodsWithFlow,
+    });
+  }
+
+  const warningEl = document.getElementById("import-review-warning");
+  const gaps = counts.periods - counts.periodsWithFlow;
+  if (warningEl) {
+    if (gaps > 0) {
+      warningEl.textContent = t("app_import_review_warning", { count: gaps });
+      warningEl.classList.remove("hidden");
+    } else {
+      warningEl.classList.add("hidden");
+    }
+  }
+
+  const modeFieldset = document.getElementById("import-flow-mode");
+  if (modeFieldset) {
+    modeFieldset.classList.toggle("hidden", counts.periodsWithFlow === 0);
+  }
+}
+
+function showAppImportWizard({ onboarding = false } = {}) {
+  _importOnboarding = onboarding;
+  if (onboarding && setupPin.length >= 4) sessionPin = setupPin;
+  _resetImportWizardState();
+  showImportWizardStep("source");
+  const overlay = document.getElementById("csv-import-overlay");
+  if (overlay) {
+    overlay.classList.remove("hidden");
+    applyI18n();
+  }
+}
+
+function closeAppImportWizard() {
+  document.getElementById("csv-import-overlay")?.classList.add("hidden");
+  _resetImportWizardState();
+}
+
+function selectImportSource(source) {
+  _importSource = source;
+  const hint = document.getElementById("import-file-hint");
+  if (hint) {
+    hint.textContent =
+      source === "mycalendar"
+        ? t("app_import_file_hint_mycalendar")
+        : t("app_import_file_hint_drip");
+  }
+  showImportWizardStep("file");
+}
+
+function _handleImportPresetClick(e) {
+  const btn = e.target.closest(".import-preset-btn");
+  if (!btn) return;
+  const input = document.getElementById("import-flow-pattern");
+  if (input) input.value = btn.dataset.pattern || "";
+  const patternError = document.getElementById("import-pattern-error");
+  if (patternError) {
+    patternError.textContent = "";
+    patternError.classList.add("hidden");
+  }
+}
+
+function _parseImportFile(text) {
+  if (_importSource === "mycalendar") {
+    return parseMyCalendarText(text);
+  }
+  if (_importSource === "drip") {
+    return parseDripCsvToPreview(text);
+  }
+  return { error: "Unknown import source." };
+}
+
+function _importPreviewHasUsableData(preview) {
+  for (const day of Object.values(preview.days || {})) {
+    if (
+      day.flow !== undefined ||
+      day.spotting ||
+      day.mood !== undefined ||
+      day.pain !== undefined ||
+      (day.note && day.note.trim()) ||
+      (day.leftovers && day.leftovers.length > 0)
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function _showImportErrorModal(msg) {
+  showModal({
+    icon: "❌",
+    title: t("app_import_failed_title"),
+    msg,
+    cancelText: "",
+    confirmText: t("ok"),
+  });
+}
+
+function chooseImportFile() {
+  const accept =
+    _importSource === "mycalendar"
+      ? ".txt,text/plain"
+      : ".csv,text/csv,text/comma-separated-values,text/plain";
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = accept;
+  input.addEventListener("change", async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const result = _parseImportFile(await file.text());
+      if (result.error) {
+        _showImportErrorModal(result.error);
+        return;
+      }
+      _importPreview = result.preview;
+      if (!_importPreviewHasUsableData(_importPreview)) {
+        showModal({
+          icon: "❌",
+          title: t("app_import_empty_title"),
+          msg: t("app_import_empty_msg"),
+          cancelText: "",
+          confirmText: t("ok"),
+        });
+        return;
+      }
+      _updateReviewStepUI();
+      showImportWizardStep("review");
+    } catch {
+      _showImportErrorModal(
+        _importSource === "drip" ? t("drip_import_failed_msg") : t("app_import_empty_msg")
+      );
+    }
+  });
+  input.click();
+}
+
+function _buildImportPreviewForApply() {
+  let preview = structuredClone(_importPreview);
+  const patternStr = document.getElementById("import-flow-pattern")?.value?.trim() || "";
+  const patternError = document.getElementById("import-pattern-error");
+
+  if (patternStr) {
+    const parsed = parseFlowPattern(patternStr);
+    if (parsed.error) {
+      if (patternError) {
+        patternError.textContent = parsed.error;
+        patternError.classList.remove("hidden");
+      }
+      return null;
+    }
+    if (patternError) {
+      patternError.textContent = "";
+      patternError.classList.add("hidden");
+    }
+    const modeEl = document.querySelector('input[name="import-flow-mode"]:checked');
+    const mode = modeEl?.value === "fill-gaps" ? "fill-gaps" : "overwrite";
+    preview = applyFlowPattern(preview, { pattern: parsed.pattern, mode });
+  } else if (patternError) {
+    patternError.textContent = "";
+    patternError.classList.add("hidden");
+  }
+
+  if (!_importPreviewHasUsableData(preview)) {
     showModal({
-      icon: "✅",
-      title: successTitle,
-      msg: typeof successMsg === "function" ? successMsg(dayCount) : successMsg,
+      icon: "❌",
+      title: t("app_import_empty_title"),
+      msg: t("app_import_empty_msg"),
       cancelText: "",
       confirmText: t("ok"),
     });
+    return null;
+  }
+
+  return preview;
+}
+
+function _buildImportReport(preview, logs, unmappedMoods, leftoverReport, daysImported) {
+  const counts = countPreview(preview);
+  return {
+    summary: {
+      source: preview.source,
+      periods: counts.periods,
+      periodsWithFlow: counts.periodsWithFlow,
+      daysWithFlow: counts.daysWithFlow,
+      daysWithMood: counts.daysWithMood,
+      daysWithLeftovers: counts.daysWithLeftovers,
+      unmappedMoodCount: counts.unmappedMoodCount,
+      daysImported,
+    },
+    unmappedMoods,
+    leftovers: leftoverReport,
+  };
+}
+
+function _renderImportReport() {
+  const report = _lastImportReport;
+  if (!report) return;
+
+  const summaryEl = document.getElementById("import-report-summary");
+  if (summaryEl && report.summary) {
+    const s = report.summary;
+    summaryEl.innerHTML = [
+      t("app_import_report_summary_source", { source: s.source }),
+      t("app_import_report_summary_periods", { count: s.periods }),
+      t("app_import_report_summary_flow_days", { count: s.daysWithFlow }),
+      t("app_import_report_summary_mood_days", { count: s.daysWithMood }),
+      t("app_import_report_summary_leftover_days", { count: s.daysWithLeftovers }),
+      t("app_import_report_summary_unmapped", { count: s.unmappedMoodCount }),
+      t("app_import_report_summary_imported", { count: s.daysImported }),
+    ]
+      .map((line) => `<p class="import-report-summary-line">${safeText(line)}</p>`)
+      .join("");
+  }
+
+  const unmappedWrap = document.getElementById("import-report-unmapped-wrap");
+  const unmappedList = document.getElementById("import-report-unmapped");
+  const moods = report.unmappedMoods || [];
+  if (unmappedWrap && unmappedList) {
+    if (moods.length > 0) {
+      unmappedWrap.classList.remove("hidden");
+      unmappedList.innerHTML = moods
+        .map(({ date, label }) => `<li>${safeText(date)} — ${safeText(label)}</li>`)
+        .join("");
+    } else {
+      unmappedWrap.classList.add("hidden");
+    }
+  }
+
+  const leftoversWrap = document.getElementById("import-report-leftovers-wrap");
+  const leftoversList = document.getElementById("import-report-leftovers");
+  const leftovers = report.leftovers || [];
+  if (leftoversWrap && leftoversList) {
+    if (leftovers.length > 0) {
+      leftoversWrap.classList.remove("hidden");
+      leftoversList.innerHTML = leftovers
+        .map(({ date, detail }) => `<li>${safeText(date)}: ${safeText(detail)}</li>`)
+        .join("");
+    } else {
+      leftoversWrap.classList.add("hidden");
+    }
+  }
+
+  showImportWizardStep("report");
+}
+
+async function _finishImportApply(importedLogs, preview, unmappedMoods, leftoverReport) {
+  try {
+    const daysImported = await _applyImportLogsToState(importedLogs);
+    _lastImportReport = _buildImportReport(
+      preview,
+      importedLogs,
+      unmappedMoods,
+      leftoverReport,
+      daysImported
+    );
+
+    if (_importOnboarding) {
+      if (setupPin.length < 4) return;
+      sessionPin = setupPin;
+      const salt = await getOrCreateSalt();
+      const pinHash = await hashPin(setupPin, salt);
+      await setInDB(PINHASH_KEY, pinHash);
+      await finishOnboarding();
+    } else {
+      renderCalendar();
+      updateStatusCard();
+      updateInsights();
+    }
+
+    _renderImportReport();
   } catch (error) {
-    console.error("🚨 Onboarding import error:", error);
+    console.error("Import apply error:", error);
     showModal({
       icon: "⚠️",
       title: t("setup_error_title"),
@@ -4220,124 +4557,73 @@ async function _finishOnboardingAfterImport(successTitle, successMsg, dayCount) 
   }
 }
 
-let _csvImportOnboarding = false;
+function confirmImportApply() {
+  const preview = _buildImportPreviewForApply();
+  if (!preview) return;
 
-function showCsvImportPanel({ onboarding = false } = {}) {
-  _csvImportOnboarding = onboarding;
-  if (onboarding && setupPin.length >= 4) sessionPin = setupPin;
-  const overlay = document.getElementById("csv-import-overlay");
-  if (overlay) {
-    overlay.classList.remove("hidden");
-    applyI18n();
+  const { logs, unmappedMoods, leftoverReport } = previewToLogs(preview);
+  const dayCount = Object.keys(logs).length;
+  if (dayCount === 0) {
+    showModal({
+      icon: "❌",
+      title: t("app_import_empty_title"),
+      msg: t("app_import_empty_msg"),
+      cancelText: "",
+      confirmText: t("ok"),
+    });
+    return;
+  }
+
+  if (_importOnboarding) {
+    _finishImportApply(logs, preview, unmappedMoods, leftoverReport);
+    return;
+  }
+
+  showModal({
+    icon: "📂",
+    title: t("app_import_merge_title"),
+    msg: t("app_import_merge_msg", { days: dayCount }),
+    confirmText: t("app_import_merge"),
+    cancelText: t("app_import_replace"),
+    onConfirm: async () => {
+      const merged = { ...logs, ...(state.logs || {}) };
+      await _finishImportApply(merged, preview, unmappedMoods, leftoverReport);
+    },
+    onCancel: async () => {
+      await _finishImportApply(logs, preview, unmappedMoods, leftoverReport);
+    },
+  });
+}
+
+async function copyImportReport() {
+  if (!_lastImportReport) return;
+  try {
+    await navigator.clipboard.writeText(buildReportText(_lastImportReport));
+    showToast(t("app_import_copy_success"));
+  } catch {
+    showToast(t("app_import_copy_failed"));
   }
 }
 
-function closeCsvImportPanel() {
-  document.getElementById("csv-import-overlay")?.classList.add("hidden");
+function exportImportReportTxt() {
+  if (!_lastImportReport) return;
+  const text = buildReportText(_lastImportReport);
+  downloadText(`import-report_${today()}.txt`, text, "text/plain;charset=utf-8");
 }
 
-function chooseCsvImportFile() {
-  closeCsvImportPanel();
-  _pickDripCsvFile({ onboarding: _csvImportOnboarding });
+function exportImportReportCsv() {
+  if (!_lastImportReport) return;
+  const csv = buildReportCsv(_lastImportReport);
+  downloadText(`import-report_${today()}.csv`, csv, "text/csv;charset=utf-8");
 }
 
-function _pickDripCsvFile({ onboarding = false } = {}) {
-  const input = document.createElement("input");
-  input.type = "file";
-  input.accept = ".csv,text/csv,text/comma-separated-values,text/plain";
-  input.addEventListener("change", async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      const parsed = parseDripCsv(await file.text());
-      if (parsed.error) {
-        showModal({
-          icon: "❌",
-          title: t("drip_import_failed_title"),
-          msg: parsed.error,
-          cancelText: "",
-          confirmText: t("ok"),
-        });
-        return;
-      }
-      if (parsed.dayCount === 0) {
-        showModal({
-          icon: "❌",
-          title: t("drip_import_empty_title"),
-          msg: t("drip_import_empty_msg"),
-          cancelText: "",
-          confirmText: t("ok"),
-        });
-        return;
-      }
-
-      if (onboarding) {
-        if (setupPin.length < 4) return;
-        sessionPin = setupPin;
-        const dayCount = await _applyDripCsvToState(parsed);
-        await _finishOnboardingAfterImport(
-          t("drip_import_done_title"),
-          (n) => t("drip_import_done_msg", { days: n }),
-          dayCount
-        );
-        return;
-      }
-
-      showModal({
-        icon: "📂",
-        title: t("drip_import_title"),
-        msg: t("drip_import_found", {
-          days: parsed.dayCount,
-          periods: parsed.periodCount,
-        }),
-        confirmText: t("drip_import_merge"),
-        cancelText: t("drip_import_replace"),
-        onConfirm: async () => {
-          const merged = { ...parsed.logs, ...(state.logs || {}) };
-          for (const date in merged) {
-            const l = merged[date];
-            if (!l.flow && !l.spotting && l.pain == null && l.mood == null && !(l.note && l.note.trim())) {
-              delete merged[date];
-            }
-          }
-          const applied = await _applyDripCsvToState({
-            ...parsed,
-            logs: merged,
-            dayCount: Object.keys(merged).length,
-          });
-          renderCalendar();
-          updateStatusCard();
-          updateInsights();
-          showToast(t("drip_import_done_msg", { days: applied }));
-        },
-        onCancel: async () => {
-          const applied = await _applyDripCsvToState(parsed);
-          renderCalendar();
-          updateStatusCard();
-          updateInsights();
-          showToast(t("drip_import_done_msg", { days: applied }));
-        },
-      });
-    } catch {
-      showModal({
-        icon: "❌",
-        title: t("drip_import_failed_title"),
-        msg: t("drip_import_failed_msg"),
-        cancelText: "",
-        confirmText: t("ok"),
-      });
-    }
-  });
-  input.click();
-}
-
-async function importDripCsvOnboarding() {
+function importAppOnboarding() {
   if (setupPin.length < 4) return;
-  showCsvImportPanel({ onboarding: true });
+  showAppImportWizard({ onboarding: true });
 }
 
-function importDripCsv() {
-  showCsvImportPanel({ onboarding: false });
+function importFromAnotherApp() {
+  showAppImportWizard({ onboarding: false });
 }
 
 function _pickAndImportBackup() {
@@ -4899,11 +5185,17 @@ window.startApp = startApp;
 window.proceedToOnboardSetup = proceedToOnboardSetup;
 window.backToOnboardPin = backToOnboardPin;
 window.importDataOnboarding = importDataOnboarding;
-window.importDripCsvOnboarding = importDripCsvOnboarding;
-window.importDripCsv = importDripCsv;
-window.showCsvImportPanel = showCsvImportPanel;
-window.closeCsvImportPanel = closeCsvImportPanel;
-window.chooseCsvImportFile = chooseCsvImportFile;
+window.importAppOnboarding = importAppOnboarding;
+window.importFromAnotherApp = importFromAnotherApp;
+window.showAppImportWizard = showAppImportWizard;
+window.closeAppImportWizard = closeAppImportWizard;
+window.selectImportSource = selectImportSource;
+window.chooseImportFile = chooseImportFile;
+window.showImportWizardStep = showImportWizardStep;
+window.confirmImportApply = confirmImportApply;
+window.copyImportReport = copyImportReport;
+window.exportImportReportTxt = exportImportReportTxt;
+window.exportImportReportCsv = exportImportReportCsv;
 window.changeMonth = changeMonth;
 window.closeLogPanel = closeLogPanel;
 window.showFlowModal = showFlowModal;

@@ -353,9 +353,53 @@ const LOCALES = {
     settings_change_pin: "Change PIN",
     settings_export: "Export Encrypted Backup",
     settings_import: "Import Encrypted Backup",
-    settings_import_drip: "Import from drip (CSV)",
+    settings_import_app: "Import from another app",
 
-    // drip CSV import flow
+    // Multi-app import wizard
+    app_import_title: "Import from another app",
+    app_import_source_intro:
+      "Choose the app you exported from. Your unlock session stays active — you will not leave this screen.",
+    app_import_source_mycalendar: "My Calendar",
+    app_import_source_drip: "drip",
+    app_import_file_hint_mycalendar:
+      "Export from My Calendar as a text file (tab-separated lines with Period Starts/Ends and Symptoms). Then choose that file here.",
+    app_import_file_hint_drip:
+      "Import cycle history from a drip CSV export. In drip, go to Menu → Export Data → Export as CSV.",
+    app_import_choose_file: "Choose file",
+    app_import_back: "Back",
+    app_import_review_counts: "{periods} periods total, {withFlow} with identified source flow.",
+    app_import_review_warning:
+      "{count} periods have no flow — set a pattern to fill them, or continue to keep source data only.",
+    app_import_pattern_label: "Flow pattern (1–4; 0 = spotting)",
+    app_import_flow_mode_legend: "When source flow exists",
+    app_import_flow_overwrite: "Overwrite existing flow",
+    app_import_flow_fill_gaps: "Only fill periods with no flow",
+    app_import_continue: "Continue",
+    app_import_report_unmapped: "Unmapped moods",
+    app_import_report_leftovers: "Leftovers",
+    app_import_copy: "Copy report",
+    app_import_export_txt: "Export .txt",
+    app_import_export_csv: "Export .csv",
+    app_import_done: "Done",
+    app_import_failed_title: "Import Failed",
+    app_import_empty_title: "Nothing to Import",
+    app_import_empty_msg: "The file contained no usable data.",
+    app_import_done_msg: "{days} days imported successfully.",
+    app_import_merge_title: "Import data",
+    app_import_merge_msg: "Found {days} days to import. How would you like to apply?",
+    app_import_merge: "Merge (keep my data)",
+    app_import_replace: "Replace (use imported data)",
+    app_import_report_summary_source: "Source: {source}",
+    app_import_report_summary_periods: "Periods: {count}",
+    app_import_report_summary_flow_days: "Days with flow: {count}",
+    app_import_report_summary_mood_days: "Days with mood: {count}",
+    app_import_report_summary_leftover_days: "Days with leftovers: {count}",
+    app_import_report_summary_unmapped: "Unmapped moods: {count}",
+    app_import_report_summary_imported: "Days imported: {count}",
+    app_import_copy_success: "Report copied to clipboard",
+    app_import_copy_failed: "Could not copy report",
+
+    // drip CSV import flow (legacy merge/replace labels)
     drip_import_title: "Import from drip",
     drip_import_panel_intro:
       "Import cycle history from a drip-compatible CSV file. In drip, go to Menu → Export Data → Export as CSV.",
@@ -1877,7 +1921,7 @@ const LOCALES = {
     settings_change_pin: "PINを変更",
     settings_export: "暗号化バックアップをエクスポート",
     settings_import: "暗号化バックアップをインポート",
-    settings_import_drip: "dripからインポート（CSV）",
+    settings_import_app: "他のアプリからインポート",
 
     drip_import_title: "dripからインポート",
     drip_import_found:
@@ -2339,7 +2383,7 @@ const LOCALES = {
     settings_change_pin: "更改PIN",
     settings_export: "匯出加密備份",
     settings_import: "匯入加密備份",
-    settings_import_drip: "從drip匯入（CSV）",
+    settings_import_app: "從其他應用程式匯入",
 
     drip_import_title: "從drip匯入",
     drip_import_found:

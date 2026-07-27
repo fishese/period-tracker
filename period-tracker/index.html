@@ -305,10 +305,10 @@
         <button
           type="button"
           class="onboard-import-btn"
-          onclick="importDripCsvOnboarding()"
-          data-i18n="settings_import_drip"
+          onclick="showAppImportWizard({ onboarding: true })"
+          data-i18n="settings_import_app"
         >
-          Import from drip (CSV)
+          Import from another app
         </button>
       </div>
     </div>
@@ -1121,10 +1121,10 @@
             <button
               type="button"
               class="apply-btn btn--import-drip"
-              onclick="importDripCsv()"
-              data-i18n="settings_import_drip"
+              onclick="showAppImportWizard({ onboarding: false })"
+              data-i18n="settings_import_app"
             >
-              Import from drip (CSV)
+              Import from another app
             </button>
             <button class="apply-btn btn--export-drip" onclick="exportToDrip()">
               Export to drip CSV
@@ -1196,7 +1196,7 @@
 
     </div>
 
-    <!-- CSV import panel (drip format + My Calendar converter link) -->
+    <!-- Multi-app import wizard -->
     <div
       id="csv-import-overlay"
       class="csv-import-overlay hidden"
@@ -1204,45 +1204,144 @@
       aria-modal="true"
       aria-labelledby="csv-import-title"
     >
-      <div class="csv-import-panel">
+      <div class="csv-import-panel csv-import-panel--wizard">
         <button
           type="button"
           class="csv-import-close"
-          onclick="closeCsvImportPanel()"
+          onclick="closeAppImportWizard()"
           aria-label="Close"
         >
           ✕
         </button>
-        <h2 class="csv-import-title" id="csv-import-title" data-i18n="drip_import_title">
-          Import from drip
+        <h2 class="csv-import-title" id="csv-import-title" data-i18n="app_import_title">
+          Import from another app
         </h2>
-        <p class="csv-import-intro" data-i18n="drip_import_panel_intro">
-          Import cycle history from a drip-compatible CSV file. In drip, go to Menu → Export Data → Export as CSV.
-        </p>
-        <p class="csv-import-note" data-i18n="drip_import_panel_before">
-          You can also convert data from other apps first — see the converter tool below.
-        </p>
-        <button
-          type="button"
-          class="apply-btn csv-import-choose-btn"
-          onclick="chooseCsvImportFile()"
-          data-i18n="drip_import_choose_csv"
-        >
-          Choose CSV file
-        </button>
-        <div class="csv-import-converter-block">
-          <p class="csv-import-converter-label" data-i18n="drip_import_mycalendar_label">
-            Using My Calendar instead of drip?
+
+        <!-- Step 1: source picker -->
+        <div id="import-step-source" class="import-wizard-step">
+          <p class="csv-import-intro" data-i18n="app_import_source_intro">
+            Choose the app you exported from. Your unlock session stays active — you will not leave this screen.
           </p>
-          <a
-            href="mycalendar-to-drip.html"
-            class="csv-import-converter-link"
-            target="_blank"
-            rel="noopener"
-            data-i18n="drip_import_mycalendar_link"
+          <div class="import-source-btns">
+            <button
+              type="button"
+              class="apply-btn import-source-btn"
+              onclick="selectImportSource('mycalendar')"
+              data-i18n="app_import_source_mycalendar"
+            >
+              My Calendar
+            </button>
+            <button
+              type="button"
+              class="apply-btn import-source-btn"
+              onclick="selectImportSource('drip')"
+              data-i18n="app_import_source_drip"
+            >
+              drip
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 2: file picker -->
+        <div id="import-step-file" class="import-wizard-step hidden">
+          <p class="csv-import-intro" id="import-file-hint" data-i18n="app_import_file_hint_drip"></p>
+          <button
+            type="button"
+            class="apply-btn csv-import-choose-btn"
+            onclick="chooseImportFile()"
+            data-i18n="app_import_choose_file"
           >
-            Convert My Calendar to drip →
-          </a>
+            Choose file
+          </button>
+          <button
+            type="button"
+            class="btn-outline import-wizard-back"
+            onclick="showImportWizardStep('source')"
+            data-i18n="app_import_back"
+          >
+            Back
+          </button>
+        </div>
+
+        <!-- Step 3: review + flow pattern -->
+        <div id="import-step-review" class="import-wizard-step hidden">
+          <p class="import-review-counts" id="import-review-counts"></p>
+          <p class="import-review-warning hidden" id="import-review-warning"></p>
+          <label class="import-pattern-label" for="import-flow-pattern" data-i18n="app_import_pattern_label">
+            Flow pattern (1–4; 0 = spotting)
+          </label>
+          <input
+            type="text"
+            id="import-flow-pattern"
+            class="import-flow-pattern-input"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="2,3,3,1"
+          />
+          <p class="import-pattern-error hidden" id="import-pattern-error" role="alert"></p>
+          <div class="import-flow-presets" id="import-flow-presets">
+            <button type="button" class="import-preset-btn" data-pattern="2,3,3,1">2,3,3,1</button>
+            <button type="button" class="import-preset-btn" data-pattern="1,2,3,2,1">1,2,3,2,1</button>
+            <button type="button" class="import-preset-btn" data-pattern="2">2</button>
+            <button type="button" class="import-preset-btn" data-pattern="3">3</button>
+            <button type="button" class="import-preset-btn" data-pattern="1,1,1,1,1">1,1,1,1,1</button>
+          </div>
+          <fieldset class="import-flow-mode hidden" id="import-flow-mode">
+            <legend data-i18n="app_import_flow_mode_legend">When source flow exists</legend>
+            <label class="import-radio-row">
+              <input type="radio" name="import-flow-mode" value="overwrite" checked />
+              <span data-i18n="app_import_flow_overwrite">Overwrite existing flow</span>
+            </label>
+            <label class="import-radio-row">
+              <input type="radio" name="import-flow-mode" value="fill-gaps" />
+              <span data-i18n="app_import_flow_fill_gaps">Only fill periods with no flow</span>
+            </label>
+          </fieldset>
+          <div class="import-wizard-actions">
+            <button
+              type="button"
+              class="apply-btn"
+              onclick="confirmImportApply()"
+              data-i18n="app_import_continue"
+            >
+              Continue
+            </button>
+            <button
+              type="button"
+              class="btn-outline import-wizard-back"
+              onclick="showImportWizardStep('file')"
+              data-i18n="app_import_back"
+            >
+              Back
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 4: report -->
+        <div id="import-step-report" class="import-wizard-step hidden">
+          <div class="import-report-section" id="import-report-summary"></div>
+          <div class="import-report-section hidden" id="import-report-unmapped-wrap">
+            <h3 class="import-report-heading" data-i18n="app_import_report_unmapped">Unmapped moods</h3>
+            <ul class="import-report-list" id="import-report-unmapped"></ul>
+          </div>
+          <div class="import-report-section hidden" id="import-report-leftovers-wrap">
+            <h3 class="import-report-heading" data-i18n="app_import_report_leftovers">Leftovers</h3>
+            <ul class="import-report-list import-report-list--leftovers" id="import-report-leftovers"></ul>
+          </div>
+          <div class="import-report-actions">
+            <button type="button" class="apply-btn" onclick="copyImportReport()" data-i18n="app_import_copy">
+              Copy report
+            </button>
+            <button type="button" class="btn-outline" onclick="exportImportReportTxt()" data-i18n="app_import_export_txt">
+              Export .txt
+            </button>
+            <button type="button" class="btn-outline" onclick="exportImportReportCsv()" data-i18n="app_import_export_csv">
+              Export .csv
+            </button>
+            <button type="button" class="btn-outline" onclick="closeAppImportWizard()" data-i18n="app_import_done">
+              Done
+            </button>
+          </div>
         </div>
       </div>
     </div>
