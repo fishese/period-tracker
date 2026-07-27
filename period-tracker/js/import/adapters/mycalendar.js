@@ -158,8 +158,7 @@ export function parseMyCalendarText(text) {
       const day = ensureDay(days, iso);
       if (symptoms.flowLevels.length > 0) {
         day.flow = Math.max(...symptoms.flowLevels);
-      }
-      if (symptoms.spotting) {
+      } else if (symptoms.spotting) {
         day.spotting = true;
       }
       if (symptoms.leftovers.length > 0) {

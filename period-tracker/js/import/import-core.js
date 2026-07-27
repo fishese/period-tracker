@@ -159,9 +159,28 @@ export function buildReportText(report) {
   const lines = [];
 
   if (report.summary) {
+    const s = report.summary;
     lines.push("Import report");
-    if (report.summary.source) {
-      lines.push(`Source: ${report.summary.source}`);
+    if (s.source) {
+      lines.push(`Source: ${s.source}`);
+    }
+    if (s.periods !== undefined) {
+      lines.push(`Periods: ${s.periods}`);
+    }
+    if (s.daysWithFlow !== undefined) {
+      lines.push(`Days with flow: ${s.daysWithFlow}`);
+    }
+    if (s.daysWithMood !== undefined) {
+      lines.push(`Days with mood: ${s.daysWithMood}`);
+    }
+    if (s.daysWithLeftovers !== undefined) {
+      lines.push(`Days with leftovers: ${s.daysWithLeftovers}`);
+    }
+    if (s.unmappedMoodCount !== undefined) {
+      lines.push(`Unmapped moods: ${s.unmappedMoodCount}`);
+    }
+    if (s.daysImported !== undefined) {
+      lines.push(`Days imported: ${s.daysImported}`);
     }
     lines.push("");
   }

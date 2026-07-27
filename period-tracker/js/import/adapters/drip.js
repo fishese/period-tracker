@@ -249,7 +249,7 @@ function buildPeriodsFromDays(days) {
   return groups.map((dates) => ({
     start: dates[0],
     end: dates[dates.length - 1],
-    hasSourceFlow: true,
+    hasSourceFlow: dates.some((date) => days[date].flow !== undefined),
   }));
 }
 

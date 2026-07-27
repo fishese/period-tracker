@@ -4391,7 +4391,8 @@ function chooseImportFile() {
         return;
       }
       _importPreview = result.preview;
-      if (!_importPreviewHasUsableData(_importPreview)) {
+      const hasPeriods = (_importPreview.periods?.length ?? 0) > 0;
+      if (!_importPreviewHasUsableData(_importPreview) && !hasPeriods) {
         showModal({
           icon: "❌",
           title: t("app_import_empty_title"),

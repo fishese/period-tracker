@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { parseDripCsvToPreview } from "../adapters/drip.js";
+import { applyFlowPattern } from "../import-core.js";
 import { buildDripCsv } from "../../export-drip.js";
 
 const dir = dirname(fileURLToPath(import.meta.url));
@@ -40,6 +41,22 @@ describe("drip adapter", () => {
     assert.equal(preview.periods[0].start, "2026-07-01");
     assert.equal(preview.periods[0].end, "2026-07-03");
     assert.equal(preview.periods[0].hasSourceFlow, true);
+  });
+
+  it("sets hasSourceFlow false for spotting-only period groups", () => {
+    const spottingOnly = `date,temperature.value,temperature.exclude,temperature.time,temperature.note,bleeding.value,bleeding.exclude,mucus.feeling,mucus.texture,mucus.value,mucus.exclude,cervix.opening,cervix.firmness,cervix.position,cervix.exclude,note.value,desire.value,sex.solo,sex.partner,sex.condom,sex.pill,sex.iud,sex.patch,sex.ring,sex.implant,sex.diaphragm,sex.none,sex.other,sex.note,pain.cramps,pain.ovulationPain,pain.headache,pain.backache,pain.nausea,pain.tenderBreasts,pain.migraine,pain.other,pain.note,mood.happy,mood.sad,mood.stressed,mood.balanced,mood.fine,mood.anxious,mood.energetic,mood.fatigue,mood.angry,mood.other,mood.note
+2026-07-20,,,,,0,false,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+2026-07-21,,,,,0,false,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,`;
+    const { preview } = parseDripCsvToPreview(spottingOnly);
+    assert.equal(preview.periods.length, 1);
+    assert.equal(preview.periods[0].hasSourceFlow, false);
+
+    const filled = applyFlowPattern(structuredClone(preview), {
+      pattern: [1, 2],
+      mode: "fill-gaps",
+    });
+    assert.equal(filled.days["2026-07-20"].flow, 1);
+    assert.equal(filled.days["2026-07-21"].flow, 2);
   });
 
   it("restores flow 4 from note token", () => {
