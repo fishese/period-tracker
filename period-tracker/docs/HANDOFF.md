@@ -1,10 +1,10 @@
 # My Cycle Keeper — Handoff Document
 
-**Last updated:** 2026-07-23 (Google Drive disconnect + deploy fixes)  
+**Last updated:** 2026-07-27 (daily logging, history insights, locale dates, and unlock hardening)<br>
 **Maintainer:** Personal fork (fishese)  
 **Status:** Stable for personal use. Latest on `period-tracker/master`. Come back in a new chat with the prompt in §13.
 
-This document is the **current source of truth** for continuing work. Older detail lives in [`README-Fork.md`](../../README-Fork.md) (sections 1–20); verify anything in that file against code for predictions, storage keys, fertility defaults, and branding.
+This document is the **current source of truth** for continuing work. Older implementation history remains available in Git; verify historical notes against current code for predictions, storage keys, fertility defaults, and branding.
 
 ---
 
@@ -21,7 +21,7 @@ This document is the **current source of truth** for continuing work. Older deta
 
 **Live URL (this fork):** https://fishese.github.io/period-tracker/period-tracker/
 
-**Why the fork exists:** Migrate history from **My Calendar** → **drip CSV** → this app; continue tracking with rolling predictions, auto-fill, and optional export back to drip format.
+**Why the fork exists:** Migrate history from **My Calendar** or **drip** directly into this app; continue tracking with rolling predictions, auto-fill, and optional export back to drip format.
 
 **Branding rule:** UI and product name = **My Cycle Keeper**. Attribution / support for the original = **Your Cycle Keeper** / `pythonime-lab` (GitHub link only — PayPal donate removed to avoid payment confusion).
 
@@ -222,11 +222,20 @@ Only while **actively bleeding** (`isPeriodEpisodeActive`).
 
 ### Cycle history
 
-- Compact dates: `Jun 4–Jun 9, 2026`
+- Compact dates use two-digit years (for example, `Jun 4–Jun 9, ’26`). Japanese and Traditional Chinese month/day labels have no inserted space and include `日` (for example, `6月4日–6月9日, ’26`).
 - History columns: Dates \| Period \| Cycle \| Daily pattern. The daily pattern is a compact, theme-safe SVG with flow bars plus overlaid pain and mood lines; its own `var(--bg2)` background keeps it readable across themes.
 - Both the recent-six table and full-history overlay use the same chart component and aligned four-column grid.
 - Footer row: “Showing last N of M cycles” + small **share icon** (mailto, last 6 periods as plain text) + **print icon** (`printCycleSummary()`)
-- `shareRecentPeriodHistory()` in `script.js`
+- `shareRecentPeriodHistory()` in `script.js` intentionally shares dates/durations only; it does not include flow, pain, mood, symptoms, or notes.
+
+### Daily log editor
+
+- Mobile-first, vertically compact accordion rows for **Flow / Pain / Mood / Note**. Selecting a value autosaves; each row has an explicit **Clear**, and a saved day has an explicit **Delete entry** action.
+- Flow drops sit beside the Flow label; flow supports spotting/light/medium/heavy in the UI while only light/medium/heavy count as period days.
+- Pain supports `0–10` in `0.5` increments. `0` is an explicit **No pain** record and is distinct from an absent pain field.
+- Existing logs remain readable through normalizers: numeric flow/pain/mood, legacy `flow: true`, legacy numeric/boolean `headache`, and legacy `mood-happy` / `mood-low`.
+- Auto-fill runs only when flow is newly added to a date that starts a new period (or the user explicitly forces a new cycle). Editing pain, mood, or notes on an existing period day cannot trigger it.
+- Auto-filled future light-flow days carry `flowEstimated: true` until the user confirms or changes them.
 
 ### Print cycle summary (doctor-visit friendly)
 
@@ -250,17 +259,23 @@ Only while **actively bleeding** (`isPeriodEpisodeActive`).
 ## 7. Import / export
 
 ```
-My Calendar export
-  → mycalendar-to-drip.html
-  → drip CSV
-  → in-app #csv-import-overlay OR import-drip.html
+Settings or onboarding → Import from another app (in-app wizard)
+  1. Pick source (My Calendar | drip)
+  2. Choose file (.txt / .csv)
+  3. Review + flow pattern (levels 1–4; overwrite vs fill-gaps when source flow exists)
+  4. Apply (onboarding: initial load; in-app: Merge vs Replace)
+  5. Import report (copy / export .txt / .csv)
 ```
 
+- Entry: **Settings → Import from another app** or onboarding import — same five-step overlay (`showAppImportWizard()`). Encrypted `.bin` backup import stays separate.
+- Standalone `mycalendar-to-drip.html` and `import-drip.html` are retired (short message + link back to the app only; no auto-redirect).
+- **Flow level 4 (Very heavy):** stored as `log.flow = 4`; drip export writes `bleeding.value=3` plus a `flow:4` note token; drip import recognizes the token without rescaling levels 1–3.
+- **Leftovers report:** unmapped moods, unsupported symptoms/columns, and truncated day notes appear in the post-import report; full detail in copy / `.txt` / `.csv` export (not persisted in encrypted state).
 - Encrypted backup: `.bin` (`mycyclekeeper_backup_*.bin`)
 - drip CSV export from Settings
 - drip `bleeding.value === 0` (spotting) imports as `log.spotting = true`, **not** `log.flow` — see §4 State shape. Export round-trips it back to `bleeding.value=0`.
-- `parseDripCsv()`'s future-date cutoff uses `toISO(new Date())` (local date) — was previously `Date.toISOString()` (UTC), which could wrongly drop "today"'s rows near midnight in timezones ahead of UTC.
-- Non-onboarding drip import already offers a real choice: **Merge** (keep existing logs on date collisions) vs **Replace** (drip data wins) — see the modal in `_pickDripCsvFile()`. Onboarding import has nothing to merge with, so it's just an initial load.
+- Future-date cutoff uses `toISO(new Date())` (local date) — was previously `Date.toISOString()` (UTC), which could wrongly drop "today"'s rows near midnight in timezones ahead of UTC.
+- Non-onboarding import offers **Merge** (keep existing logs on date collisions) vs **Replace** (imported data wins). Onboarding import has nothing to merge with, so it's just an initial load.
 
 ---
 
@@ -329,11 +344,35 @@ My Calendar export
 
 **Verified working:** Connect → back up now → two-tap Disconnect → Connect again; restore from Drive on fresh device.
 
+### Daily logging + history insights session (2026-07-27, `5609921`, `fe7c3df`, `84352ad`; cache `v20260727q`)
+
+**Logging and compatibility:**
+
+1. Replaced the day input panel with a compact, mobile-first accordion editor with autosave, explicit per-field clearing, and an unambiguous whole-entry delete action.
+2. Added explicit **No pain** (`pain: 0`) so “recorded no pain” is not conflated with “not recorded.”
+3. Added compatibility normalizers for existing numeric and legacy boolean symptom data. drip CSV pain and mood flags are converted to the current scales; numeric values placed in drip note fields by this app round-trip without being duplicated into the user’s note.
+4. Auto-fill now triggers only when a new flow record begins a period, never when editing symptoms on an existing flow day. Estimated days are labeled with `flowEstimated`.
+
+**Insights, fertility, and privacy:**
+
+5. Added a compact **Recent period profile** showing duration, heavy-flow days, peak-flow day, peak pain, and per-day flow/pain/mood tracks. The layout remains valid when only flow was recorded.
+6. Combined the recent comparison with cycle history. The latest six rows and full-history overlay now use aligned Dates / Period / Cycle / Daily pattern columns and compact, theme-safe SVG charts: bottom-aligned flow bars with overlaid pain and mood lines.
+7. Compacted rolling-six-month and all-time statistics into horizontal metric grids for mobile.
+8. Split the old fertility display setting into **Show fertility estimates** (default off) and **Show cycle phase timeline** (default on). Fertility-off removes fertile-day statistics and calendar/status fertility labels; the independent phase timeline may still show menstrual, follicular, ovulation, and luteal phases. Turning the phase timeline off shows only Period / Other cycle days and removes ovulation/luteal legend entries.
+9. Kept sharing privacy-preserving: recent history sharing remains dates/durations only. Printing defaults to dates/durations and offers two independent, unchecked opt-ins for symptom summaries and notes.
+
+**Authentication, localization, and PWA updates:**
+
+10. Encrypted-backup PIN entry now accepts keyboard digits and Backspace before a mouse click, uses semantic keypad buttons, restores focus correctly, and prevents duplicate decrypt submissions.
+11. Service-worker activation no longer interrupts an unlocked session. It also defers while a PIN is partially entered or while hash/decrypt work is in progress, preventing the update race that produced two login screens back to back.
+12. Unlock remains security-equivalent: the PIN is memory-only, submissions are single-flight, the existing attempt counter/lockout remains active, and pending updates reload only after locking (with the existing maximum deferral).
+13. Japanese and Traditional Chinese period ranges now render compact month/day labels such as `6月4日–6月9日`, including `日` and no space before the day.
+
 ---
 
 ## 9. Older work
 
-See `README-Fork.md` §§1–20 (drip tools, crypto chunks, auto-fill, themes, PWA, modal DOM fix, etc.). Prefer this HANDOFF for anything current.
+See earlier commits for older implementation history (drip tools, crypto chunks, auto-fill, themes, PWA, modal DOM fixes, etc.). Prefer this HANDOFF for anything current.
 
 ---
 
@@ -363,7 +402,7 @@ Spec (as-built): [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
 ### B. Remaining UI / docs (optional)
 
 - Desktop Insights polish; symptom chart restore if needed (undecided how to present the data meaningfully — see §8)
-- Refresh `README-Fork.md` + `CLAUDE.md` (still say Your Cycle Keeper / old keys in places; `CLAUDE.md` also still lists `flow: 1-3` only — now `spotting?: true` too, see §4)
+- Keep `README.md`, `CLAUDE.md`, and this handoff synchronized when state fields, privacy defaults, or authentication behavior change.
 - ~~Confirm share-card / QR text pointing at GitHub Pages URL~~ (done)
 - Update `og:url` / canonical if hosting on a personal domain
 - Consider adding a distinct calendar dot style for spotting-only days (currently shows as the generic "has-log" dot, same as any other logged day)
@@ -378,7 +417,7 @@ Spec (as-built): [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
 
 ## 11. Known gotchas
 
-1. Hard-refresh / unregister SW after JS/CSS deploys; bump `CACHE_VERSION`. A `controllerchange` while unlocked is deferred until the session next locks, with a five-minute maximum deferral, so an update cannot force an immediate second PIN entry or leave stale code running indefinitely. `lockApp()` clears state and sensitive overlays before attempting the pending reload so navigation failure cannot leave the app exposed.
+1. Hard-refresh / unregister SW after JS/CSS deploys; bump `CACHE_VERSION`. A `controllerchange` while unlocked, while a PIN is partially entered, or while unlock is in progress is deferred until the session next locks, with a five-minute maximum deferral. `unlockInProgress` also makes PIN validation single-flight. Do not persist this flag or the PIN. `lockApp()` clears state and sensitive overlays before attempting the pending reload so navigation failure cannot leave the app exposed.
 2. PIN modal: `_restoreModalBox()` after import / change-PIN. Encrypted-backup PIN entry uses `#ipin-dots` and must remain wired into `initKeyboardNavigation()` for digits + Backspace; its keypad controls are semantic buttons for Tab / Enter / Space. `_importPinSubmitting` keeps backup decryption single-flight.
 3. Dates: `toISO()` / `fromISO()` — never `Date.toISOString()` for day keys (this bit `import-drip.js` once already — fixed, see §8, but stay alert for new occurrences)  
 4. State by reference after decrypt  
@@ -400,11 +439,17 @@ Spec (as-built): [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
 ## 12. Quick test checklist
 
 - [ ] Onboarding / CSV import / unlock  
+- [ ] Enter a correct PIN while a new service worker activates — app unlocks once and does not immediately show a second login screen
+- [ ] Enter only part of a PIN while a new service worker activates — entry is not interrupted
 - [ ] Late period message + dashed predicted days  
 - [ ] Fertility estimates toggle: calendar highlights + Fertile Days stat; cycle phase timeline remains independently configurable
+- [ ] Disable cycle phase timeline — neutral timeline shows only Period / Other cycle days with no Ovulation or Luteal legend
 - [ ] Activate a new service worker while unlocked — app stays open, then refreshes when the session locks
 - [ ] Encrypted-backup PIN modal accepts digits and Backspace before any click; keypad also works with Tab + Enter/Space
-- [ ] History compact dates + share icon + print icon  
+- [ ] Daily editor: clear fields, delete entry, explicit No pain, and editing symptoms on an existing period does not auto-fill
+- [ ] History charts: bars start at the bottom; pain/mood overlay flow; SVG background works in every theme
+- [ ] History compact dates + share icon + print icon; ja/zh-TW ranges render like `6月4日–6月9日`
+- [ ] Share history contains dates/durations only
 - [ ] Status phase line in zh-TW / ja / es  
 - [ ] Layout: Language above Theme; About has no PayPal  
 - [ ] Offline reload  
@@ -412,7 +457,7 @@ Spec (as-built): [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
 - [ ] Log panel "This is a new period" checkbox actually splits a cycle when checked  
 - [ ] Settings → Cycle → "Recalculate Cycle History" rebuilds without errors on real data  
 - [ ] Import a drip CSV with a `bleeding.value=0` (spotting) row — check it doesn't inflate period count, and round-trips on export  
-- [ ] Print summary opens print dialog with populated stats + history table  
+- [ ] Print summary defaults to dates/durations; symptoms and notes can be enabled independently
 - [x] Drive: connect (test user) → back up now → two-tap disconnect → Connect again; fertility toggle still saves without error  
 
 ---
