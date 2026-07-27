@@ -457,6 +457,8 @@ function lockApp() {
   document.body.style.overflow = "";
   document.getElementById("print-options-overlay")?.classList.remove("visible");
   document.getElementById("print-summary")?.replaceChildren();
+  document.getElementById("csv-import-overlay")?.classList.add("hidden");
+  document.getElementById("app-export-overlay")?.classList.add("hidden");
   closeAppModal();
   pinBuffer = "";
   updatePinDots("");
