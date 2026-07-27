@@ -6,6 +6,17 @@ Privacy-first period tracking PWA — AES-256-GCM encryption, no server, optiona
 
 This repo root is only a redirect page for GitHub Pages. All app code lives in [`period-tracker/`](period-tracker/).
 
+## Current highlights
+
+- Compact mobile-first daily editor for flow, pain (including explicit **No pain**), mood, and notes
+- Rolling six-month predictions plus all-time cycle statistics
+- Recent-period profile and compact per-period flow/pain/mood charts in both recent and full history
+- Fertility estimates default off; the independently controlled cycle-phase timeline defaults on
+- Doctor-friendly sharing remains dates/durations only; printed history has separate opt-ins for symptoms and notes
+- Existing encrypted data remains supported
+- Import from **My Calendar** or **drip**; export to **drip** or **plain CSV** (in-app wizards)
+- English, Spanish, Japanese, and Traditional Chinese UI
+
 ## Fork vs upstream
 
 | | This fork | Upstream |

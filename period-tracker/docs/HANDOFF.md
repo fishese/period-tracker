@@ -1,10 +1,12 @@
 # My Cycle Keeper — Handoff Document
 
-**Last updated:** 2026-07-27 (daily logging, history insights, locale dates, and unlock hardening)<br>
+**Last updated:** 2026-07-28 (multi-app import/export + report/pattern UX)<br>
 **Maintainer:** Personal fork (fishese)  
 **Status:** Stable for personal use. Latest on `period-tracker/master`. Come back in a new chat with the prompt in §13.
 
 This document is the **current source of truth** for continuing work. Older implementation history remains available in Git; verify historical notes against current code for predictions, storage keys, fertility defaults, and branding.
+
+**Current `CACHE_VERSION`:** `v20260728c` (in `period-tracker/service-worker.js`)
 
 ---
 
@@ -78,9 +80,11 @@ Note: local path is single `period-tracker/`; GitHub Pages uses double — OAuth
 
 ### Pre-deploy checklist
 
-1. Bump `CACHE_VERSION` in `period-tracker/service-worker.js`
+1. Bump `CACHE_VERSION` in `period-tracker/service-worker.js` (see value at top of this doc)
 2. Test offline: DevTools → Network → Offline → reload
 3. Push to GitHub (`period-tracker` remote)
+4. Confirm GitHub Pages build succeeded (Jekyll is disabled via `.nojekyll` + `_config.yml` exclude for `docs/`)
+5. Hard-refresh or unregister the Service Worker after deploy
 
 ### Git remotes
 
@@ -264,7 +268,7 @@ Settings or onboarding → Import from another app (in-app wizard)
   2. Choose file (.txt / .csv)
   3. Review + flow pattern (levels 1–4; overwrite vs fill-gaps when source flow exists)
   4. Apply (onboarding: initial load; in-app: Merge vs Replace)
-  5. Import report (copy / export .txt / .csv)
+  5. Import report (short result; extras + copy/export only when needed)
 
 Settings → Export to another app (in-app wizard)
   1. Pick format (drip | Plain CSV)
@@ -277,7 +281,8 @@ Settings → Export to another app (in-app wizard)
 - **Export formats:** **drip** (drip-compatible CSV for re-import into drip) and **Plain CSV** (spreadsheet layout: date, flow, pain, mood, note). **My Calendar export is not offered** — import only.
 - Standalone `mycalendar-to-drip.html` and `import-drip.html` are retired (short message + link back to the app only; no auto-redirect).
 - **Flow level 4 (Very heavy):** stored as `log.flow = 4`; drip export writes `bleeding.value=3` plus a `flow:4` note token; drip import recognizes the token without rescaling levels 1–3.
-- **Leftovers report:** unmapped moods, unsupported symptoms/columns, and truncated day notes appear in the post-import report; full detail in copy / `.txt` / `.csv` export (not persisted in encrypted state).
+- **Flow pattern:** always shown on review. Levels `1–4`; `0` = spotting. Presets include `2,3,3,1`, `1,2,3,2,1`, `2`, `3`, `1,1,1,1,1`. Hint text: if the pattern is longer than a period, extra days are ignored; if shorter, the last level repeats. When periods lack source flow and the field is empty, apply defaults to `1` (light) and prefills the input. When source flow exists (`M > 0`), choose **Overwrite** vs **Only fill periods with no flow**.
+- **Import report:** one result line — `Imported {days} period days across {periods} cycles.` If unmapped moods or leftovers remain, show a short note that those details aren’t tracked yet (listed below for copy/export or notes later), then the lists. Copy / Export `.txt` / `.csv` appear only when extras exist (full leftover strings; not stored in encrypted state). Truncated day notes (500) may still be written into imported logs.
 - Encrypted backup: `.bin` (`mycyclekeeper_backup_*.bin`)
 - Plain CSV export includes flow days and spotting-only days; spotting appears as `flow=spotting` (not a period day, so period columns stay blank). drip export round-trips spotting as `bleeding.value=0`.
 - drip `bleeding.value === 0` (spotting) imports as `log.spotting = true`, **not** `log.flow` — see §4 State shape. Export round-trips it back to `bleeding.value=0`.
@@ -374,6 +379,17 @@ Settings → Export to another app (in-app wizard)
 11. Service-worker activation no longer interrupts an unlocked session. It also defers while a PIN is partially entered or while hash/decrypt work is in progress, preventing the update race that produced two login screens back to back.
 12. Unlock remains security-equivalent: the PIN is memory-only, submissions are single-flight, the existing attempt counter/lockout remains active, and pending updates reload only after locking (with the existing maximum deferral).
 13. Japanese and Traditional Chinese period ranges now render compact month/day labels such as `6月4日–6月9日`, including `日` and no space before the day.
+
+### Multi-app import / export session (2026-07-27 → 2026-07-28; cache `v20260728c`)
+
+**Shipped:**
+
+1. In-app **Import from another app** wizard (My Calendar + drip) with adapters, flow pattern, merge/replace, and session-safe overlay (no kick to lock).
+2. Flow level **4 (Very heavy)** without rescaling 1–3; My Calendar `++++Flow` → 4; drip export token `flow:4`.
+3. **Export to another app** — drip + Plain CSV only (no My Calendar export).
+4. Import report shortened to `Imported {days} period days across {periods} cycles.`; extras note + lists + copy/export only when unmapped/leftovers exist.
+5. Flow pattern hint (truncate extras / repeat last level); empty pattern defaults to `1` when periods need flow.
+6. GitHub Pages: `.nojekyll` + `_config.yml` so Liquid in docs cannot break deploys.
 
 ---
 

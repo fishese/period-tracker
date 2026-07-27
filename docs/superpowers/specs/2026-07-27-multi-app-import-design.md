@@ -106,13 +106,14 @@ Every adapter returns roughly:
 3. **Review + flow pattern**
    - Show: *N periods total, M with identified source flow*
    - Always show pattern input (app levels `1–4`; `0` = spotting for pattern convenience)
+   - Hint under the field: if the pattern is longer than a period, extra days are ignored; if shorter, the last level repeats for the rest of the period
    - Presets: at least `2,3,3,1`, `1,2,3,2,1`, `2`, `3`, `1,1,1,1,1`
    - When `M > 0`: radio/choice **Overwrite existing flow** vs **Only fill periods with no flow**
    - Pattern semantics: from each period start, apply pattern day-by-day; last value repeats if period longer; extra pattern values dropped if period shorter
 4. **Apply**
    - Onboarding: write logs + cycle history, finish onboarding
    - In-app with existing data: keep today’s **Merge** (keep existing logs on date collision) vs **Replace** (imported wins) choice for the overall dataset
-5. **Import report** — summary, unmapped moods, leftovers; Copy / Export txt / Export csv / Done
+5. **Import report** — short result line; unmapped moods / leftovers only when present (with extras note); Copy / Export txt / Export csv when extras exist; Done
 
 ---
 
@@ -152,7 +153,7 @@ After adapter parse:
    - **Overwrite:** non-empty pattern replaces flow on **all** period days (`0` → spotting for that day)
    - **Fill gaps only:** non-empty pattern applies only to periods with `hasSourceFlow === false`; periods with source flow keep source values  
    When `M === 0`, treat as fill-all (no mode control needed): non-empty pattern expands every period start–end into daily flow  
-3. **Empty pattern:** do not synthesize flow. Keep any source flow/spotting as parsed. Review must warn when `periodsWithFlow < periods` (“K periods have no flow — set a pattern to fill them”). Allow apply if at least one usable day remains (flow, spotting, mood, pain, note, or leftovers); block apply only if the result would be completely empty  
+3. **Empty pattern:** when `periodsWithFlow < periods`, treat empty as `1` (light), prefill the field, and apply. When every period already has source flow, empty pattern leaves source flow/spotting as parsed. Review may still warn when gaps exist. Allow apply if at least one usable day remains (flow, spotting, mood, pain, note, or leftovers); block apply only if the result would be completely empty  
 4. Non-period leftover / unmapped-mood days remain as parsed  
 5. Pattern apply (within the import preview) is independent of the later **Merge vs Replace** choice against existing app `state.logs`
 
@@ -172,15 +173,16 @@ Shown in the same overlay after apply (and available when there are warnings). H
 
 ### Sections
 
-1. Summary — source, periods, flow days, mood days, leftover days, unmapped-mood count  
+1. Summary — single result line: `Imported {days} period days across {periods} cycles.`  
+   When unmapped moods or leftovers exist, also show a short extras note (details aren’t tracked in-app yet; listed below for backup / notes).
 2. Unmapped moods — `YYYY-MM-DD — Label` (hide if empty)  
 3. Leftovers by day — full leftover text per date (hide if empty)
 
 ### Actions
 
-- **Copy** — plain-text rendering of all sections  
-- **Export .txt** — same dump as download  
-- **Export .csv** — rows `date,kind,detail` with `kind` ∈ `unmapped_mood` | `leftover` (RFC-4180 quoting)  
+- **Copy** / **Export .txt** / **Export .csv** — shown only when extras exist  
+  - Copy / txt: same short summary (+ extras note when present) plus unmapped and leftover sections  
+  - CSV: rows `date,kind,detail` with `kind` ∈ `unmapped_mood` | `leftover` (RFC-4180 quoting)  
 - **Done** — close overlay; session stays unlocked
 
 ---
@@ -223,7 +225,8 @@ Add `flow: 4` without rescaling existing data.
 - Onboarding import still completes PIN setup  
 - Merge vs Replace still correct for in-app re-import  
 - Flow 4 appears in log UI, calendar, charts; existing flow 3 days unchanged  
-- Report Copy / Export txt / Export csv contain unmapped moods and full leftovers  
+- Report result line is short (`Imported {days} period days across {periods} cycles.`); extras note + Copy / Export only when unmapped/leftovers exist; exports contain full leftover detail  
+- Flow pattern hint visible; longer patterns truncate, shorter patterns repeat last level; empty + gaps defaults to `1`  
 - Note field never exceeds 500 chars after import  
 
 ## Migration / cleanup

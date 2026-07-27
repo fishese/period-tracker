@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Your Cycle Keeper** is a privacy-first period tracking PWA with client-side AES-256-GCM encryption. Zero server communication—all data stays on-device using IndexedDB. Built with vanilla JavaScript ES6 modules (no frameworks, no build tools, no dependencies).
+**My Cycle Keeper** is a personal fork of Your Cycle Keeper: a privacy-first period tracking PWA with client-side AES-256-GCM encryption. Health data stays encrypted in IndexedDB; the only optional external transfer is an encrypted backup to the user's Google Drive. Built with vanilla JavaScript ES6 modules (no frameworks, no build tools, no dependencies).
 
 **Live URL (this fork):** https://fishese.github.io/period-tracker/period-tracker/
 
@@ -35,7 +35,7 @@ git push period-tracker master   # NOT origin — origin is upstream pythonime-l
 
 ### Pre-Deploy Checklist
 
-1. Bump `CACHE_VERSION` in `period-tracker/service-worker.js` (e.g., `v20260723h`)
+1. Bump `CACHE_VERSION` in `period-tracker/service-worker.js` (current value is documented in `period-tracker/docs/HANDOFF.md`)
 2. Test offline: DevTools → Network → Offline → Reload
 3. Push: `git push period-tracker master`
 4. Hard-refresh or unregister Service Worker after deploy (avoids mixed-cache JS errors)
@@ -48,24 +48,30 @@ Central `state` object in `js/script.js` holds all app data:
 
 ```javascript
 state = {
-  lastPeriodStart: "YYYY-MM-DD",    // ISO date string
-  cycleLength: 28,                   // days
-  periodDuration: 5,                 // days
-  logs: {                            // { "YYYY-MM-DD": { flow, pain, mood, note, periodStart, periodEnd } }
+  lastPeriodStart: "YYYY-MM-DD" | null,
+  cycleLength: 28,
+  periodDuration: 5,
+  toleranceDays: null,               // null = automatic; otherwise 0-5
+  autoFillDays: null,                 // null = automatic, 0 = off, 1-10 = days ahead
+  showFertility: false,               // fertility-specific UI defaults off
+  showCyclePhases: true,              // independent phase timeline defaults on
+  logs: {
     "YYYY-MM-DD": {
-      flow: 1-3,                     // 1=light, 2=medium, 3=heavy
-      pain: 1-10,                    // 0.5 increments
-      mood: 0-100,                   // 0=low, 100=happy
-      note: "...",                   // max 500 chars
-      periodStart: boolean,
-      periodEnd: boolean
+      flow: 1-4,                      // 1=light … 4=very heavy
+      spotting: true,                 // separate from flow; does not count as a period day
+      flowEstimated: true,            // optional auto-fill marker
+      pain: 0-10,                     // 0 means explicit No pain; 0.5 increments
+      mood: 0-100,                    // 0=low, 50=neutral, 100=happy
+      note: "..."                     // max 500 chars
     }
   },
-  cycleHistory: []                   // past cycle records
+  cycleHistory: [{ start, length }]
 };
 ```
 
 **State is passed by reference** to modules via `setState()` calls—never duplicate or pass as function arguments.
+
+Missing symptom properties mean “not recorded”; they are not zero. Use `getFlowLevelFromLog()`, `getPainValueFromLog()`, and `getMoodValueFromLog()` instead of truthy checks when reading mixed current/legacy data.
 
 ### Storage Layer: IndexedDB → AES-GCM → State
 
@@ -82,14 +88,15 @@ state = {
 | `js/indexeddb-storage.js` | `getFromDB`, `setInDB`, `deleteFromDB`, `clearDB` |
 | `js/cycles.js` | Cycle predictions via Calendar Rhythm Method |
 | `js/periodMarking.js` | Period start/end logic, auto-cleanup of consecutive markers |
-| `js/validators.js` | Input normalization (flow 1-3, pain 1-10, mood 0-100) |
+| `js/validators.js` | Current/legacy input normalization (spotting/flow 0-4, pain 0-10, mood 0-100) |
 | `js/dateUtils.js` | ISO date utilities (`toISO`, `fromISO`, `addDays`, `diffDays`) |
 | `js/session.js` | Timeout warnings, countdown timers, lock triggers |
 | `js/navigation.js` | Keyboard accessibility and focus management |
 | `js/drive-sync.js` | Optional Google Drive one-way backup (OAuth PKCE, token proxy, upload/download, two-tap disconnect) |
 | `js/drive-config.js` | OAuth Client ID + `DRIVE_TOKEN_PROXY_URL` only (no Client secret) |
+| `js/import/` | Multi-app import wizard helpers + My Calendar / drip adapters |
+| `js/export/` | Export wizard helpers + drip / plain-CSV adapters |
 | `period-tracker/drive-oauth-proxy/` | Cloudflare Worker — holds Client secret |
-| `js/drive-config.js` | OAuth Client ID + Client secret (see `drive-config.example.js`) |
 
 ### Cycle Prediction Algorithm
 
@@ -111,17 +118,23 @@ Calendar Rhythm Method + Standard Days Method:
 - **No app backend:** Health data never leaves the device except optional user-initiated Google Drive backup (encrypted blob to the user's Drive).
 - **PIN never stored:** Derived to key on-demand using PBKDF2
 - **Fast PIN validation:** HMAC hash check before attempting decryption
+- **Single-flight unlock:** `unlockInProgress` blocks overlapping PIN submissions and prevents service-worker activation from reloading during partial entry/hash/decrypt
 - **Schema versioning:** Encrypted envelope wraps state as `{ v: SCHEMA_VERSION, payload: state }`
 - **Drive backup docs:** `period-tracker/docs/google-drive-sync-plan.md`
+- **Import / export docs:** `period-tracker/docs/HANDOFF.md` §7; design specs under `docs/superpowers/specs/`
 
 ### UI Screens
 
 Toggle `.hidden` class to switch between:
 - `#onboarding` - Initial PIN setup
 - `#lock-screen` - Session timeout lock
-- `#app-screen` - Main interface
+- `#app` - Main interface
 
-Tabs: `"calendar"`, `"insights"`, `"history"`, `"settings"`
+Bottom-level views: `"calendar"`, `"insights"`, `"settings"`, `"about"`, and `"support"`. Full history is an overlay opened from Insights.
+
+The daily log editor is a compact accordion. Selections autosave, but clearing one field and deleting the entire entry are separate actions. Auto-fill must run only when flow is newly added at the start of a period; symptom-only edits to an existing period day must never trigger it.
+
+Settings → Security hosts **Import from another app** and **Export to another app** (session-safe overlays). Flow supports levels 1–4 (plus spotting). Import report is a short result line; unmapped/leftover extras and copy/export appear only when needed.
 
 ## Common Patterns
 
@@ -160,5 +173,12 @@ Canvas-based with DPR scaling for retina displays:
 - Offline mode: Disable network in DevTools, reload app
 - Session timeout: Wait 5 min idle, verify auto-lock with countdown
 - Wrong PIN: Should fail fast with HMAC check (no decryption attempt)
-- Period marking: Toggle start/end, verify cleanup of consecutive markers
+- Service-worker update during partial PIN entry or unlock: must not reload into a second login screen
+- Daily editor: explicit No pain survives save/reload; symptom edits on existing flow do not auto-fill
+- History: recent six and full-history compact SVG charts render in all themes
+- Print/share privacy: sharing contains dates/durations only; print symptom/note options default off and work independently
+- Japanese/Traditional Chinese period dates: `6月4日–6月9日`
+- Period marking: add/remove flow around one-day gaps and verify cycle history rebuilds correctly
 - Drive backup (optional): connect as test user, back up now, two-tap disconnect, reconnect; confirm normal saves still work without Drive
+- Import (optional): My Calendar / drip file → review pattern → merge/replace → short report; extras copy/export only when leftovers/unmapped moods exist
+- Export (optional): drip and Plain CSV download while unlocked
