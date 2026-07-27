@@ -56,9 +56,21 @@ function csvField(val) {
   return safe;
 }
 
-// app flow 1-3 maps 1:1 to drip bleeding.value 1-3 (light/medium/heavy).
+const FLOW_4_TOKEN = "flow:4";
+
+// app flow 1-3 maps 1:1 to drip bleeding.value 1-3; flow 4 maps to bleed 3 + note token.
 function flowToBleed(flow) {
+  if (flow === 4) return 3;
   return flow >= 1 && flow <= 3 ? flow : null;
+}
+
+function appendFlow4Token(note) {
+  const trimmed = (note || "").trim();
+  if (!trimmed) return FLOW_4_TOKEN;
+  if (trimmed.split("|").some((part) => part.trim() === FLOW_4_TOKEN)) {
+    return trimmed;
+  }
+  return `${trimmed} | ${FLOW_4_TOKEN}`;
 }
 
 // Approximate drip pain boolean flags from app's 1-10 pain scale.
@@ -117,8 +129,12 @@ export function buildDripCsv(logs) {
       cols[COL.bleedExclude] = "false";
     }
 
-    if (log.note && log.note.trim()) {
-      cols[COL.noteVal] = csvField(log.note.trim());
+    let noteText = log.note && log.note.trim() ? log.note.trim() : "";
+    if (log.flow === 4) {
+      noteText = appendFlow4Token(noteText);
+    }
+    if (noteText) {
+      cols[COL.noteVal] = csvField(noteText);
     }
 
     if (log.pain != null) {
