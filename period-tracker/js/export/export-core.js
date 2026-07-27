@@ -62,7 +62,7 @@ export function listExportableDates(logs) {
     .filter((date) => {
       const log = logs[date];
       return (
-        log.flow ||
+        log.flow != null ||
         log.spotting ||
         log.pain != null ||
         log.mood != null ||
@@ -97,6 +97,8 @@ export function downloadTextFile(filename, text, mimeType) {
   const anchor = document.createElement("a");
   anchor.href = url;
   anchor.download = filename;
+  document.body.appendChild(anchor);
   anchor.click();
+  anchor.remove();
   URL.revokeObjectURL(url);
 }
