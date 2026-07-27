@@ -19,6 +19,7 @@ describe("mycalendar adapter", () => {
     assert.equal(preview.days["2026-07-10"].flow, 2);
     assert.equal(preview.days["2026-07-11"].flow, 1);
     assert.equal(preview.days["2026-07-13"].flow, 1);
+    assert.equal(preview.days["2026-07-13"].spotting, true);
     const july = preview.periods.find((p) => p.start === "2026-07-08");
     assert.equal(july.end, "2026-07-13");
     assert.equal(july.hasSourceFlow, true);
@@ -32,5 +33,9 @@ describe("mycalendar adapter", () => {
     assert.ok(preview.days["2026-07-09"].leftovers.some((s) => /temperature/i.test(s)));
     assert.ok(preview.days["2026-07-13"].leftovers.length > 0);
     assert.equal(preview.days["2026-07-13"].mood, undefined);
+    assert.equal(preview.days["2026-07-13"].pain, undefined);
+    assert.ok(
+      preview.days["2026-07-13"].leftovers.some((s) => /Cramps|Backaches/i.test(s))
+    );
   });
 });
