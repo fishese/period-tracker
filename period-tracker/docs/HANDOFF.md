@@ -279,7 +279,7 @@ Settings → Export to another app (in-app wizard)
 - **Flow level 4 (Very heavy):** stored as `log.flow = 4`; drip export writes `bleeding.value=3` plus a `flow:4` note token; drip import recognizes the token without rescaling levels 1–3.
 - **Leftovers report:** unmapped moods, unsupported symptoms/columns, and truncated day notes appear in the post-import report; full detail in copy / `.txt` / `.csv` export (not persisted in encrypted state).
 - Encrypted backup: `.bin` (`mycyclekeeper_backup_*.bin`)
-- Plain CSV export includes flow days only; spotting is omitted (not a period day). drip export round-trips spotting as `bleeding.value=0`.
+- Plain CSV export includes flow days and spotting-only days; spotting appears as `flow=spotting` (not a period day, so period columns stay blank). drip export round-trips spotting as `bleeding.value=0`.
 - drip `bleeding.value === 0` (spotting) imports as `log.spotting = true`, **not** `log.flow` — see §4 State shape. Export round-trips it back to `bleeding.value=0`.
 - Future-date cutoff uses `toISO(new Date())` (local date) — was previously `Date.toISOString()` (UTC), which could wrongly drop "today"'s rows near midnight in timezones ahead of UTC.
 - Non-onboarding import offers **Merge** (keep existing logs on date collisions) vs **Replace** (imported data wins). Onboarding import has nothing to merge with, so it's just an initial load.
@@ -492,7 +492,7 @@ Read period-tracker/docs/HANDOFF.md and period-tracker/docs/google-drive-sync-pl
 | `js/import/adapters/mycalendar.js` | My Calendar `.txt` import adapter |
 | `js/export/export-core.js` | Export wizard helpers (dates, filename, download) |
 | `js/export/adapters/drip.js` | drip CSV export (incl. spotting round-trip) |
-| `js/export/adapters/plain-csv.js` | Plain CSV export (flow days only) |
+| `js/export/adapters/plain-csv.js` | Plain CSV export (flow + spotting rows) |
 | `js/import-drip.js` | Legacy re-export shim (tests) |
 | `js/export-drip.js` | Legacy re-export shim (tests) |
 | `js/periodMarking.js` | Menses episode logic, `cleanupEmptyLogs()` |

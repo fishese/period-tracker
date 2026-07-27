@@ -1483,6 +1483,22 @@ const LOCALES = {
     settings_change_pin: "Cambiar PIN",
     settings_export: "Exportar copia de seguridad cifrada",
     settings_import: "Importar copia de seguridad cifrada",
+    settings_export_app: "Exportar a otra app",
+    app_export_title: "Exportar a otra app",
+    app_export_format_intro:
+      "Elige un formato para descargar. Tu sesión desbloqueada permanece activa — no saldrás de esta pantalla.",
+    app_export_format_drip: "drip",
+    app_export_format_plain: "CSV simple",
+    app_export_hint_drip: "CSV compatible con drip para volver a importar en drip.",
+    app_export_hint_plain:
+      "Hoja de cálculo simple con fechas del ciclo, flujo, dolor, ánimo y notas.",
+    app_export_empty_title: "No hay datos para exportar",
+    app_export_empty_msg:
+      "Registra algunos datos del ciclo primero y vuelve para exportar.",
+    app_export_downloaded_toast: "Descargado {filename}",
+    app_export_failed_title: "Error al exportar",
+    app_export_failed_msg:
+      "No se pudo descargar el archivo. Por favor, inténtalo de nuevo.",
     settings_storage_label: "Almacenamiento usado:",
     settings_storage_calculating: "Calculando...",
     settings_erase: "Borrar todos los datos",

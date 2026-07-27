@@ -8,15 +8,18 @@ const HEADER = "period_start,period_end,date,flow,pain,mood,notes";
 
 /**
  * RFC 4180 field escaping for CSV notes column.
+ * Prefix with a single quote when the value starts with a spreadsheet formula
+ * trigger character (=, +, -, @) so Excel/Sheets treats it as plain text.
  * @param {string} value
  * @returns {string}
  */
 function escapeCsvField(value) {
   const text = String(value);
-  if (/[",\r\n]/.test(text)) {
-    return `"${text.replace(/"/g, '""')}"`;
+  const safe = /^[=+\-@\t\r]/.test(text) ? `'${text}` : text;
+  if (/[",\r\n]/.test(safe)) {
+    return `"${safe.replace(/"/g, '""')}"`;
   }
-  return text;
+  return safe;
 }
 
 /**

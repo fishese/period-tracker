@@ -31,4 +31,17 @@ describe("buildPlainCsv", () => {
     });
     assert.match(csv, /"say ""hi"", please"/);
   });
+
+  it("prefixes formula-trigger notes with a single quote", () => {
+    const csv = buildPlainCsv({
+      "2026-01-01": { note: "=1+1" },
+      "2026-01-02": { note: "+cmd" },
+      "2026-01-03": { note: "-2" },
+      "2026-01-04": { note: "@sum(A1)" },
+    });
+    assert.match(csv, /'=1\+1/);
+    assert.match(csv, /'\+cmd/);
+    assert.match(csv, /'-2/);
+    assert.match(csv, /'@sum\(A1\)/);
+  });
 });
