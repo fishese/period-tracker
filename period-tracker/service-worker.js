@@ -19,7 +19,7 @@ const IS_DEV =
   self.location.hostname === "localhost" ||
   self.location.hostname === "127.0.0.1";
 
-const CACHE_VERSION = "v20260727r";
+const CACHE_VERSION = "v20260727s";
 const CACHE_NAME = `mycyclekeeper-${CACHE_VERSION}`;
 
 // Derive base path from the SW's own URL so this works on both localhost
@@ -45,8 +45,12 @@ const ASSETS_TO_CACHE = [
   BASE_PATH + "js/periodMarking.js",
   BASE_PATH + "js/session.js",
   BASE_PATH + "js/validators.js",
-  BASE_PATH + "js/import-drip.js",
-  BASE_PATH + "js/export-drip.js",
+  BASE_PATH + "js/import/import-core.js",
+  BASE_PATH + "js/import/adapters/drip.js",
+  BASE_PATH + "js/import/adapters/mycalendar.js",
+  BASE_PATH + "js/export/export-core.js",
+  BASE_PATH + "js/export/adapters/drip.js",
+  BASE_PATH + "js/export/adapters/plain-csv.js",
   BASE_PATH + "js/drive-sync.js",
   BASE_PATH + "js/drive-config.js",
   BASE_PATH + "import-drip.html",

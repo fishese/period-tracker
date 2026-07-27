@@ -21,7 +21,7 @@ This document is the **current source of truth** for continuing work. Older impl
 
 **Live URL (this fork):** https://fishese.github.io/period-tracker/period-tracker/
 
-**Why the fork exists:** Migrate history from **My Calendar** or **drip** directly into this app; continue tracking with rolling predictions, auto-fill, and optional export back to drip format.
+**Why the fork exists:** Migrate history from **My Calendar** or **drip** directly into this app; continue tracking with rolling predictions, auto-fill, and optional export to **drip** or **plain CSV** (My Calendar export is not offered).
 
 **Branding rule:** UI and product name = **My Cycle Keeper**. Attribution / support for the original = **Your Cycle Keeper** / `pythonime-lab` (GitHub link only — PayPal donate removed to avoid payment confusion).
 
@@ -265,14 +265,21 @@ Settings or onboarding → Import from another app (in-app wizard)
   3. Review + flow pattern (levels 1–4; overwrite vs fill-gaps when source flow exists)
   4. Apply (onboarding: initial load; in-app: Merge vs Replace)
   5. Import report (copy / export .txt / .csv)
+
+Settings → Export to another app (in-app wizard)
+  1. Pick format (drip | Plain CSV)
+  2. Download CSV (local ISO date in filename)
+  Empty state when no logged days to export
 ```
 
 - Entry: **Settings → Import from another app** or onboarding import — same five-step overlay (`showAppImportWizard()`). Encrypted `.bin` backup import stays separate.
+- Entry: **Settings → Export to another app** — format picker overlay (`showAppExportWizard()`). Session stays unlocked; wizard closes on lock.
+- **Export formats:** **drip** (drip-compatible CSV for re-import into drip) and **Plain CSV** (spreadsheet layout: date, flow, pain, mood, note). **My Calendar export is not offered** — import only.
 - Standalone `mycalendar-to-drip.html` and `import-drip.html` are retired (short message + link back to the app only; no auto-redirect).
 - **Flow level 4 (Very heavy):** stored as `log.flow = 4`; drip export writes `bleeding.value=3` plus a `flow:4` note token; drip import recognizes the token without rescaling levels 1–3.
 - **Leftovers report:** unmapped moods, unsupported symptoms/columns, and truncated day notes appear in the post-import report; full detail in copy / `.txt` / `.csv` export (not persisted in encrypted state).
 - Encrypted backup: `.bin` (`mycyclekeeper_backup_*.bin`)
-- drip CSV export from Settings
+- Plain CSV export includes flow days only; spotting is omitted (not a period day). drip export round-trips spotting as `bleeding.value=0`.
 - drip `bleeding.value === 0` (spotting) imports as `log.spotting = true`, **not** `log.flow` — see §4 State shape. Export round-trips it back to `bleeding.value=0`.
 - Future-date cutoff uses `toISO(new Date())` (local date) — was previously `Date.toISOString()` (UTC), which could wrongly drop "today"'s rows near midnight in timezones ahead of UTC.
 - Non-onboarding import offers **Merge** (keep existing logs on date collisions) vs **Replace** (imported data wins). Onboarding import has nothing to merge with, so it's just an initial load.
@@ -480,8 +487,14 @@ Read period-tracker/docs/HANDOFF.md and period-tracker/docs/google-drive-sync-pl
 |------|------|
 | `js/script.js` | Main UI / state / share / status / print summary |
 | `js/cycles.js` | Predictions / rolling / day types / fertile window |
-| `js/import-drip.js` | CSV import (incl. spotting) |
-| `js/export-drip.js` | CSV export (incl. spotting round-trip) |
+| `js/import/import-core.js` | Import wizard helpers (preview, flow pattern, report) |
+| `js/import/adapters/drip.js` | drip CSV import adapter |
+| `js/import/adapters/mycalendar.js` | My Calendar `.txt` import adapter |
+| `js/export/export-core.js` | Export wizard helpers (dates, filename, download) |
+| `js/export/adapters/drip.js` | drip CSV export (incl. spotting round-trip) |
+| `js/export/adapters/plain-csv.js` | Plain CSV export (flow days only) |
+| `js/import-drip.js` | Legacy re-export shim (tests) |
+| `js/export-drip.js` | Legacy re-export shim (tests) |
 | `js/periodMarking.js` | Menses episode logic, `cleanupEmptyLogs()` |
 | `js/i18n.js` | Locales |
 | `js/drive-sync.js` | Google Drive OAuth, upload/download, disconnect, auto-backup |

@@ -46,7 +46,7 @@ const LOCALES = {
       "My Cycle Keeper is a personal fork of Your Cycle Keeper, the open-source period tracker by pythonime-lab, with changes applied for personal preferences. If you find it helpful, consider supporting the original developer. Both projects are free forever with no ads, no tracking, and no data collection. Estimates are for personal information only — not for contraception.",
     fork_title: "About This Fork",
     fork_info:
-      "This personal fork adds rolling 6-month predictions, drip CSV import/export, auto-fill, late-period messaging, themes, and compact history sharing. Some upstream features were removed. Use at your own risk.",
+      "This personal fork adds rolling 6-month predictions, in-app import from My Calendar and drip, export to drip or plain CSV, auto-fill, late-period messaging, themes, and compact history sharing. Some upstream features were removed. Use at your own risk.",
 
     support_title: "Support Development",
     support_info:
@@ -627,7 +627,7 @@ const LOCALES = {
       '<strong>My Cycle Keeper</strong> is a personal fork of <a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">Your Cycle Keeper</a>, the open-source period tracker by <a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">pythonime-lab</a>, with changes applied for personal preferences.<br><br>If you find it helpful, consider supporting the original developer on <a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">GitHub</a>.<br><br>Both Your Cycle Keeper and this fork are free forever — no ads, no tracking, and no data collection. Estimates are for personal information only. Not for contraception. Stress, illness, and medications can shift timing.<br><br><strong>Version:</strong> 1.0.0-beta<br><strong>License:</strong> GNU General Public License v3.0',
     fork_title: "About This Fork",
     fork_info_html:
-      'This personal fork adds rolling 6-month cycle predictions, in-app import from My Calendar and drip, drip CSV export, auto-fill for period days, late-period status messaging, themes/layout options, and compact cycle history with email sharing.<br><br>Some upstream features were removed; prediction ideas and CSV format were informed by <a href="https://gitlab.com/bloodyhealth/drip" target="_blank" rel="noopener" class="accessibility-link">drip</a> by bloodyhealth. Built with AI-assisted coding — <strong>use at your own risk.</strong><br><br><small style="color: var(--text-muted)"><a href="https://fishese.github.io/tools/" target="_blank" rel="noopener" class="accessibility-link">0oo.fish.oo0</a></small>',
+      'This personal fork adds rolling 6-month cycle predictions, in-app import from My Calendar and drip, export to drip or plain CSV, auto-fill for period days, late-period status messaging, themes/layout options, and compact cycle history with email sharing.<br><br>Some upstream features were removed; prediction ideas and CSV format were informed by <a href="https://gitlab.com/bloodyhealth/drip" target="_blank" rel="noopener" class="accessibility-link">drip</a> by bloodyhealth. Built with AI-assisted coding — <strong>use at your own risk.</strong><br><br><small style="color: var(--text-muted)"><a href="https://fishese.github.io/tools/" target="_blank" rel="noopener" class="accessibility-link">0oo.fish.oo0</a></small>',
     support_info:
       "This app is a fork of <strong>Your Cycle Keeper</strong> by pythonime-lab. If you find it helpful, consider supporting the original developer!",
     support_via: "Support via",
@@ -1660,7 +1660,7 @@ const LOCALES = {
       '<strong>My Cycle Keeper</strong> es un fork personal de <a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">Your Cycle Keeper</a>, el rastreador de períodos de código abierto de <a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">pythonime-lab</a>, con cambios según preferencias personales.<br><br>Si te resulta útil, considera apoyar al desarrollador original en <a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">GitHub</a>.<br><br>Tanto Your Cycle Keeper como este fork son gratis para siempre: sin anuncios, sin rastreo y sin recopilación de datos. Las estimaciones son solo informativas. No usar como anticonceptivo. El estrés, las enfermedades y los medicamentos pueden alterar el ciclo.<br><br><strong>Versión:</strong> 1.0.0-beta<br><strong>Licencia:</strong> GNU General Public License v3.0',
     fork_title: "Sobre este fork",
     fork_info_html:
-      'Este fork personal añade predicciones rodantes de 6 meses, importación en la app desde My Calendar y drip, exportación CSV de drip, autocompletado de días de período, mensajes de retraso, temas/diseño, e historial compacto con compartir por correo.<br><br>Se quitaron algunas funciones originales; las ideas de predicción y el formato CSV se inspiraron en <a href="https://gitlab.com/bloodyhealth/drip" target="_blank" rel="noopener" class="accessibility-link">drip</a> de bloodyhealth. Hecho con ayuda de IA — <strong>úsalo bajo tu propio riesgo.</strong><br><br><small style="color: var(--text-muted)"><a href="https://fishese.github.io/tools/" target="_blank" rel="noopener" class="accessibility-link">0oo.fish.oo0</a></small>',
+      'Este fork personal añade predicciones rodantes de 6 meses, importación en la app desde My Calendar y drip, exportación a drip o CSV simple, autocompletado de días de período, mensajes de retraso, temas/diseño, e historial compacto con compartir por correo.<br><br>Se quitaron algunas funciones originales; las ideas de predicción y el formato CSV se inspiraron en <a href="https://gitlab.com/bloodyhealth/drip" target="_blank" rel="noopener" class="accessibility-link">drip</a> de bloodyhealth. Hecho con ayuda de IA — <strong>úsalo bajo tu propio riesgo.</strong><br><br><small style="color: var(--text-muted)"><a href="https://fishese.github.io/tools/" target="_blank" rel="noopener" class="accessibility-link">0oo.fish.oo0</a></small>',
     support_info:
       "Esta app es un fork de <strong>Your Cycle Keeper</strong> de pythonime-lab. Si la encuentras útil, ¡considera apoyar al desarrollador original!",
     support_via: "Apoyar vía",
@@ -1690,7 +1690,7 @@ const LOCALES = {
       "My Cycle Keeperは、pythonime-labによるオープンソースの生理トラッカー Your Cycle Keeper の個人用フォークです。役に立った場合は、元の開発者をサポートすることをご検討ください。両方とも広告・追跡・データ収集なしで永久無料です。推定は個人の参考のみ。避妊目的ではありません。",
     fork_title: "このフォークについて",
     fork_info:
-      "この個人用フォークには、6か月ローリング予測、drip CSVの読み書き、自動入力、遅れ表示、テーマ、履歴の共有などが含まれます。一部の元機能は削除されています。自己責任でご利用ください。",
+      "この個人用フォークには、6か月ローリング予測、My Calendar／dripのアプリ内インポート、dripまたはプレーンCSVへのエクスポート、自動入力、遅れ表示、テーマ、履歴の共有などが含まれます。一部の元機能は削除されています。自己責任でご利用ください。",
     support_title: "開発を支援する",
     support_info:
       "このアプリはpythonime-labによるYour Cycle Keeperのフォークです。役に立てていただけましたら、元の開発者へのサポートをご検討ください！",
@@ -2139,7 +2139,7 @@ const LOCALES = {
       '<strong>My Cycle Keeper</strong>は、<a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">Your Cycle Keeper</a>（<a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">pythonime-lab</a>によるオープンソースの生理トラッカー）の個人用フォークで、個人の好みに合わせて変更しています。<br><br>役に立った場合は、元の開発者を<a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">GitHub</a>でサポートすることをご検討ください。<br><br>Your Cycle Keeper とこのフォークはどちらも永久無料です（広告・追跡・データ収集なし）。推定は個人の参考のみ。避妊目的ではありません。ストレス・病気・薬でタイミングがずれることがあります。<br><br><strong>バージョン：</strong>1.0.0-beta<br><strong>ライセンス：</strong>GNU General Public License v3.0',
     fork_title: "このフォークについて",
     fork_info_html:
-      'この個人用フォークには、6か月ローリング予測、My Calendar／dripのアプリ内インポート、drip CSVエクスポート、生理日の自動入力、遅れ表示、テーマ／レイアウト、履歴のメール共有などが含まれます。<br><br>一部の元機能は削除しています。予測の考え方とCSV形式は bloodyhealth の <a href="https://gitlab.com/bloodyhealth/drip" target="_blank" rel="noopener" class="accessibility-link">drip</a> を参考にしました。AI支援で作成 — <strong>自己責任でご利用ください。</strong><br><br><small style="color: var(--text-muted)"><a href="https://fishese.github.io/tools/" target="_blank" rel="noopener" class="accessibility-link">0oo.fish.oo0</a></small>',
+      'この個人用フォークには、6か月ローリング予測、My Calendar／dripのアプリ内インポート、dripまたはプレーンCSVへのエクスポート、生理日の自動入力、遅れ表示、テーマ／レイアウト、履歴のメール共有などが含まれます。<br><br>一部の元機能は削除しています。予測の考え方とCSV形式は bloodyhealth の <a href="https://gitlab.com/bloodyhealth/drip" target="_blank" rel="noopener" class="accessibility-link">drip</a> を参考にしました。AI支援で作成 — <strong>自己責任でご利用ください。</strong><br><br><small style="color: var(--text-muted)"><a href="https://fishese.github.io/tools/" target="_blank" rel="noopener" class="accessibility-link">0oo.fish.oo0</a></small>',
     support_info:
       "このアプリはpythonime-labによる<strong>Your Cycle Keeper</strong>のフォークです。役に立てていただけましたら、元の開発者へのサポートをご検討ください！",
     support_via: "支援する",
@@ -2166,7 +2166,7 @@ const LOCALES = {
       "My Cycle Keeper 是 Your Cycle Keeper（pythonime-lab 的開源經期追蹤器）的個人分支，依個人偏好調整。若覺得有幫助，歡迎支持原始開發者。兩個專案皆永久免費、無廣告、無追蹤、無資料收集。估算僅供個人參考，不可用於避孕。",
     fork_title: "關於此分支",
     fork_info:
-      "此個人分支新增 6 個月滾動預測、drip CSV 匯入／匯出、自動填入、晚來提示、主題，以及可分享的週期歷史。部分上游功能已移除。請自行承擔使用風險。",
+      "此個人分支新增 6 個月滾動預測、My Calendar／drip 應用內匯入、匯出至 drip 或純 CSV、自動填入、晚來提示、主題，以及可分享的週期歷史。部分上游功能已移除。請自行承擔使用風險。",
     support_title: "支持開發",
     support_info:
       "此應用程式是 pythonime-lab 的 Your Cycle Keeper 的分支版本。若覺得有幫助，歡迎支持原始開發者！",
@@ -2614,7 +2614,7 @@ const LOCALES = {
       '<strong>My Cycle Keeper</strong> 是 <a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">Your Cycle Keeper</a>（由 <a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">pythonime-lab</a> 開發的開源經期追蹤器）的個人分支，並依個人偏好調整。<br><br>若覺得有幫助，歡迎在 <a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">GitHub</a> 支持原始開發者。<br><br>Your Cycle Keeper 與本分支皆永久免費——無廣告、無追蹤、無資料收集。估算僅供個人參考，不可用於避孕。壓力、疾病與藥物可能改變週期時間。<br><br><strong>版本：</strong>1.0.0-beta<br><strong>授權：</strong>GNU General Public License v3.0',
     fork_title: "關於此分支",
     fork_info_html:
-      '此個人分支新增 6 個月滾動週期預測、My Calendar／drip 應用內匯入、drip CSV 匯出、經期日期自動填入、晚來提示、主題／介面選項，以及精簡的週期歷史郵件分享。<br><br>部分上游功能已移除；預測概念與 CSV 格式參考 bloodyhealth 的 <a href="https://gitlab.com/bloodyhealth/drip" target="_blank" rel="noopener" class="accessibility-link">drip</a>。以 AI 輔助完成——<strong>請自行承擔使用風險。</strong><br><br><small style="color: var(--text-muted)"><a href="https://fishese.github.io/tools/" target="_blank" rel="noopener" class="accessibility-link">0oo.fish.oo0</a></small>',
+      '此個人分支新增 6 個月滾動週期預測、My Calendar／drip 應用內匯入、匯出至 drip 或純 CSV、經期日期自動填入、晚來提示、主題／介面選項，以及精簡的週期歷史郵件分享。<br><br>部分上游功能已移除；預測概念與 CSV 格式參考 bloodyhealth 的 <a href="https://gitlab.com/bloodyhealth/drip" target="_blank" rel="noopener" class="accessibility-link">drip</a>。以 AI 輔助完成——<strong>請自行承擔使用風險。</strong><br><br><small style="color: var(--text-muted)"><a href="https://fishese.github.io/tools/" target="_blank" rel="noopener" class="accessibility-link">0oo.fish.oo0</a></small>',
     support_info:
       "此應用程式是pythonime-lab的<strong>Your Cycle Keeper</strong>的分支版本。若您覺得有幫助，歡迎支持原始開發者！",
     support_via: "透過以下方式支持",
