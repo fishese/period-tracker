@@ -50,7 +50,8 @@ export function buildPlainCsv(logs) {
     const flow = formatFlowCell(log);
     const pain = log.pain != null ? String(log.pain) : "";
     const mood = log.mood != null ? String(log.mood) : "";
-    const notes = log.note ? escapeCsvField(log.note) : "";
+    const noteText = log.note && log.note.trim() ? log.note.trim() : "";
+    const notes = noteText ? escapeCsvField(noteText) : "";
 
     return [periodStart, periodEnd, date, flow, pain, mood, notes].join(",");
   });

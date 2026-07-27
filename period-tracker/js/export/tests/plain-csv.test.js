@@ -18,6 +18,13 @@ describe("buildPlainCsv", () => {
     assert.ok(lines.some((l) => /2026-07-21,spotting,/.test(l)));
   });
 
+  it("omits whitespace-only notes", () => {
+    const csv = buildPlainCsv({
+      "2026-01-01": { flow: 1, note: "   " },
+    });
+    assert.match(csv, /2026-01-01,1,,,\n?$/);
+  });
+
   it("escapes quotes and commas in notes", () => {
     const csv = buildPlainCsv({
       "2026-01-01": { note: 'say "hi", please' },
