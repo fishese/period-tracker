@@ -590,6 +590,12 @@ body {
   outline: 0.125rem solid var(--lavender, #a78bfa);
   outline-offset: 0.0625rem;
 }
+.import-pattern-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0 0 0.5rem;
+  line-height: 1.45;
+}
 .import-pattern-error {
   font-size: 0.8125rem;
   color: var(--danger);

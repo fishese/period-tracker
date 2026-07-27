@@ -384,6 +384,8 @@ const LOCALES = {
     app_import_review_warning:
       "{count} periods have no flow — set a pattern to fill them, or continue to keep source data only.",
     app_import_pattern_label: "Flow pattern (1–4; 0 = spotting)",
+    app_import_pattern_hint:
+      "If the pattern is longer than a period, extra days are ignored. If it’s shorter, the last level repeats for the rest of the period.",
     app_import_flow_mode_legend: "When source flow exists",
     app_import_flow_overwrite: "Overwrite existing flow",
     app_import_flow_fill_gaps: "Only fill periods with no flow",

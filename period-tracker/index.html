@@ -1282,7 +1282,11 @@
             autocomplete="off"
             spellcheck="false"
             placeholder="2,3,3,1"
+            aria-describedby="import-pattern-hint"
           />
+          <p class="import-pattern-hint" id="import-pattern-hint" data-i18n="app_import_pattern_hint">
+            If the pattern is longer than a period, extra days are ignored. If it’s shorter, the last level repeats for the rest of the period.
+          </p>
           <p class="import-pattern-error hidden" id="import-pattern-error" role="alert"></p>
           <div class="import-flow-presets" id="import-flow-presets">
             <button type="button" class="import-preset-btn" data-pattern="2,3,3,1">2,3,3,1</button>
