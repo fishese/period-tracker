@@ -6,7 +6,7 @@
 
 This document is the **current source of truth** for continuing work. Older implementation history remains available in Git; verify historical notes against current code for predictions, storage keys, fertility defaults, and branding.
 
-**Current `CACHE_VERSION`:** `v20260728d` (in `period-tracker/service-worker.js`)
+**Current `CACHE_VERSION`:** `v20260728e` (in `period-tracker/service-worker.js`)
 
 ---
 
@@ -380,7 +380,7 @@ Settings → Export to another app (in-app wizard)
 12. Unlock remains security-equivalent: the PIN is memory-only, submissions are single-flight, the existing attempt counter/lockout remains active, and pending updates reload only after locking (with the existing maximum deferral).
 13. Japanese and Traditional Chinese period ranges now render compact month/day labels such as `6月4日–6月9日`, including `日` and no space before the day.
 
-### Multi-app import / export session (2026-07-27 → 2026-07-28; cache `v20260728d`)
+### Multi-app import / export session (2026-07-27 → 2026-07-28; cache `v20260728e`)
 
 **Shipped:**
 
@@ -390,6 +390,7 @@ Settings → Export to another app (in-app wizard)
 4. Import report shortened to `Imported {days} period days across {periods} cycles.`; extras note + lists + copy/export only when unmapped/leftovers exist.
 5. Flow pattern hint (truncate extras / repeat last level); empty pattern defaults to `1` when periods need flow.
 6. GitHub Pages: `.nojekyll` + `_config.yml` so Liquid in docs cannot break deploys.
+7. Calendar flow dots: clearer growing fills for levels 1–3; level 4 (very heavy) is a deeper full crimson with a light rim; spotting stays a hollow ring.
 
 ---
 
@@ -428,7 +429,7 @@ Spec (as-built): [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
 - Keep `README.md`, `CLAUDE.md`, and this handoff synchronized when state fields, privacy defaults, or authentication behavior change.
 - ~~Confirm share-card / QR text pointing at GitHub Pages URL~~ (done)
 - Update `og:url` / canonical if hosting on a personal domain
-- Consider adding a distinct calendar dot style for spotting-only days (currently shows as the generic "has-log" dot, same as any other logged day)
+- ~~Distinct calendar style for spotting / flow levels 1–4~~ (done — hollow ring + growing fills + deeper very-heavy)
 
 ### C. Explicitly deferred
 
