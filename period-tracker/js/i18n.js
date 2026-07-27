@@ -354,6 +354,21 @@ const LOCALES = {
     settings_export: "Export Encrypted Backup",
     settings_import: "Import Encrypted Backup",
     settings_import_app: "Import from another app",
+    settings_export_app: "Export to another app",
+
+    // Multi-app export wizard
+    app_export_title: "Export to another app",
+    app_export_format_intro:
+      "Choose a format to download. Your unlock session stays active — you will not leave this screen.",
+    app_export_format_drip: "drip",
+    app_export_format_plain: "Plain CSV",
+    app_export_hint_drip: "drip-compatible CSV for re-import into drip.",
+    app_export_hint_plain: "Simple spreadsheet with period dates, flow, pain, mood, and notes.",
+    app_export_empty_title: "No data to export",
+    app_export_empty_msg: "Log some cycle data first, then come back to export.",
+    app_export_downloaded_toast: "Downloaded {filename}",
+    app_export_failed_title: "Export failed",
+    app_export_failed_msg: "Could not download the file. Please try again.",
 
     // Multi-app import wizard
     app_import_title: "Import from another app",
@@ -1922,6 +1937,20 @@ const LOCALES = {
     settings_export: "暗号化バックアップをエクスポート",
     settings_import: "暗号化バックアップをインポート",
     settings_import_app: "他のアプリからインポート",
+    settings_export_app: "他のアプリへエクスポート",
+
+    app_export_title: "他のアプリへエクスポート",
+    app_export_format_intro:
+      "ダウンロードする形式を選んでください。ロック解除セッションは維持され、この画面から離れません。",
+    app_export_format_drip: "drip",
+    app_export_format_plain: "プレーンCSV",
+    app_export_hint_drip: "dripに再インポートできるdrip互換CSV。",
+    app_export_hint_plain: "周期日付・経血量・痛み・気分・メモを含むシンプルな表形式。",
+    app_export_empty_title: "エクスポートするデータがありません",
+    app_export_empty_msg: "まず周期データを記録してから、再度エクスポートしてください。",
+    app_export_downloaded_toast: "{filename} をダウンロードしました",
+    app_export_failed_title: "エクスポート失敗",
+    app_export_failed_msg: "ファイルをダウンロードできませんでした。もう一度お試しください。",
 
     drip_import_title: "dripからインポート",
     drip_import_found:
@@ -2384,6 +2413,20 @@ const LOCALES = {
     settings_export: "匯出加密備份",
     settings_import: "匯入加密備份",
     settings_import_app: "從其他應用程式匯入",
+    settings_export_app: "匯出至其他應用程式",
+
+    app_export_title: "匯出至其他應用程式",
+    app_export_format_intro:
+      "選擇要下載的格式。解鎖工作階段會保持有效，您不會離開此畫面。",
+    app_export_format_drip: "drip",
+    app_export_format_plain: "純文字 CSV",
+    app_export_hint_drip: "可重新匯入 drip 的 drip 相容 CSV。",
+    app_export_hint_plain: "含週期日期、經血量、疼痛、情緒與備註的簡易試算表。",
+    app_export_empty_title: "無可匯出的資料",
+    app_export_empty_msg: "請先記錄週期資料，再回來匯出。",
+    app_export_downloaded_toast: "已下載 {filename}",
+    app_export_failed_title: "匯出失敗",
+    app_export_failed_msg: "無法下載檔案。請再試一次。",
 
     drip_import_title: "從drip匯入",
     drip_import_found:

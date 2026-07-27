@@ -46,7 +46,13 @@ import {
   isSameMenses,
   setState as setPeriodMarkingState,
 } from "./periodMarking.js";
-import { buildDripCsv } from "./export-drip.js";
+import { buildDripCsv } from "./export/adapters/drip.js";
+import { buildPlainCsv } from "./export/adapters/plain-csv.js";
+import {
+  listExportableDates,
+  exportFilename,
+  downloadTextFile,
+} from "./export/export-core.js";
 import { buildCycleHistoryFromLogs } from "./import/adapters/drip.js";
 import { parseMyCalendarText } from "./import/adapters/mycalendar.js";
 import { parseDripCsvToPreview } from "./import/adapters/drip.js";
@@ -3903,40 +3909,62 @@ function dismissAutoFillBanner() {
   }
 }
 
-function exportToDrip() {
-  const logs = state.logs || {};
-  const count = Object.keys(logs).filter(d => {
-    const l = logs[d];
-    return l.flow || l.spotting || l.pain != null || l.mood != null || (l.note && l.note.trim());
-  }).length;
+function exportFromAnotherApp() {
+  showAppExportWizard();
+}
 
-  if (count === 0) {
+function showAppExportWizard() {
+  const overlay = document.getElementById("app-export-overlay");
+  if (overlay) {
+    overlay.classList.remove("hidden");
+    applyI18n();
+  }
+}
+
+function closeAppExportWizard() {
+  document.getElementById("app-export-overlay")?.classList.add("hidden");
+}
+
+function downloadExportFormat(kind) {
+  const logs = state.logs || {};
+  if (listExportableDates(logs).length === 0) {
     showModal({
       icon: "📭",
-      title: "No data to export",
-      msg: "Log some cycle data first, then come back to export.",
+      title: t("app_export_empty_title"),
+      msg: t("app_export_empty_msg"),
       confirmText: t("ok"),
       cancelText: "",
     });
     return;
   }
 
-  showModal({
-    icon: "📤",
-    title: "Export to drip CSV",
-    msg: `Export ${count} days of data as a drip-compatible CSV?\n\nPain and mood are converted to drip\'s flag format; the original values are preserved in the note columns so nothing is lost.`,
-    confirmText: "Export",
-    cancelText: t("cancel"),
-    onConfirm: () => {
-      const csv = buildDripCsv(logs);
-      const blob = new Blob([csv], { type: "text/csv" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = `drip-export_${today()}.csv`;
-      a.click();
-      URL.revokeObjectURL(a.href);
-    },
-  });
+  const todayIso = toISO(new Date());
+  let text;
+  let filename;
+  if (kind === "drip") {
+    text = buildDripCsv(logs);
+    filename = exportFilename("drip", todayIso);
+  } else if (kind === "plain") {
+    text = buildPlainCsv(logs);
+    filename = exportFilename("plain", todayIso);
+  } else {
+    return;
+  }
+
+  try {
+    downloadTextFile(filename, text, "text/csv;charset=utf-8");
+    showToast(t("app_export_downloaded_toast", { filename }));
+    closeAppExportWizard();
+  } catch (error) {
+    console.error("Export download failed:", error);
+    showModal({
+      icon: "⚠️",
+      title: t("app_export_failed_title"),
+      msg: t("app_export_failed_msg"),
+      confirmText: t("ok"),
+      cancelText: "",
+    });
+  }
 }
 
 async function exportData() {
@@ -5231,7 +5259,10 @@ window.printCycleSummary = printCycleSummary;
 window.closePrintOptions = closePrintOptions;
 window.confirmPrintCycleSummary = confirmPrintCycleSummary;
 window.showChangePinModal = showChangePinModal;
-window.exportToDrip = exportToDrip;
+window.exportFromAnotherApp = exportFromAnotherApp;
+window.showAppExportWizard = showAppExportWizard;
+window.closeAppExportWizard = closeAppExportWizard;
+window.downloadExportFormat = downloadExportFormat;
 window.triggerInstall = triggerInstall;
 window.exportData = exportData;
 window.closeAppModal = closeAppModal;

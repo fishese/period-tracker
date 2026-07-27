@@ -1126,8 +1126,13 @@
             >
               Import from another app
             </button>
-            <button class="apply-btn btn--export-drip" onclick="exportToDrip()">
-              Export to drip CSV
+            <button
+              type="button"
+              class="apply-btn btn--export-app"
+              onclick="exportFromAnotherApp()"
+              data-i18n="settings_export_app"
+            >
+              Export to another app
             </button>
 
             <div class="settings-section settings-section--nested" id="drive-backup-section">
@@ -1341,6 +1346,62 @@
             <button type="button" class="btn-outline" onclick="closeAppImportWizard()" data-i18n="app_import_done">
               Done
             </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Multi-app export wizard -->
+    <div
+      id="app-export-overlay"
+      class="csv-import-overlay hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="app-export-title"
+    >
+      <div class="csv-import-panel csv-import-panel--wizard">
+        <button
+          type="button"
+          class="csv-import-close"
+          onclick="closeAppExportWizard()"
+          aria-label="Close"
+        >
+          ✕
+        </button>
+        <h2 class="csv-import-title" id="app-export-title" data-i18n="app_export_title">
+          Export to another app
+        </h2>
+        <div id="export-step-format" class="import-wizard-step">
+          <p class="csv-import-intro" data-i18n="app_export_format_intro">
+            Choose a format to download. Your unlock session stays active — you will not leave this screen.
+          </p>
+          <div class="import-source-btns">
+            <div class="export-format-option">
+              <button
+                type="button"
+                class="apply-btn import-source-btn"
+                onclick="downloadExportFormat('drip')"
+                data-i18n="app_export_format_drip"
+              >
+                drip
+              </button>
+              <p class="csv-import-note" data-i18n="app_export_hint_drip">
+                drip-compatible CSV for re-import into drip.
+              </p>
+            </div>
+            <div class="export-format-option">
+              <button
+                type="button"
+                class="apply-btn import-source-btn"
+                onclick="downloadExportFormat('plain')"
+                data-i18n="app_export_format_plain"
+              >
+                Plain CSV
+              </button>
+              <p class="csv-import-note" data-i18n="app_export_hint_plain">
+                Simple spreadsheet with period dates, flow, pain, mood, and notes.
+              </p>
+            </div>
           </div>
         </div>
       </div>
