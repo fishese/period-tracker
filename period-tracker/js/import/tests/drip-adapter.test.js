@@ -4,9 +4,26 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { parseDripCsvToPreview } from "../adapters/drip.js";
+import { buildDripCsv } from "../../export-drip.js";
 
 const dir = dirname(fileURLToPath(import.meta.url));
 const csv = readFileSync(join(dir, "../fixtures/drip-mini.csv"), "utf8");
+
+function csvRowByDate(text, date) {
+  const lines = text.trim().split("\n");
+  const headers = lines[0].split(",");
+  const dateIdx = headers.indexOf("date");
+  for (let i = 1; i < lines.length; i++) {
+    const values = lines[i].split(",");
+    if (values[dateIdx] !== date) continue;
+    const row = {};
+    headers.forEach((header, idx) => {
+      row[header] = values[idx] ?? "";
+    });
+    return row;
+  }
+  return null;
+}
 
 describe("drip adapter", () => {
   it("maps bleeding and leftovers", () => {
@@ -31,5 +48,30 @@ describe("drip adapter", () => {
     const { preview } = parseDripCsvToPreview(text);
     assert.equal(preview.days["2026-01-01"].flow, 4);
     assert.equal(preview.days["2026-01-01"].note, undefined);
+  });
+
+  it("exports flow 4 as bleed 3 with flow:4 token", () => {
+    const exported = buildDripCsv({ "2026-01-01": { flow: 4 } });
+    const row = csvRowByDate(exported, "2026-01-01");
+    assert.equal(row["bleeding.value"], "3");
+    assert.equal(row["note.value"], "flow:4");
+  });
+
+  it("round-trips flow 4 with user note without duplicating token", () => {
+    const logs = { "2026-01-01": { flow: 4, note: "hello" } };
+    const exported = buildDripCsv(logs);
+    const row = csvRowByDate(exported, "2026-01-01");
+    assert.equal(row["bleeding.value"], "3");
+    assert.equal(row["note.value"], "hello | flow:4");
+
+    const { preview } = parseDripCsvToPreview(exported);
+    assert.equal(preview.days["2026-01-01"].flow, 4);
+    assert.equal(preview.days["2026-01-01"].note, "hello");
+
+    const reexported = buildDripCsv(logs);
+    assert.equal(
+      csvRowByDate(reexported, "2026-01-01")["note.value"],
+      "hello | flow:4",
+    );
   });
 });
