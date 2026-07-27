@@ -1105,7 +1105,8 @@ function flowIconFromValue(value) {
   if (v === 0) return "💧";
   if (v === 1) return "🩸";
   if (v === 2) return "🩸🩸";
-  return "🩸🩸🩸";
+  if (v === 3) return "🩸🩸🩸";
+  return "🩸🩸🩸🩸";
 }
 
 function flowLabelFromValue(value) {
@@ -1113,7 +1114,8 @@ function flowLabelFromValue(value) {
   if (v === 0) return "💧";
   if (v === 1) return "🩸";
   if (v === 2) return "🩸🩸";
-  return "🩸🩸🩸";
+  if (v === 3) return "🩸🩸🩸";
+  return "🩸🩸🩸🩸";
 }
 
 function updateFlowButtonVisual(value, isSet = true) {
@@ -1146,7 +1148,8 @@ function flowWordLabelFromValue(value) {
   if (v === 0) return t("flow_spotting");
   if (v === 1) return t("flow_light");
   if (v === 2) return t("flow_medium");
-  return t("flow_heavy");
+  if (v === 3) return t("flow_heavy");
+  return t("flow_very_heavy");
 }
 
 function updateFlowModalPreview(value) {
@@ -1918,8 +1921,8 @@ function createHistoryDailyChart(periodDays, startStr, endStr) {
   const barWidth = Math.max(2, Math.min(8.5, pointSpacing * 0.57 || 8.5));
   periodDays.forEach((day, index) => {
     if (!(day.flow > 0)) return;
-    const flowLevel = Math.min(day.flow, 3);
-    const barHeight = (flowLevel / 3) * plotHeight;
+    const flowLevel = Math.min(day.flow, 4);
+    const barHeight = (flowLevel / 4) * plotHeight;
     chart.appendChild(
       makeSvgElement("rect", {
         class: "history-daily-chart-flow",
@@ -2229,7 +2232,7 @@ function summarizeCycleSymptoms(startStr, endStr) {
   for (let i = 0; i < days; i++) {
     const log = state.logs[toISO(addDays(start, i))];
     if (!log) continue;
-    if (getFlowLevelFromLog(log) === 3) heavyDays++;
+    if (getFlowLevelFromLog(log) >= 3) heavyDays++;
     const painVal = getPainValueFromLog(log);
     if (painVal != null) {
       peakPain = peakPain == null ? painVal : Math.max(peakPain, painVal);
@@ -2436,7 +2439,7 @@ function renderPeriodProfile() {
   };
 
   const flowRows = rows.filter((row) => row.flow != null && row.flow > 0);
-  const heavyDays = flowRows.filter((row) => row.flow === 3).length;
+  const heavyDays = flowRows.filter((row) => row.flow >= 3).length;
   const peakFlow = Math.max(...flowRows.map((row) => row.flow));
   const peakFlowDay = rows.findIndex((row) => row.flow === peakFlow) + 1;
   addStat(`${duration}d`, "Duration");
@@ -2921,7 +2924,7 @@ function getPainDataMonth(year, month) {
     data.push({
       label: String(d),
       hasFlow: flowLevel !== null,
-      flowIntensity: flowLevel === null ? 0 : flowLevel / 3,
+      flowIntensity: flowLevel === null ? 0 : flowLevel / 4,
       hasPain: painValue !== null,
       painIntensity: painValue === null ? 0 : painValue / 10,
       hasMood: moodValue !== null,
@@ -2992,7 +2995,7 @@ function getPainDataYear(year) {
       flowValue: avgFlow,
       painValue: avgPain,
       moodValue: avgMood,
-      flowIntensity: avgFlow === null ? 0 : avgFlow / 3,
+      flowIntensity: avgFlow === null ? 0 : avgFlow / 4,
       painIntensity: avgPain === null ? 0 : avgPain / 10,
       moodIntensity: avgMood === null ? 0 : Math.max(0.1, avgMood / 100),
       isPeriod: periodDays > 0,
@@ -3225,7 +3228,7 @@ function renderCalendar() {
     cell.setAttribute("role", "button");
     const flowSuffix =
       flowLevel !== null
-        ? `, ${[t("flow_spotting"), t("flow_light"), t("flow_medium"), t("flow_heavy")][flowLevel]}`
+        ? `, ${[t("flow_spotting"), t("flow_light"), t("flow_medium"), t("flow_heavy"), t("flow_very_heavy")][flowLevel]}`
         : "";
     cell.setAttribute(
       "aria-label",
