@@ -16,6 +16,7 @@ Export today is drip-only (`Export to drip CSV`). Users also want a simple sprea
 - Plain CSV rows include period context when applicable: `period_start, period_end, date, flow, pain, mood, notes`
 - Session-safe: no navigation away / full reload during export
 - Keep encrypted `.bin` backup export as a separate control
+- **Theme parity:** import and export overlays use the same CSS variables, typography, spacing, and control styles as the rest of the app (no one-off palette or “tool page” look). Prefer reusing existing overlay / panel / button classes; new rules only extend those tokens.
 
 ## Non-goals
 

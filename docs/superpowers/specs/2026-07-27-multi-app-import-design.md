@@ -23,6 +23,7 @@ Importing history today feels bolted on:
 - Unmapped / unsupported fields: short truncated day note + full leftovers in an import report; report is copyable and exportable as `.txt` / `.csv`
 - Add **flow level 4 (Very heavy)** without rescaling existing `1–3` data
 - Never navigate away from the running app during import (preserve unlock/onboarding session)
+- Import overlay uses the same theme tokens and UI patterns as the rest of the app (no bolted-on tool styling)
 
 ## Non-goals (v1)
 
