@@ -1,0 +1,12 @@
+Jul 8, 2026	Period Starts
+Jul 8, 2026	Symptoms:+++Flow;
+Jul 9, 2026	Symptoms:++++Flow;
+Jul 9, 2026	Temperature:37.0℃
+Jul 10, 2026	Symptoms:++Flow;
+Jul 11, 2026	Symptoms:+Flow;
+Jul 12, 2026	Symptoms:+Flow;
+Jul 13, 2026	Period Ends
+Jul 13, 2026	Symptoms:++++Acne,Backaches,Bloating,Cramps,Gas,Stress,Weight gain,Watery,Confusion;+++Constipation,Breast sensitivity,Cervical mucus,Chills,Dizziness,Dyspepsia,Hectic fever,Hot flashes,Hunger,Insomnia,Moodiness,PMS,Spotting,Illness,Creamy,Egg-white,Foul-Smelling,Low back pain,Fatigue;++Abdominal cramps,Anxiety,Body aches,Tender Breasts,Cervical opening,Cravings,Diarrhea,Itchiness,Migraines,Neck aches,Night sweats,Tension,Influenza,Pelvic pain,Irritation,Sticky,Cottage-cheese,With blood;+Cervical firmness,Flow,Headache,Muscle pain,Nausea,Rashes,Shoulder aches,Dry,Green,Ovulation pain,Irritability,Unable to concentrate;
+Jul 13, 2026	Moods:Angelic
+Jun 4, 2026	Period Starts
+Jun 9, 2026	Period Ends
