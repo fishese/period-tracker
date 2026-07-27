@@ -1,0 +1,8 @@
+{
+  "name": "mycyclekeeper-period-tracker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test js/import/tests/*.test.js"
+  }
+}

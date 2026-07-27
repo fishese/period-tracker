@@ -2,7 +2,7 @@
 export function normalizeFlowValue(value, fallback = 1) {
   const n = Number(value);
   if (!Number.isFinite(n)) return fallback;
-  return Math.max(1, Math.min(3, Math.round(n)));
+  return Math.max(1, Math.min(4, Math.round(n)));
 }
 
 export function getFlowValueFromLog(log) {
@@ -14,11 +14,11 @@ export function getFlowValueFromLog(log) {
   return null;
 }
 
-/** UI / drip level: 0 = spotting, 1–3 = light/medium/heavy */
+/** UI / drip level: 0 = spotting, 1–4 = light…very heavy */
 export function normalizeFlowLevel(value, fallback = 1) {
   const n = Number(value);
   if (!Number.isFinite(n)) return fallback;
-  return Math.max(0, Math.min(3, Math.round(n)));
+  return Math.max(0, Math.min(4, Math.round(n)));
 }
 
 export function getFlowLevelFromLog(log) {
