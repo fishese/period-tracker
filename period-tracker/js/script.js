@@ -1193,7 +1193,7 @@ function showFlowModal() {
   const slider = document.createElement("input");
   slider.type = "range";
   slider.min = "0";
-  slider.max = "3";
+  slider.max = "4";
   slider.step = "1";
   slider.value = String(currentFlowValue);
   slider.id = "flow-modal-slider";
@@ -2089,8 +2089,8 @@ function buildHistoryRow(c, options = {}) {
   periodDays.forEach((day) => {
     const bar = document.createElement("span");
     const level = day.flow > 0 ? day.flow : 0;
-    bar.style.height = level ? `${25 + level * 25}%` : "0.125rem";
-    bar.style.opacity = level ? String(0.35 + level * 0.2) : "0.15";
+    bar.style.height = level ? `${(level / 4) * 100}%` : "0.125rem";
+    bar.style.opacity = level ? String(0.35 + (level / 4) * 0.65) : "0.15";
     flowEl.appendChild(bar);
   });
 
