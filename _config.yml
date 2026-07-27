@@ -1,0 +1,6 @@
+﻿# GitHub Pages: this repo is a static PWA — do not process markdown as Liquid.
+exclude:
+  - docs
+  - .superpowers
+  - sampledata
+  - CLAUDE.md
