@@ -4324,6 +4324,24 @@ function _updateReviewStepUI() {
   if (modeFieldset) {
     modeFieldset.classList.toggle("hidden", counts.periodsWithFlow === 0);
   }
+
+  const patternInput = document.getElementById("import-flow-pattern");
+  if (patternInput) {
+    // Default to light flow when source has no/partial flow so Continue works.
+    if (!patternInput.value.trim() && gaps > 0) {
+      patternInput.value = "1";
+    }
+  }
+}
+
+function _focusImportPatternField() {
+  const patternInput = document.getElementById("import-flow-pattern");
+  if (!patternInput) return;
+  // Let the review step become visible first, then select so typing replaces the default.
+  requestAnimationFrame(() => {
+    patternInput.focus();
+    patternInput.select();
+  });
 }
 
 function showAppImportWizard({ onboarding = false } = {}) {
@@ -4434,6 +4452,10 @@ function chooseImportFile() {
       }
       _updateReviewStepUI();
       showImportWizardStep("review");
+      const counts = countPreview(_importPreview);
+      if (counts.periods > counts.periodsWithFlow) {
+        _focusImportPatternField();
+      }
     } catch {
       _showImportErrorModal(
         _importSource === "drip" ? t("drip_import_failed_msg") : t("app_import_empty_msg")
@@ -4445,8 +4467,17 @@ function chooseImportFile() {
 
 function _buildImportPreviewForApply() {
   let preview = structuredClone(_importPreview);
-  const patternStr = document.getElementById("import-flow-pattern")?.value?.trim() || "";
+  let patternStr = document.getElementById("import-flow-pattern")?.value?.trim() || "";
   const patternError = document.getElementById("import-pattern-error");
+  const counts = countPreview(preview);
+  const needsPattern = counts.periods > counts.periodsWithFlow;
+
+  // Empty pattern + periods without flow → default to light (1).
+  if (!patternStr && needsPattern) {
+    patternStr = "1";
+    const input = document.getElementById("import-flow-pattern");
+    if (input) input.value = "1";
+  }
 
   if (patternStr) {
     const parsed = parseFlowPattern(patternStr);
@@ -4505,49 +4536,73 @@ function _renderImportReport() {
   const report = _lastImportReport;
   if (!report) return;
 
+  const moods = report.unmappedMoods || [];
+  const leftovers = report.leftovers || [];
+  const hasExtras = moods.length > 0 || leftovers.length > 0;
+  const s = report.summary || {};
+
   const summaryEl = document.getElementById("import-report-summary");
-  if (summaryEl && report.summary) {
-    const s = report.summary;
-    summaryEl.innerHTML = [
-      t("app_import_report_summary_source", { source: s.source }),
-      t("app_import_report_summary_periods", { count: s.periods }),
-      t("app_import_report_summary_flow_days", { count: s.daysWithFlow }),
-      t("app_import_report_summary_mood_days", { count: s.daysWithMood }),
-      t("app_import_report_summary_leftover_days", { count: s.daysWithLeftovers }),
-      t("app_import_report_summary_unmapped", { count: s.unmappedMoodCount }),
-      t("app_import_report_summary_imported", { count: s.daysImported }),
-    ]
-      .map((line) => `<p class="import-report-summary-line">${safeText(line)}</p>`)
-      .join("");
+  if (summaryEl) {
+    const resultLine = t("app_import_report_result", {
+      days: s.daysWithFlow ?? s.daysImported ?? 0,
+      periods: s.periods ?? 0,
+    });
+    if (hasExtras) {
+      summaryEl.innerHTML = [
+        resultLine,
+        t("app_import_report_summary_source", { source: s.source ?? "" }),
+        t("app_import_report_summary_periods", { count: s.periods ?? 0 }),
+        t("app_import_report_summary_flow_days", { count: s.daysWithFlow ?? 0 }),
+        t("app_import_report_summary_mood_days", { count: s.daysWithMood ?? 0 }),
+        t("app_import_report_summary_leftover_days", { count: s.daysWithLeftovers ?? 0 }),
+        t("app_import_report_summary_unmapped", { count: s.unmappedMoodCount ?? 0 }),
+        t("app_import_report_summary_imported", { count: s.daysImported ?? 0 }),
+      ]
+        .map((line) => `<p class="import-report-summary-line">${sanitize(String(line))}</p>`)
+        .join("");
+    } else {
+      summaryEl.innerHTML = `<p class="import-report-summary-line">${sanitize(String(resultLine))}</p>`;
+    }
   }
 
   const unmappedWrap = document.getElementById("import-report-unmapped-wrap");
   const unmappedList = document.getElementById("import-report-unmapped");
-  const moods = report.unmappedMoods || [];
   if (unmappedWrap && unmappedList) {
     if (moods.length > 0) {
       unmappedWrap.classList.remove("hidden");
       unmappedList.innerHTML = moods
-        .map(({ date, label }) => `<li>${safeText(date)} — ${safeText(label)}</li>`)
+        .map(
+          ({ date, label }) =>
+            `<li>${sanitize(String(date))} — ${sanitize(String(label))}</li>`
+        )
         .join("");
     } else {
       unmappedWrap.classList.add("hidden");
+      unmappedList.innerHTML = "";
     }
   }
 
   const leftoversWrap = document.getElementById("import-report-leftovers-wrap");
   const leftoversList = document.getElementById("import-report-leftovers");
-  const leftovers = report.leftovers || [];
   if (leftoversWrap && leftoversList) {
     if (leftovers.length > 0) {
       leftoversWrap.classList.remove("hidden");
       leftoversList.innerHTML = leftovers
-        .map(({ date, detail }) => `<li>${safeText(date)}: ${safeText(detail)}</li>`)
+        .map(
+          ({ date, detail }) =>
+            `<li>${sanitize(String(date))}: ${sanitize(String(detail))}</li>`
+        )
         .join("");
     } else {
       leftoversWrap.classList.add("hidden");
+      leftoversList.innerHTML = "";
     }
   }
+
+  // Copy/export only matter when there is leftover/unmapped content to keep.
+  document.getElementById("import-report-copy-btn")?.classList.toggle("hidden", !hasExtras);
+  document.getElementById("import-report-txt-btn")?.classList.toggle("hidden", !hasExtras);
+  document.getElementById("import-report-csv-btn")?.classList.toggle("hidden", !hasExtras);
 
   showImportWizardStep("report");
 }

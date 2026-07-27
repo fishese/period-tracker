@@ -358,8 +358,7 @@ const LOCALES = {
 
     // Multi-app export wizard
     app_export_title: "Export to another app",
-    app_export_format_intro:
-      "Choose a format to download. Your unlock session stays active — you will not leave this screen.",
+    app_export_format_intro: "Choose a format to download.",
     app_export_format_drip: "drip",
     app_export_format_plain: "Plain CSV",
     app_export_hint_drip: "drip-compatible CSV for re-import into drip.",
@@ -372,8 +371,7 @@ const LOCALES = {
 
     // Multi-app import wizard
     app_import_title: "Import from another app",
-    app_import_source_intro:
-      "Choose the app you exported from. Your unlock session stays active — you will not leave this screen.",
+    app_import_source_intro: "Choose the app you exported from.",
     app_import_source_mycalendar: "My Calendar",
     app_import_source_drip: "drip",
     app_import_file_hint_mycalendar:
@@ -411,6 +409,8 @@ const LOCALES = {
     app_import_report_summary_leftover_days: "Days with leftovers: {count}",
     app_import_report_summary_unmapped: "Unmapped moods: {count}",
     app_import_report_summary_imported: "Days imported: {count}",
+    app_import_report_result:
+      "Imported {days} period days across {periods} cycles.",
     app_import_copy_success: "Report copied to clipboard",
     app_import_copy_failed: "Could not copy report",
 
@@ -1485,8 +1485,7 @@ const LOCALES = {
     settings_import: "Importar copia de seguridad cifrada",
     settings_export_app: "Exportar a otra app",
     app_export_title: "Exportar a otra app",
-    app_export_format_intro:
-      "Elige un formato para descargar. Tu sesión desbloqueada permanece activa — no saldrás de esta pantalla.",
+    app_export_format_intro: "Elige un formato para descargar.",
     app_export_format_drip: "drip",
     app_export_format_plain: "CSV simple",
     app_export_hint_drip: "CSV compatible con drip para volver a importar en drip.",
@@ -1956,8 +1955,7 @@ const LOCALES = {
     settings_export_app: "他のアプリへエクスポート",
 
     app_export_title: "他のアプリへエクスポート",
-    app_export_format_intro:
-      "ダウンロードする形式を選んでください。ロック解除セッションは維持され、この画面から離れません。",
+    app_export_format_intro: "ダウンロードする形式を選んでください。",
     app_export_format_drip: "drip",
     app_export_format_plain: "プレーンCSV",
     app_export_hint_drip: "dripに再インポートできるdrip互換CSV。",
@@ -2432,8 +2430,7 @@ const LOCALES = {
     settings_export_app: "匯出至其他應用程式",
 
     app_export_title: "匯出至其他應用程式",
-    app_export_format_intro:
-      "選擇要下載的格式。解鎖工作階段會保持有效，您不會離開此畫面。",
+    app_export_format_intro: "選擇要下載的格式。",
     app_export_format_drip: "drip",
     app_export_format_plain: "純文字 CSV",
     app_export_hint_drip: "可重新匯入 drip 的 drip 相容 CSV。",

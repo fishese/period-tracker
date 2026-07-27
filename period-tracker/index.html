@@ -1225,7 +1225,7 @@
         <!-- Step 1: source picker -->
         <div id="import-step-source" class="import-wizard-step">
           <p class="csv-import-intro" data-i18n="app_import_source_intro">
-            Choose the app you exported from. Your unlock session stays active — you will not leave this screen.
+            Choose the app you exported from.
           </p>
           <div class="import-source-btns">
             <button
@@ -1334,13 +1334,13 @@
             <ul class="import-report-list import-report-list--leftovers" id="import-report-leftovers"></ul>
           </div>
           <div class="import-report-actions">
-            <button type="button" class="apply-btn" onclick="copyImportReport()" data-i18n="app_import_copy">
+            <button type="button" class="apply-btn" id="import-report-copy-btn" onclick="copyImportReport()" data-i18n="app_import_copy">
               Copy report
             </button>
-            <button type="button" class="btn-outline" onclick="exportImportReportTxt()" data-i18n="app_import_export_txt">
+            <button type="button" class="btn-outline" id="import-report-txt-btn" onclick="exportImportReportTxt()" data-i18n="app_import_export_txt">
               Export .txt
             </button>
-            <button type="button" class="btn-outline" onclick="exportImportReportCsv()" data-i18n="app_import_export_csv">
+            <button type="button" class="btn-outline" id="import-report-csv-btn" onclick="exportImportReportCsv()" data-i18n="app_import_export_csv">
               Export .csv
             </button>
             <button type="button" class="btn-outline" onclick="closeAppImportWizard()" data-i18n="app_import_done">
@@ -1373,7 +1373,7 @@
         </h2>
         <div id="export-step-format" class="import-wizard-step">
           <p class="csv-import-intro" data-i18n="app_export_format_intro">
-            Choose a format to download. Your unlock session stays active — you will not leave this screen.
+            Choose a format to download.
           </p>
           <div class="import-source-btns">
             <div class="export-format-option">
