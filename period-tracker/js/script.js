@@ -4547,22 +4547,13 @@ function _renderImportReport() {
       days: s.daysWithFlow ?? s.daysImported ?? 0,
       periods: s.periods ?? 0,
     });
+    let html = `<p class="import-report-summary-line">${sanitize(String(resultLine))}</p>`;
     if (hasExtras) {
-      summaryEl.innerHTML = [
-        resultLine,
-        t("app_import_report_summary_source", { source: s.source ?? "" }),
-        t("app_import_report_summary_periods", { count: s.periods ?? 0 }),
-        t("app_import_report_summary_flow_days", { count: s.daysWithFlow ?? 0 }),
-        t("app_import_report_summary_mood_days", { count: s.daysWithMood ?? 0 }),
-        t("app_import_report_summary_leftover_days", { count: s.daysWithLeftovers ?? 0 }),
-        t("app_import_report_summary_unmapped", { count: s.unmappedMoodCount ?? 0 }),
-        t("app_import_report_summary_imported", { count: s.daysImported ?? 0 }),
-      ]
-        .map((line) => `<p class="import-report-summary-line">${sanitize(String(line))}</p>`)
-        .join("");
-    } else {
-      summaryEl.innerHTML = `<p class="import-report-summary-line">${sanitize(String(resultLine))}</p>`;
+      html += `<p class="import-report-summary-note">${sanitize(
+        t("app_import_report_extras_note")
+      )}</p>`;
     }
+    summaryEl.innerHTML = html;
   }
 
   const unmappedWrap = document.getElementById("import-report-unmapped-wrap");

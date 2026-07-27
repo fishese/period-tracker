@@ -411,6 +411,8 @@ const LOCALES = {
     app_import_report_summary_imported: "Days imported: {count}",
     app_import_report_result:
       "Imported {days} period days across {periods} cycles.",
+    app_import_report_extras_note:
+      "Some details aren’t tracked here yet. They’re listed below — copy or export them if you want to save or add them as notes later.",
     app_import_copy_success: "Report copied to clipboard",
     app_import_copy_failed: "Could not copy report",
 

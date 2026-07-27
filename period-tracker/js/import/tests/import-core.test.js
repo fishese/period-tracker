@@ -84,13 +84,8 @@ describe("previewToLogs + report", () => {
       unmappedMoods: preview.unmappedMoods,
       leftovers: leftoverReport,
     });
-    assert.match(text, /Source: mycalendar/);
-    assert.match(text, /Periods: 1/);
-    assert.match(text, /Days with flow: 0/);
-    assert.match(text, /Days with mood: 0/);
-    assert.match(text, /Days with leftovers: 1/);
-    assert.match(text, /Unmapped moods: 1/);
-    assert.match(text, /Days imported: 1/);
+    assert.match(text, /Imported 0 period days across 1 cycles/);
+    assert.match(text, /aren’t tracked here yet|aren't tracked here yet/);
     assert.match(text, /Angelic/);
   });
 });

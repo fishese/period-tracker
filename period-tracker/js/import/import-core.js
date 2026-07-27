@@ -157,45 +157,30 @@ export function buildReportCsv(report) {
 
 export function buildReportText(report) {
   const lines = [];
-
-  if (report.summary) {
-    const s = report.summary;
-    lines.push("Import report");
-    if (s.source) {
-      lines.push(`Source: ${s.source}`);
-    }
-    if (s.periods !== undefined) {
-      lines.push(`Periods: ${s.periods}`);
-    }
-    if (s.daysWithFlow !== undefined) {
-      lines.push(`Days with flow: ${s.daysWithFlow}`);
-    }
-    if (s.daysWithMood !== undefined) {
-      lines.push(`Days with mood: ${s.daysWithMood}`);
-    }
-    if (s.daysWithLeftovers !== undefined) {
-      lines.push(`Days with leftovers: ${s.daysWithLeftovers}`);
-    }
-    if (s.unmappedMoodCount !== undefined) {
-      lines.push(`Unmapped moods: ${s.unmappedMoodCount}`);
-    }
-    if (s.daysImported !== undefined) {
-      lines.push(`Days imported: ${s.daysImported}`);
-    }
-    lines.push("");
-  }
+  const s = report.summary || {};
+  const days = s.daysWithFlow ?? s.daysImported ?? 0;
+  const periods = s.periods ?? 0;
+  lines.push(`Imported ${days} period days across ${periods} cycles.`);
 
   const moods = report.unmappedMoods || [];
+  const leftovers = report.leftovers || [];
+  if (moods.length > 0 || leftovers.length > 0) {
+    lines.push("");
+    lines.push(
+      "Some details aren’t tracked here yet. Listed below for backup or notes."
+    );
+  }
+
   if (moods.length > 0) {
+    lines.push("");
     lines.push("Unmapped moods");
     for (const { date, label } of moods) {
       lines.push(`${date} — ${label}`);
     }
-    lines.push("");
   }
 
-  const leftovers = report.leftovers || [];
   if (leftovers.length > 0) {
+    lines.push("");
     lines.push("Leftovers");
     for (const { date, detail } of leftovers) {
       lines.push(`${date}: ${detail}`);
