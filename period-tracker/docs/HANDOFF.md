@@ -6,7 +6,7 @@
 
 This document is the **current source of truth** for continuing work. Older implementation history remains available in Git; verify historical notes against current code for predictions, storage keys, fertility defaults, and branding.
 
-**Current `CACHE_VERSION`:** `v20260728c` (in `period-tracker/service-worker.js`)
+**Current `CACHE_VERSION`:** `v20260728d` (in `period-tracker/service-worker.js`)
 
 ---
 
@@ -143,7 +143,7 @@ state = {
 ```
 
 - `flow` (1–3) is a real period day and counts toward cycle-length/period-duration stats.
-- `spotting: true` is tracked separately (currently only set via drip CSV import, `bleeding.value === 0`) — shows as a logged day (calendar dot) but is **excluded** from `flow`-based cycle/period calculations so it doesn't skew predictions. Round-trips back to drip's `bleeding.value=0` on export.
+- `spotting: true` is tracked separately (UI or drip CSV `bleeding.value === 0`) — calendar uses the hollow `flow-0` ring (not a period day) and is **excluded** from `flow`-based cycle/period calculations so it doesn't skew predictions. Round-trips back to drip's `bleeding.value=0` on export.
 - `flowEstimated: true` marks light-flow days created by auto-fill. The day editor identifies these until the user confirms or changes the flow.
 - `pain: 0` means explicitly **no pain**; a missing `pain` property means pain was not recorded. Never use truthy checks for pain.
 
@@ -380,7 +380,7 @@ Settings → Export to another app (in-app wizard)
 12. Unlock remains security-equivalent: the PIN is memory-only, submissions are single-flight, the existing attempt counter/lockout remains active, and pending updates reload only after locking (with the existing maximum deferral).
 13. Japanese and Traditional Chinese period ranges now render compact month/day labels such as `6月4日–6月9日`, including `日` and no space before the day.
 
-### Multi-app import / export session (2026-07-27 → 2026-07-28; cache `v20260728c`)
+### Multi-app import / export session (2026-07-27 → 2026-07-28; cache `v20260728d`)
 
 **Shipped:**
 
