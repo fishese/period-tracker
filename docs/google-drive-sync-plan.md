@@ -45,7 +45,7 @@ That means a Client secret was found in a public place (e.g. this repo / Pages J
 3. Confirm `drive-config.js` has **no** Client secret (only Client ID + `DRIVE_TOKEN_PROXY_URL`)
 4. Users: Disconnect + Connect again after rotate
 
-**In-app privacy copy** (combined with test-user note): encrypted file in a hidden app folder; ask **fishese** to add Google accounts to the OAuth test users list.
+**In-app privacy copy:** the encrypted file is stored in a hidden app-data folder; the app cannot access the user's other Drive files.
 
 ---
 
@@ -79,7 +79,7 @@ That means a Client secret was found in a public place (e.g. this repo / Pages J
 ## Google Cloud + proxy setup (required)
 
 1. Enable **Google Drive API**.
-2. **OAuth consent screen** → **Testing** + **Test users**.
+2. **OAuth consent screen** → External → **In production**.
 3. **Credentials → OAuth 2.0 Client ID → Web application**
 4. **Authorized JavaScript origins:**
    - `https://period.fishese.cc`
@@ -94,9 +94,9 @@ That means a Client secret was found in a public place (e.g. this repo / Pages J
 
 | Mode | Use |
 |------|-----|
-| **Testing** + test users | Correct for this fork. |
-| **In production** unverified | Often hard-blocks Drive scopes. Prefer Testing. |
-| **Verified production** | Only if opening to the public. |
+| **Testing** + test users | Suitable for development. |
+| **In production** + `drive.appdata` | Available to Google users. `drive.appdata` is non-sensitive; basic brand verification may still be requested. |
+| **Verified production** | Displays verified branding and avoids an unverified-app presentation. |
 
 ---
 
@@ -151,7 +151,7 @@ Drive UI / OAuth errors: **en, es, ja, zh-TW**.
 ## Test checklist
 
 - [x] Proxy deployed; `DRIVE_TOKEN_PROXY_URL` set; secret **not** in SPA  
-- [x] Connect (test user) → PIN → connected  
+- [x] Connect Google account → PIN → connected
 - [x] Back up now / optional auto-backup  
 - [x] Two-tap Disconnect → UI shows Connect only; Connect again works  
 - [x] Restore from Drive on fresh device / after wipe  

@@ -375,9 +375,9 @@ const LOCALES = {
     app_import_source_mycalendar: "My Calendar",
     app_import_source_drip: "drip",
     app_import_file_hint_mycalendar:
-      "Export from My Calendar as a text file (tab-separated lines with Period Starts/Ends and Symptoms). Then choose that file here.",
+      "In My Calendar, go to Settings → Export document to Doctor. Then load the resulting .txt file here.",
     app_import_file_hint_drip:
-      "Import cycle history from a drip CSV export. In drip, go to Menu → Export Data → Export as CSV.",
+      "In drip, tap the three dots in the top-right → Settings → Data. Then load the exported .csv file here.",
     app_import_choose_file: "Choose file",
     app_import_back: "Back",
     app_import_review_counts: "{periods} periods total, {withFlow} with identified source flow.",
@@ -450,9 +450,7 @@ const LOCALES = {
     settings_recalc_done_toast: "Cycle history recalculated",
     drive_section_title: "Google Drive backup",
     drive_section_desc:
-      "Encrypted one-way backup to your Google Drive — <strong>not</strong> two-way sync. Logging on one device does not update another. Use this to back up and to restore on a new phone or after clearing app data.",
-    drive_privacy_note:
-      "Only an encrypted file is stored in a hidden app folder on your Google account. We have no server and cannot read your data.<br><br>Google Drive backup is limited to approved test accounts. If you want to use it, ask <strong>fishese</strong> to add your Google account to the test users list.",
+      "Encrypted one-way backup to a hidden app-data folder in your Google Drive — <strong>not</strong> two-way sync. The app cannot access your other Drive files, and we have no server that can read your encrypted data. Logging on one device does not update another; use this to restore on a new phone or after clearing app data.",
     drive_test_user_note: "",
     drive_status_not_connected: "Not connected",
     drive_status_last_backup: "Last backed up: {date} · One-way backup only",
@@ -505,6 +503,9 @@ const LOCALES = {
       "A backup was found in your Google Drive. Restore it now? This will <strong>replace</strong> all data on this device. You’ll need your PIN.",
     drive_restore_confirm: "Restore backup",
     drive_restore_skip: "Keep local data",
+    drive_restore_not_found_title: "No Google Drive backup found",
+    drive_restore_not_found_msg:
+      "Google Drive connected successfully, but no My Cycle Keeper backup was found.",
 
     // Onboarding
     onboard_sub: "Track Your Period and Cycle Privately",
@@ -521,6 +522,7 @@ const LOCALES = {
       "Add your last period for immediate predictions, or import existing data. You can also skip the date and start logging.",
     ob_continue_btn: "Continue →",
     onboard_restore_backup: "Restore encrypted backup",
+    onboard_restore_drive: "Restore from Google Drive",
     ob_back_btn: "← Back",
     pin_setup_title: "🔒 Set a 4-digit PIN",
     pin_setup_sub_1: "Your PIN encrypts all data locally.",
@@ -1517,9 +1519,7 @@ const LOCALES = {
     settings_recalc_done_toast: "Historial de ciclos recalculado",
     drive_section_title: "Copia de seguridad en Google Drive",
     drive_section_desc:
-      "Copia cifrada unidireccional a tu Google Drive — <strong>no</strong> es sincronización bidireccional. Registrar en un dispositivo no actualiza otro. Úsala para respaldar y restaurar en un teléfono nuevo o tras borrar los datos de la app.",
-    drive_privacy_note:
-      "Solo se almacena un archivo cifrado en una carpeta oculta de tu cuenta de Google. No tenemos servidor y no podemos leer tus datos.<br><br>La copia en Google Drive está limitada a cuentas de prueba aprobadas. Si quieres usarla, pide a <strong>fishese</strong> que añada tu cuenta de Google a la lista de usuarios de prueba.",
+      "Copia cifrada unidireccional en una carpeta oculta de datos de la aplicación en tu Google Drive — <strong>no</strong> es sincronización bidireccional. La aplicación no puede acceder a tus otros archivos de Drive y no tenemos ningún servidor que pueda leer tus datos cifrados. Registrar en un dispositivo no actualiza otro; úsala para restaurar en un teléfono nuevo o tras borrar los datos de la app.",
     drive_test_user_note: "",
     drive_status_not_connected: "No conectado",
     drive_status_last_backup: "Última copia: {date} · Solo copia unidireccional",
@@ -1572,6 +1572,9 @@ const LOCALES = {
       "Se encontró una copia en tu Google Drive. ¿Restaurarla ahora? Esto <strong>reemplazará</strong> todos los datos de este dispositivo. Necesitarás tu PIN.",
     drive_restore_confirm: "Restaurar copia",
     drive_restore_skip: "Mantener datos locales",
+    drive_restore_not_found_title: "No se encontró ninguna copia en Google Drive",
+    drive_restore_not_found_msg:
+      "Google Drive se conectó correctamente, pero no se encontró ninguna copia de My Cycle Keeper.",
     settings_autofill_label: "Autocompletar días de período previstos",
     settings_autofill_hint:
       "Rellena esta cantidad de días después del día de inicio del período con flujo leve (p. ej. 5 = día de inicio + 5 días más = 6 días en total). Deja en blanco para automático (duración promedio de tus últimos 6 meses). Pon 0 para desactivar.",
@@ -1591,6 +1594,7 @@ const LOCALES = {
     pin_setup_sub_2: "My Cycle Keeper nunca envía datos a ningún lugar.",
     pin_setup_sub_3: "Si olvidas tu PIN, los datos serán borrados.",
     onboard_restore_backup: "Restaurar copia cifrada",
+    onboard_restore_drive: "Restaurar desde Google Drive",
     onboard_start_btn: "Comenzar seguimiento ✨",
     privacy_note_aes: "Cifrado AES-256-GCM.",
     privacy_note_rest:
@@ -1997,9 +2001,7 @@ const LOCALES = {
     settings_recalc_done_toast: "周期履歴を再計算しました",
     drive_section_title: "Google Driveバックアップ",
     drive_section_desc:
-      "Google Driveに暗号化ファイルを一方向でバックアップします。<strong>双方向同期ではありません</strong>。一方の端末で記録しても、別の端末には反映されません。機種変更時やアプリデータを削除した後の復元に使用できます。",
-    drive_privacy_note:
-      "Googleアカウント内の非表示のアプリフォルダには、暗号化されたファイルのみが保存されます。このアプリには独自のサーバーがなく、開発者がデータを読むことはできません。<br><br>Google Driveバックアップを利用できるのは、承認済みのテストアカウントのみです。利用する場合は、<strong>fishese</strong>にGoogleアカウントをテストユーザー一覧へ追加するよう依頼してください。",
+      "Google Drive内の非表示のアプリデータフォルダに、暗号化ファイルを一方向でバックアップします。<strong>双方向同期ではありません</strong>。このアプリは他のDriveファイルにアクセスできず、暗号化されたデータを読み取れる独自のサーバーもありません。一方の端末で記録しても別の端末には反映されません。機種変更時やアプリデータを削除した後の復元に使用できます。",
     drive_test_user_note: "",
     drive_status_not_connected: "未接続",
     drive_status_last_backup: "最終バックアップ：{date} · 一方向バックアップ",
@@ -2052,6 +2054,9 @@ const LOCALES = {
       "Google Driveにバックアップが見つかりました。復元しますか？この端末の<strong>すべてのデータが置き換えられます</strong>。PINが必要です。",
     drive_restore_confirm: "バックアップを復元",
     drive_restore_skip: "ローカルデータを保持",
+    drive_restore_not_found_title: "Google Driveバックアップが見つかりません",
+    drive_restore_not_found_msg:
+      "Google Driveには接続できましたが、My Cycle Keeperのバックアップは見つかりませんでした。",
 
     onboard_sub: "生理周期を端末内で記録",
     onboard_tagline:
@@ -2172,15 +2177,16 @@ const LOCALES = {
     ob_setup_hint: "直近の生理開始日を入力すると、すぐに予測を表示できます。既存データのインポートや、日付を入力せずに記録を始めることもできます。",
     ob_continue_btn: "続ける →",
     onboard_restore_backup: "暗号化バックアップを復元",
+    onboard_restore_drive: "Google Driveから復元",
     ob_back_btn: "← 戻る",
     app_import_title: "他のアプリからインポート",
     app_import_source_intro: "データを書き出したアプリを選択してください。",
     app_import_source_mycalendar: "My Calendar",
     app_import_source_drip: "drip",
     app_import_file_hint_mycalendar:
-      "My Calendarからテキストファイルとしてエクスポートしてください（生理開始日／終了日と症状がタブ区切りで記録された形式）。その後、ここでファイルを選択します。",
+      "My Calendarで「設定 → 医師向けドキュメントをエクスポート」を選び、作成された.txtファイルをここで読み込んでください。",
     app_import_file_hint_drip:
-      "dripのCSVエクスポートから周期履歴をインポートします。dripで「メニュー → データをエクスポート → CSVとしてエクスポート」を選択してください。",
+      "dripで右上の3点メニューから「設定 → データ」を開き、エクスポートした.csvファイルをここで読み込んでください。",
     app_import_choose_file: "ファイルを選択",
     app_import_back: "戻る",
     app_import_review_counts: "生理{periods}件のうち、{withFlow}件には元データの経血量があります。",
@@ -2548,9 +2554,7 @@ const LOCALES = {
     settings_recalc_done_toast: "週期紀錄已重新計算",
     drive_section_title: "Google Drive 備份",
     drive_section_desc:
-      "將加密備份單向上傳至 Google Drive；這<strong>不是</strong>雙向同步。在一台裝置上新增紀錄，不會自動更新其他裝置。此功能可用於備份，或在更換手機及清除應用程式資料後還原。",
-    drive_privacy_note:
-      "Google 帳戶的隱藏應用程式資料夾中只會儲存加密檔案。本應用程式沒有自己的伺服器，開發者無法讀取資料。<br><br>Google Drive 備份目前只限已核准的測試帳戶使用。如需使用，請聯絡 <strong>fishese</strong>，將 Google 帳戶加入測試使用者名單。",
+      "將加密備份單向上傳至 Google Drive 的隱藏應用程式資料夾；這<strong>不是</strong>雙向同步。本應用程式無法存取你在 Drive 中的其他檔案，也沒有能夠讀取加密資料的伺服器。在一台裝置上新增紀錄不會自動更新其他裝置；此功能可在更換手機或清除應用程式資料後還原。",
     drive_test_user_note: "",
     drive_status_not_connected: "未連線",
     drive_status_last_backup: "上次備份：{date} · 單向備份",
@@ -2602,6 +2606,9 @@ const LOCALES = {
       "Google Drive 中找到備份。要立即還原嗎？此操作會<strong>取代</strong>此裝置上的所有資料，並需要輸入 PIN 碼。",
     drive_restore_confirm: "還原備份",
     drive_restore_skip: "保留裝置上的資料",
+    drive_restore_not_found_title: "找不到 Google Drive 備份",
+    drive_restore_not_found_msg:
+      "已成功連線 Google Drive，但找不到 My Cycle Keeper 備份。",
 
     onboard_sub: "在裝置上私密記錄月經週期",
     onboard_tagline:
@@ -2722,13 +2729,14 @@ const LOCALES = {
     ob_setup_hint: "輸入最近一次月經開始日期，即可顯示初步預測；亦可匯入現有資料，或略過日期直接開始記錄。",
     ob_continue_btn: "繼續 →",
     onboard_restore_backup: "還原加密備份",
+    onboard_restore_drive: "從 Google Drive 還原",
     ob_back_btn: "← 返回",
     app_import_title: "從其他應用程式匯入",
     app_import_source_intro: "請選擇資料原本由哪個應用程式匯出。",
     app_import_source_mycalendar: "My Calendar",
     app_import_source_drip: "drip",
-    app_import_file_hint_mycalendar: "請先從 My Calendar 匯出文字檔案（以 Tab 分隔月經開始／結束日期及症狀），再於此選擇該檔案。",
-    app_import_file_hint_drip: "從 drip 匯出的 CSV 檔案匯入週期紀錄。請在 drip 選擇「選單 → 匯出資料 → 匯出為 CSV」。",
+    app_import_file_hint_mycalendar: "在 My Calendar 前往「設定 → 匯出給醫生的文件」，再於此載入產生的 .txt 檔案。",
+    app_import_file_hint_drip: "在 drip 點選右上角的三點選單，前往「設定 → 資料」，再於此載入匯出的 .csv 檔案。",
     app_import_choose_file: "選擇檔案",
     app_import_back: "返回",
     app_import_review_counts: "共找到 {periods} 次月經，其中 {withFlow} 次有原始經血量資料。",

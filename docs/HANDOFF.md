@@ -6,7 +6,7 @@
 
 This document is the **current source of truth** for continuing work. Older implementation history remains available in Git; verify historical notes against current code for predictions, storage keys, fertility defaults, and branding.
 
-**Current `CACHE_VERSION`:** `v20260730d` (in `service-worker.js`)
+**Current `CACHE_VERSION`:** `v20260730j` (in `service-worker.js`)
 
 ---
 
@@ -395,9 +395,13 @@ Settings → Export to another app (in-app wizard)
 6. GitHub Pages: `.nojekyll` + `_config.yml` so Liquid in docs cannot break deploys.
 7. Calendar flow dots: full-circle rose→peach radial gradients with wider core-size steps (1–4); level 4 deeper core + light rim; spotting stays a hollow ring.
 
-### Repo flatten and custom-domain session (2026-07-30; cache `v20260730d`)
+### Repo flatten and custom-domain session (2026-07-30; cache `v20260730j`)
 
 Moved the app from nested `period-tracker/` up to **repo root**, then configured GitHub Pages to publish it at `https://period.fishese.cc/`. Updated the manifest scope, public metadata, share URL, Drive redirect helpers, and docs.
+
+Mobile settings are one continuous page ordered Language → Calendar → Cycle Settings → Cycle History Maintenance → Theme → Security → Google Drive backup → Erase All Data. Desktop uses tabs ordered Layout → Cycle → Security & Privacy. The Drive section uses one combined privacy/behavior description and no longer carries test-user access copy.
+
+Onboarding offers both local encrypted-backup restore and Google Drive restore. Both use the backup encryption PIN as the new app PIN. The multi-app import flow-pattern field preserves native digit/Backspace input and removes unsupported characters; report Copy/TXT/CSV actions share one compact row above Done.
 
 ---
 
@@ -416,7 +420,7 @@ Spec (as-built): [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
 - One-way encrypted upload to Drive `appDataFolder` (`js/drive-sync.js` + `drive-config.js`)
 - Settings → Security (**below** local export/import): Connect / Back up now / **Disconnect** (two-tap confirm) + auto-backup (~45s debounce after `save()`)
 - First connect: optional restore from Drive (replaces local; PIN required)
-- OAuth: Web client + **Client ID in SPA**; **Client secret only on `drive-oauth-proxy` Worker**; consent **Testing** + test users
+- OAuth: external Web client in **Production**; **Client ID in SPA** and **Client secret only on `drive-oauth-proxy` Worker**
 - Origins/redirects: custom domain + GitHub Pages fallback + localhost (see `drive-config.example.js`)
 - If Google warns about a published secret: **rotate secret**, put new secret on Worker only, never recommit to the SPA
 - PKCE state mirrored in IndexedDB + localStorage; `save()` isolates Drive errors from local encrypt
@@ -427,7 +431,7 @@ Spec (as-built): [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
 
 - Backend token exchange → **done** via Cloudflare Worker (`drive-oauth-proxy/`); keep secret only there
 - Two-way sync / conflict resolution
-- Production OAuth verification for public users
+- Basic OAuth brand verification if verified public branding is desired
 - Deleting remote backup on disconnect
 
 ### B. Remaining UI / docs (optional)
@@ -455,7 +459,7 @@ Spec (as-built): [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
 5. `autoFillDays`: `null` = auto (rolling avg), `0` = off, `1–10` = days ahead after start (not including the start day itself)  
 6. Onboarding CSV import has nothing to merge with (fresh state); non-onboarding import offers a real Merge/Replace choice — see §7  
 7. GitHub Pages path quirks for `manifest.json` (`dd363ef`)  
-8. Drive OAuth: **Testing** + test users; **never** put Client secret in `drive-config.js` — use `drive-oauth-proxy/`. Rotate secret immediately if Google reports a leak. Redirect URI must match Pages path (`/period-tracker/`).  
+8. Drive OAuth: external app in **Production**, requesting only non-sensitive `drive.appdata`; **never** put the Client secret in `drive-config.js` — use `drive-oauth-proxy/`. Rotate the secret immediately if Google reports a leak. Redirect URI must exactly match `https://period.fishese.cc/`.
 9. iOS PWA OAuth remains awkward — test on a real device if supporting iPhone shortcuts  
 10. `log.flow` is truthy-checked pervasively (`if (log.flow)`) — a future 4th flow level must not be `0`/falsy, or it'll silently behave like "not set" everywhere. This is exactly why `spotting` was added as its own boolean field instead of `flow: 0`.  
 11. If cycle history / predictions ever look wrong, try Settings → Cycle → "Recalculate Cycle History" before debugging further — it's a safe, non-destructive rebuild from logs.  
@@ -489,7 +493,7 @@ Spec (as-built): [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
 - [ ] Settings → Cycle → "Recalculate Cycle History" rebuilds without errors on real data  
 - [ ] Import a drip CSV with a `bleeding.value=0` (spotting) row — check it doesn't inflate period count, and round-trips on export  
 - [ ] Print summary defaults to dates/durations; symptoms and notes can be enabled independently
-- [x] Drive: connect (test user) → back up now → two-tap disconnect → Connect again; fertility toggle still saves without error  
+- [x] Drive: connect → back up now → two-tap disconnect → Connect again; fertility toggle still saves without error
 
 ---
 

@@ -219,6 +219,14 @@
         >
           Restore encrypted backup
         </button>
+        <button
+          type="button"
+          class="onboard-import-btn onboard-restore-btn onboard-drive-restore-btn"
+          onclick="restoreDriveBackupOnboarding()"
+          data-i18n="onboard_restore_drive"
+        >
+          Restore from Google Drive
+        </button>
       </div>
       <div class="desktop column-right">
         <div class="onboard-form" id="onboard-step-pin">
@@ -943,20 +951,49 @@
 
       <!-- SETTINGS VIEW -->
       <div class="settings-wrap" id="view-settings">
-        <!-- Tab Navigation for Desktop -->
         <div class="settings-tabs-nav">
-          <button id="tab-btn-settings-cycle" class="settings-tab-btn active" onclick="switchSettingsTab('cycle')">
-            <span data-i18n="settings_cycle_tab">Cycle</span>
-          </button>
-          <button id="tab-btn-settings-layout" class="settings-tab-btn" onclick="switchSettingsTab('layout')">
+          <button id="tab-btn-settings-layout" class="settings-tab-btn active" onclick="switchSettingsTab('layout')">
             <span data-i18n="settings_layout_tab">Layout</span>
           </button>
+          <button id="tab-btn-settings-cycle" class="settings-tab-btn" onclick="switchSettingsTab('cycle')">
+            <span data-i18n="settings_cycle_tab">Cycle</span>
+          </button>
           <button id="tab-btn-settings-security" class="settings-tab-btn" onclick="switchSettingsTab('security')">
-            <span data-i18n="settings_security_tab">Security & Privacy</span>
+            <span data-i18n="settings_security_tab">Security &amp; Privacy</span>
           </button>
         </div>
 
-        <div id="settings-tab-cycle" class="settings-tab-content active">
+        <div id="settings-tab-layout" class="settings-tab-content active">
+          <div class="settings-section">
+            <h3 data-i18n="language_label">Language</h3>
+            <select id="lang-switcher" class="field-input">
+              <option value="en" data-i18n="lang_en">English</option>
+              <option value="es" data-i18n="lang_es">Español</option>
+              <option value="ja" data-i18n="lang_ja">日本語</option>
+              <option value="zh-TW" data-i18n="lang_zh_tw">繁體中文</option>
+            </select>
+          </div>
+
+          <div class="settings-section">
+            <h3 data-i18n="settings_calendar_display">Calendar</h3>
+            <div class="toggle-row" style="margin-top:0">
+              <label class="toggle-label">
+                <input type="checkbox" id="s-show-fertility" onchange="toggleFertility()">
+                <span data-i18n="settings_show_fertility">Show fertility estimates</span>
+              </label>
+              <div class="field-hint" data-i18n="settings_show_fertility_hint">Shows estimated fertile and ovulation days in the calendar and Fertile Days in stats.</div>
+            </div>
+            <div class="toggle-row">
+              <label class="toggle-label">
+                <input type="checkbox" id="s-show-cycle-phases" onchange="toggleCyclePhaseTimeline()">
+                <span data-i18n="settings_show_cycle_timeline">Show cycle phase timeline</span>
+              </label>
+              <div class="field-hint" data-i18n="settings_show_cycle_timeline_hint">Shows the Menstrual, Follicular, Ovulation, and Luteal phases. Turn off for a simple period progress timeline.</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="settings-tab-cycle" class="settings-tab-content">
           <div class="settings-section">
             <h3 data-i18n="settings_cycle_section">Cycle Settings</h3>
 
@@ -1014,36 +1051,7 @@
           </div>
         </div>
 
-        <div id="settings-tab-layout" class="settings-tab-content">
-          <div class="settings-section">
-            <h3 data-i18n="settings_calendar_display">Calendar</h3>
-            <div class="toggle-row" style="margin-top:0">
-              <label class="toggle-label">
-                <input type="checkbox" id="s-show-fertility" onchange="toggleFertility()">
-                <span data-i18n="settings_show_fertility">Show fertility estimates</span>
-              </label>
-              <div class="field-hint" data-i18n="settings_show_fertility_hint">Shows estimated fertile and ovulation days in the calendar and Fertile Days in stats.</div>
-            </div>
-            <div class="toggle-row">
-              <label class="toggle-label">
-                <input type="checkbox" id="s-show-cycle-phases" onchange="toggleCyclePhaseTimeline()">
-                <span data-i18n="settings_show_cycle_timeline">Show cycle phase timeline</span>
-              </label>
-              <div class="field-hint" data-i18n="settings_show_cycle_timeline_hint">Shows the Menstrual, Follicular, Ovulation, and Luteal phases. Turn off for a simple period progress timeline.</div>
-            </div>
-          </div>
-
-          <div class="settings-section">
-            <h3 data-i18n="language_label">Language</h3>
-            <select id="lang-switcher" class="field-input">
-              <option value="en" data-i18n="lang_en">English</option>
-              <option value="es" data-i18n="lang_es">Español</option>
-              <option value="ja" data-i18n="lang_ja">日本語</option>
-              <option value="zh-TW" data-i18n="lang_zh_tw">繁體中文</option>
-            </select>
-          </div>
-
-          <div class="settings-section">
+        <div id="settings-layout-theme" class="settings-section settings-layout-extra active">
             <h3 data-i18n="settings_theme_label">Theme</h3>
             <div class="theme-grid">
               <label class="theme-option">
@@ -1092,7 +1100,6 @@
               </label>
             </div>
           </div>
-        </div>
 
         <div id="settings-tab-security" class="settings-tab-content">
           <div class="settings-section">
@@ -1142,53 +1149,52 @@
             >
               Export to another app
             </button>
+          </div>
 
-            <div class="settings-section settings-section--nested" id="drive-backup-section">
-              <h4 data-i18n="drive_section_title">Google Drive backup</h4>
-              <div class="info-box info-box--margin" data-i18n-html="drive_section_desc">
-                Encrypted one-way backup to your Google Drive — <strong>not</strong> two-way sync. Logging on one device does not update another. Use this to back up and to restore on a new phone or after clearing app data.
-              </div>
-              <div class="info-box info-box--security info-box--margin" data-i18n-html="drive_privacy_note">
-                Only an encrypted file is stored in a hidden app folder on your Google account. We have no server and cannot read your data.<br /><br />
-                Google Drive backup is limited to approved test accounts. If you want to use it, ask <strong>fishese</strong> to add your Google account to the test users list.
-              </div>
-              <div id="drive-backup-status" class="backup-status"></div>
-              <div id="drive-not-configured" class="field-hint hidden" data-i18n="drive_not_configured">
-                Google Drive backup is not configured on this build (missing OAuth client ID).
-              </div>
-              <button
-                type="button"
-                class="apply-btn btn--drive-connect"
-                id="btn-drive-connect"
-                data-i18n="drive_connect_btn"
-              >
-                Connect Google Drive
-              </button>
-              <button
-                type="button"
-                class="apply-btn btn--drive-sync hidden"
-                id="btn-drive-sync"
-                data-i18n="drive_sync_now_btn"
-              >
-                Back up now
-              </button>
-              <button
-                type="button"
-                class="apply-btn btn--secondary hidden"
-                id="btn-drive-disconnect"
-                data-i18n="drive_disconnect_btn"
-              >
-                Disconnect
-              </button>
-              <div class="toggle-row drive-auto-row hidden" id="drive-auto-row">
-                <label class="toggle-label">
-                  <input type="checkbox" id="drive-auto-backup" onchange="toggleDriveAutoBackup()">
-                  <span data-i18n="drive_auto_label">Automatically back up after changes (when online)</span>
-                </label>
-              </div>
-              <div class="field-hint hidden" id="drive-auto-hint" data-i18n="drive_auto_hint">Uploads a debounced encrypted backup after you save changes. Does not download or merge from other devices.</div>
+          <div class="settings-section" id="drive-backup-section">
+            <h3 data-i18n="drive_section_title">Google Drive backup</h3>
+            <div class="info-box info-box--security info-box--margin" data-i18n-html="drive_section_desc">
+              Encrypted one-way backup to a hidden app-data folder in your Google Drive — <strong>not</strong> two-way sync. The app cannot access your other Drive files, and we have no server that can read your encrypted data. Logging on one device does not update another; use this to restore on a new phone or after clearing app data.
             </div>
+            <div id="drive-backup-status" class="backup-status"></div>
+            <div id="drive-not-configured" class="field-hint hidden" data-i18n="drive_not_configured">
+              Google Drive backup is not configured on this build (missing OAuth client ID).
+            </div>
+            <button
+              type="button"
+              class="apply-btn btn--drive-connect"
+              id="btn-drive-connect"
+              data-i18n="drive_connect_btn"
+            >
+              Connect Google Drive
+            </button>
+            <button
+              type="button"
+              class="apply-btn btn--drive-sync hidden"
+              id="btn-drive-sync"
+              data-i18n="drive_sync_now_btn"
+            >
+              Back up now
+            </button>
+            <button
+              type="button"
+              class="apply-btn btn--secondary hidden"
+              id="btn-drive-disconnect"
+              data-i18n="drive_disconnect_btn"
+            >
+              Disconnect
+            </button>
+            <div class="toggle-row drive-auto-row hidden" id="drive-auto-row">
+              <label class="toggle-label">
+                <input type="checkbox" id="drive-auto-backup" onchange="toggleDriveAutoBackup()">
+                <span data-i18n="drive_auto_label">Automatically back up after changes (when online)</span>
+              </label>
+            </div>
+            <div class="field-hint hidden" id="drive-auto-hint" data-i18n="drive_auto_hint">Uploads a debounced encrypted backup after you save changes. Does not download or merge from other devices.</div>
+          </div>
 
+          <div class="settings-section">
+            <h3 data-i18n="settings_erase">Erase All Data</h3>
             <div class="info-box info-box--security">
               <strong data-i18n="settings_storage_label">Storage used:</strong>
               <span id="storage-usage">Calculating...</span>
@@ -1203,7 +1209,6 @@
               Erase All Data
             </button>
           </div>
-        </div>
       </div>
     </div>
 
@@ -1346,15 +1351,17 @@
             <ul class="import-report-list import-report-list--leftovers" id="import-report-leftovers"></ul>
           </div>
           <div class="import-report-actions">
-            <button type="button" class="apply-btn" id="import-report-copy-btn" onclick="copyImportReport()" data-i18n="app_import_copy">
-              Copy report
-            </button>
-            <button type="button" class="btn-outline" id="import-report-txt-btn" onclick="exportImportReportTxt()" data-i18n="app_import_export_txt">
-              Export .txt
-            </button>
-            <button type="button" class="btn-outline" id="import-report-csv-btn" onclick="exportImportReportCsv()" data-i18n="app_import_export_csv">
-              Export .csv
-            </button>
+            <div class="import-report-export-actions">
+              <button type="button" class="apply-btn" id="import-report-copy-btn" onclick="copyImportReport()" data-i18n="app_import_copy">
+                Copy report
+              </button>
+              <button type="button" class="btn-outline" id="import-report-txt-btn" onclick="exportImportReportTxt()" data-i18n="app_import_export_txt">
+                Export .txt
+              </button>
+              <button type="button" class="btn-outline" id="import-report-csv-btn" onclick="exportImportReportCsv()" data-i18n="app_import_export_csv">
+                Export .csv
+              </button>
+            </div>
             <button type="button" class="btn-outline" onclick="closeAppImportWizard()" data-i18n="app_import_done">
               Done
             </button>

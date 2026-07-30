@@ -143,6 +143,13 @@ export function initKeyboardNavigation(callbacks) {
       }
     }
 
+    // Native form fields must keep their normal keyboard behavior. This check
+    // comes after encrypted-backup PIN handling because that modal intentionally
+    // uses the global number-key shortcuts instead of a text input.
+    if (isFormElement) {
+      return;
+    }
+
     // Handle keyboard PIN entry on lock screen
     const lockScreen = document.getElementById("lock-screen");
     if (lockScreen && !lockScreen.classList.contains("hidden")) {

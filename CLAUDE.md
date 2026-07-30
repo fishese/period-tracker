@@ -179,6 +179,6 @@ Canvas-based with DPR scaling for retina displays:
 - Print/share privacy: sharing contains dates/durations only; print symptom/note options default off and work independently
 - Japanese/Traditional Chinese period dates: `6月4日–6月9日`
 - Period marking: add/remove flow around one-day gaps and verify cycle history rebuilds correctly
-- Drive backup (optional): connect as test user, back up now, two-tap disconnect, reconnect; confirm normal saves still work without Drive
+- Drive backup (optional): connect a Google account, back up now, two-tap disconnect, reconnect; confirm normal saves still work without Drive
 - Import (optional): My Calendar / drip file → review pattern → merge/replace → short report; extras copy/export only when leftovers/unmapped moods exist
 - Export (optional): drip and Plain CSV download while unlocked

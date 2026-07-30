@@ -235,6 +235,7 @@ function setupEventListeners() {
   bindTap(document.getElementById("btn-drive-disconnect"), disconnectGoogleDrive);
 
   document.getElementById("import-flow-presets")?.addEventListener("click", _handleImportPresetClick);
+  document.getElementById("import-flow-pattern")?.addEventListener("input", _sanitizeImportFlowPatternInput);
 }
 
 function showToast(msg, duration = 2500) {
@@ -3630,6 +3631,87 @@ async function connectGoogleDrive() {
   }
 }
 
+function showDriveRestoreNotFound() {
+  showModal({
+    icon: "☁️",
+    title: t("drive_restore_not_found_title"),
+    msg: t("drive_restore_not_found_msg"),
+    cancelText: "",
+    confirmText: t("ok"),
+  });
+}
+
+async function beginOnboardingDriveRestore() {
+  try {
+    const text = await downloadDriveBackup();
+    if (!text) {
+      showDriveRestoreNotFound();
+      return;
+    }
+    const { bundle, backupSalt } = parseBackupBundleText(text);
+    _importUseEnteredPinAsSession = true;
+    _importOnSuccessCallback = async () => {
+      await _finishOnboardingAfterImport(
+        t("restored_title"),
+        t("restored_msg")
+      );
+    };
+    _showImportPinModal(bundle, backupSalt);
+  } catch (err) {
+    showModal({
+      icon: "⚠️",
+      title: t("drive_sync_failed_title"),
+      msg: driveSyncErrorMessage(err),
+      cancelText: "",
+      confirmText: t("ok"),
+    });
+  }
+}
+
+async function restoreDriveBackupOnboarding() {
+  if (!isDriveConfigured()) {
+    showModal({
+      icon: "☁️",
+      title: t("drive_section_title"),
+      msg: t("drive_not_configured"),
+      cancelText: "",
+      confirmText: t("ok"),
+    });
+    return;
+  }
+
+  try {
+    if (await isDriveConnected()) {
+      await beginOnboardingDriveRestore();
+      return;
+    }
+    await startDriveConnect();
+  } catch (err) {
+    showModal({
+      icon: "⚠️",
+      title: t("drive_sync_failed_title"),
+      msg: driveSyncErrorMessage(err),
+      cancelText: "",
+      confirmText: t("ok"),
+    });
+  }
+}
+
+async function maybeCompleteOnboardingDriveRestore() {
+  if (await consumeDrivePendingRestore()) {
+    if (await isDriveConnected()) {
+      await beginOnboardingDriveRestore();
+    }
+    return;
+  }
+
+  // A completed onboarding connection with no pending restore means Drive was
+  // reachable but no My Cycle Keeper backup existed in appDataFolder.
+  if (await consumeDriveShowConnectedToast()) {
+    showDriveRestoreNotFound();
+  }
+}
+
 async function syncGoogleDriveNow() {
   if (!sessionPin) return;
   try {
@@ -4412,6 +4494,19 @@ function _handleImportPresetClick(e) {
   }
 }
 
+function _sanitizeImportFlowPatternInput(e) {
+  const input = e.currentTarget;
+  const original = input.value;
+  const cursor = input.selectionStart ?? original.length;
+  const allowed = /[0-4,\s]/g;
+  const cleaned = (original.match(allowed) || []).join("");
+  if (cleaned === original) return;
+
+  const cleanedBeforeCursor = (original.slice(0, cursor).match(allowed) || []).join("");
+  input.value = cleaned;
+  input.setSelectionRange(cleanedBeforeCursor.length, cleanedBeforeCursor.length);
+}
+
 function _parseImportFile(text) {
   if (_importSource === "mycalendar") {
     return parseMyCalendarText(text);
@@ -5116,6 +5211,8 @@ async function init() {
       // First time: show onboarding
       document.getElementById("lock-screen").classList.add("hidden");
       document.getElementById("onboarding").classList.remove("hidden");
+      await maybeCompleteOnboardingDriveRestore();
+      await maybeShowDriveOAuthError();
     }
   } catch (error) {
     console.error("🚨 Initialization error:", error);
@@ -5220,6 +5317,9 @@ function switchSettingsTab(tabId) {
       content.classList.remove('active');
     }
   });
+  document
+    .getElementById('settings-layout-theme')
+    ?.classList.toggle('active', tabId === 'layout');
 }
 
 function switchAboutTab(tabId) {
@@ -5290,6 +5390,7 @@ window.proceedToOnboardSetup = proceedToOnboardSetup;
 window.backToOnboardPin = backToOnboardPin;
 window.importDataOnboarding = importDataOnboarding;
 window.restoreBackupOnboarding = restoreBackupOnboarding;
+window.restoreDriveBackupOnboarding = restoreDriveBackupOnboarding;
 window.importAppOnboarding = importAppOnboarding;
 window.importFromAnotherApp = importFromAnotherApp;
 window.showAppImportWizard = showAppImportWizard;

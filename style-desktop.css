@@ -213,6 +213,22 @@ body:has(.settings-wrap.visible) .insights-wrap {
   display: block;
 }
 
+#view-settings .settings-tab-content {
+  display: none;
+}
+
+#view-settings .settings-tab-content.active {
+  display: block;
+}
+
+#view-settings .settings-layout-extra {
+  display: none;
+}
+
+#view-settings .settings-layout-extra.active {
+  display: block;
+}
+
 /* Insights tab nav */
 .insight-tabs-nav {
   display: flex !important;
@@ -341,7 +357,7 @@ body:has(.settings-wrap.visible) .insights-wrap {
   gap: 1.5rem 2.5rem;
   max-width: 64rem;
   margin: 0 auto;
-  padding: 0.75rem 2rem;
+  padding: 0.25rem 2rem;
   align-items: center;
   justify-content: center;
   overflow-y: auto;
@@ -376,7 +392,7 @@ body:has(.settings-wrap.visible) .insights-wrap {
 }
 
 .desktop.column-right .privacy-note {
-  margin-top: 0.5rem;
+  margin-top: 0.25rem;
 }
 
 /* Right column container */
