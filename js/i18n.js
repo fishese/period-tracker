@@ -1255,18 +1255,41 @@ const LOCALES = {
 
   // ── Spanish ────────────────────────────────────────────────────────────────
   es: {
-    storage_error_title: "Error de almacenamiento",
-    storage_error_msg:
-      "No se pudo acceder al almacenamiento. Por favor, recarga la página.",
-    db_error_title: "Error de base de datos",
+    // About section (About, Privacy, Support, Disclaimer, Accessibility)
+    about_tab_developer: "Desarrollador",
+    about_tab_privacy: "Privacidad",
+    about_tab_disclaimer: "Aviso",
+    privacy_title: "Garantía de privacidad",
+    privacy_info:
+      "My Cycle Keeper no recopila ningún dato. Todos los datos se almacenan únicamente en tu dispositivo; no se utilizan servidores, cuentas ni almacenamiento en la nube; no hay análisis, seguimiento ni telemetría; no contiene anuncios ni código de terceros; nunca transmite datos; y la información se cifra con tu PIN mediante AES-256-GCM. Tus datos de salud te pertenecen exclusivamente.",
+
+    about_title: "Acerca de My Cycle Keeper",
+    about_info:
+      "My Cycle Keeper es un fork personal de Your Cycle Keeper, el rastreador de períodos de código abierto de pythonime-lab, adaptado a preferencias personales. Si te resulta útil, considera apoyar al desarrollador original. Ambos proyectos son gratuitos para siempre, sin anuncios, seguimiento ni recopilación de datos. Las estimaciones son solo informativas y no deben usarse como método anticonceptivo.",
+    fork_title: "Sobre este fork",
+    fork_info:
+      "Este fork personal añade predicciones basadas en un promedio móvil de 6 meses, importación desde My Calendar y drip, exportación a drip o CSV sencillo, completado automático, avisos de retraso, temas y un historial compacto para compartir. Se eliminaron algunas funciones del proyecto original. Úsalo bajo tu propia responsabilidad.",
+
+    support_title: "Apoyar el desarrollo",
+    support_info:
+      "Esta app es un fork de <strong>Your Cycle Keeper</strong> de pythonime-lab. Si la encuentras útil, ¡considera apoyar al desarrollador original!",
+
+    disclaimer_title: "Aviso médico",
+    disclaimer_info:
+      "⚠️ Esta aplicación ofrece estimaciones del ciclo basadas en patrones biológicos promedio. No constituye asesoramiento médico ni sustituye una consulta profesional. My Cycle Keeper predice el ciclo a partir de los patrones registrados y estima la ovulación. Las fechas reales pueden variar por el estrés, las enfermedades, los medicamentos y muchos otros factores. No uses esta aplicación como método anticonceptivo ni como garantía de fertilidad. Consulta a un profesional de la salud para tomar decisiones médicas.",
+
+    accessibility_title: "Accesibilidad",
+    accessibility_info:
+      "My Cycle Keeper sigue los estándares de accesibilidad WCAG 2.0: Tab/Shift+Tab para recorrer los elementos interactivos; teclas de flecha para moverse por las fechas del calendario; Enter/Espacio para activar botones y enlaces; Escape para cerrar ventanas y devolver el foco; dígitos 0–9 y Retroceso en las pantallas del PIN; compatibilidad de teclado para controles de formulario; HTML semántico con etiquetas y roles ARIA; e indicadores de foco visibles con un orden de tabulación lógico. Basado en las directrices de accesibilidad de Salesforce.",
+
     cycle_stats: "Estadísticas del ciclo",
-    avg_length: "Longitud promedio",
-    avg_length_rolling: "Prom. 6 m",
-    avg_length_overall: "Prom. total",
+    avg_length: "Duración promedio",
+    avg_length_rolling: "Prom. de 6 meses",
+    avg_length_overall: "Prom. histórico",
     cycles_logged: "Ciclos registrados",
-    avg_period: "Período promedio",
+    avg_period: "Duración promedio",
     fertile_days: "Días fértiles",
-    symptom_tracking: "Gráfico de síntomas",
+    symptom_tracking: "Registro de síntomas",
     period: "Período",
     ovulation: "Ovulación",
     flow: "Flujo",
@@ -1274,32 +1297,33 @@ const LOCALES = {
     mood: "Ánimo",
     how_it_works: "Cómo funciona",
     how_it_works_p1:
-      "My Cycle Keeper estima tu ventana fértil rastreando patrones del ciclo. La ovulación se estima ~14 días antes de tu próximo período. Los días fértiles se calculan como el día 8 hasta (longitud del ciclo − 11).",
+      "My Cycle Keeper estima tu ventana fértil a partir de los patrones de tu ciclo. Las predicciones usan el promedio móvil de los últimos 6 meses de ciclos registrados. Los ciclos que se apartan de este promedio por más de 3 días se marcan. Si, dentro de ese período, la diferencia entre tu ciclo más corto y el más largo supera los 7 días (o los 9 días, lo que puede indicar ciclos irregulares según la orientación de Cleveland Clinic), verás un aviso de variabilidad. La ovulación se estima aproximadamente 14 días antes del próximo período. Los días fértiles se calculan desde el día 8 hasta el día correspondiente a la duración del ciclo menos 11.",
     how_it_works_p2:
       "Para ciclos regulares de 28 días, esto significa que los días 8–17 suelen ser fértiles, con ovulación alrededor del día 14.",
     disclaimer: "Aviso",
     estimation_disclaimer:
-      "⚠️ Esta es solo una herramienta de estimación. No es para anticoncepción. El estrés, las enfermedades y los medicamentos pueden cambiar los tiempos.",
-    no_symptoms_logged:
-      "Aún no hay síntomas registrados — comienza registrando hoy",
+      "⚠️ Esta herramienta solo ofrece estimaciones. No debe usarse como método anticonceptivo. El estrés, las enfermedades y los medicamentos pueden alterar las fechas.",
+    no_symptoms_logged: "Aún no hay síntomas registrados — comienza registrando hoy",
     cycle_history: "Historial del ciclo",
-    all_months: "Año",
+    all_months: "Todos los meses",
     cycle_day: "Día del ciclo",
-    until_next: "Hasta el próximo",
+    until_next: "Hasta el próximo período",
     day_1: "Día 1",
-    avg_length_short: "Longitud promedio",
+    avg_length_short: "Duración promedio",
     period_short: "Período",
     fertile: "Fértil",
     ovulation_short: "Ovulación",
     luteal: "Lútea",
+
+    // Storage / init errors
+    storage_error_title: "Error de almacenamiento",
+    storage_error_msg: "No se pudo acceder al almacenamiento. Por favor, recarga la página.",
+    db_error_title: "Error de base de datos",
     db_error_msg:
       "No se pudo inicializar el almacenamiento. Por favor, recarga la página.",
 
-    about_tab_developer: "Desarrollador",
-    about_tab_privacy: "Privacidad",
-    about_tab_disclaimer: "Aviso",
-    unlock_subtitle:
-      "Ingresa tu PIN para desbloquear tus datos privados de salud",
+    // Lock screen / PIN
+    unlock_subtitle: "Ingresa tu PIN para desbloquear tus datos privados de salud",
     too_many_attempts: "Demasiados intentos. Inténtalo en {secs}s.",
     locked_out: "🚫 Demasiados intentos. Bloqueado por 60 segundos.",
     lockout_ended: "Bloqueo finalizado. Inténtalo de nuevo.",
@@ -1308,9 +1332,10 @@ const LOCALES = {
     decryption_failed: "Error de descifrado. Los datos pueden estar dañados.",
     error_try_again: "Ocurrió un error. Por favor, inténtalo de nuevo.",
 
+    // Forgot PIN / reset
     forgot_pin_title: "¿Olvidaste el PIN?",
     forgot_pin_msg:
-      "Esto eliminará permanentemente todos tus datos del ciclo y restablecerá My Cycle Keeper. No se puede deshacer. ¿Estás segura?",
+      "Esto eliminará permanentemente todos tus datos del ciclo y restablecerá My Cycle Keeper. No se puede deshacer. ¿Confirmas que deseas continuar?",
     forgot_pin_confirm: "Sí, borrar y restablecer",
     reset_complete_title: "Restablecimiento completado",
     reset_complete_msg:
@@ -1319,9 +1344,9 @@ const LOCALES = {
     reset_failed_msg:
       "No se pudieron borrar los datos. Por favor, recarga la página e inténtalo de nuevo.",
 
+    // Save / setup
     save_failed_title: "Error al guardar",
-    save_failed_msg:
-      "No se pudieron guardar los datos. Por favor, inténtalo de nuevo.",
+    save_failed_msg: "No se pudieron guardar los datos. Por favor, inténtalo de nuevo.",
     missing_date_title: "Fecha requerida",
     missing_date_msg: "Por favor, ingresa el primer día de tu último período.",
     set_pin_title: "Establece un PIN",
@@ -1330,9 +1355,11 @@ const LOCALES = {
     setup_error_msg:
       "No se pudo completar la configuración. Por favor, recarga la página e inténtalo de nuevo.",
 
+    // Note
     note_count: "{count} / 500",
     note_placeholder: "Añadir una nota…",
 
+    // Symptom modals
     set_flow: "Flujo",
     save: "Guardar",
     cancel: "Cancelar",
@@ -1345,59 +1372,66 @@ const LOCALES = {
     mood_neutral: "Neutral",
     set_mood: "Ánimo",
 
-    period_expected_in_one: "Periodo esperado en {n} día",
-    period_expected_in_many: "Periodo esperado en {n} días",
+    // Reminder banner
+    period_expected_in_one: "Se espera el período en {n} día",
+    period_expected_in_many: "Se espera el período en {n} días",
 
+    // Phase messages
     phase_menstruation: "Tu período 🩸",
     phase_follicular: "Fase folicular ✨",
     phase_fertile: "Días fértiles 🌿",
     phase_ovulation: "Día de ovulación 🌟",
     phase_luteal: "Fase lútea 🌙",
 
+    // Phase subtitles
     subtitle_menstruation: "Día {day} de tu período",
     subtitle_fertile: "Los días {start}–{end} son fértiles",
     subtitle_ovulation: "Pico de fertilidad hoy",
     subtitle_other: "Próximo período en {n} días",
 
+    // Status card – period info
     status_cycle_day_of: "Día {day} de tu ciclo de {total} días",
-    status_period_today: "Tu período se espera hoy",
-    status_period_soon_date: "Puede empezar hoy o alrededor del {date}",
-    status_period_in_date: "Próximo período esperado alrededor del {date}",
-    status_period_late_one: "Tu período llega 1 día de retraso",
-    status_period_late_many: "Tu período llega {n} días de retraso",
+    status_period_today: "Se espera que tu período comience hoy",
+    status_period_soon_date: "Podría comenzar hoy o cerca del {date}",
+    status_period_in_date: "Se espera que el próximo período comience cerca del {date}",
+    status_period_late_one: "Tu período lleva 1 día de retraso",
+    status_period_late_many: "Tu período lleva {n} días de retraso",
     status_period_expected_on:
-      "Según tus registros, el período debía comenzar el {date}",
+      "Según tus registros anteriores, se esperaba que tu período comenzara el {date}",
     status_phase_line: "Fase {num} — {phase}  ·  {detail}",
 
+    // Status card
     now: "Ahora",
     bar_day: "Día {n}",
 
+    // History / insights
     cycle_history_empty:
       "Registra al menos 2 fechas de inicio de período para ver el historial del ciclo.",
     history_days_one: "{n} día",
     history_days_many: "{n} días",
     no_data_yet: "Aún no hay datos registrados",
 
+    // Chart labels
     chart_full_year: "Año completo {year}",
     chart_month_year: "{month} {year}",
 
+    // Chart download errors
     download_failed_title: "Error al descargar",
-    download_failed_msg:
-      "No se pudo descargar el gráfico. Por favor, inténtalo de nuevo.",
+    download_failed_msg: "No se pudo descargar el gráfico. Por favor, inténtalo de nuevo.",
 
+    // Settings validation
     invalid_date_title: "Fecha inválida",
-    invalid_date_msg:
-      "Por favor, ingresa una fecha válida para el último período.",
+    invalid_date_msg: "Por favor, ingresa una fecha válida para el último período.",
     invalid_cycle_title: "Longitud de ciclo inválida",
     invalid_cycle_msg: "La longitud del ciclo debe estar entre 20 y 45 días.",
     invalid_duration_title: "Duración inválida",
-    invalid_duration_msg:
-      "La duración del período debe estar entre 1 y 10 días.",
+    invalid_duration_msg: "La duración del período debe estar entre 1 y 10 días.",
     update_predictions_title: "¿Actualizar predicciones?",
     update_predictions_msg:
       "Esto recalculará todas las predicciones del ciclo con tu nueva configuración. Los síntomas y notas registrados no cambiarán. ¿Continuar?",
     update_predictions_confirm: "Sí, actualizar",
 
+    // Backup status
     backup_never: "Última copia: nunca",
     backup_today: "Última copia: hoy",
     backup_yesterday: "Última copia: ayer",
@@ -1406,13 +1440,13 @@ const LOCALES = {
     backup_overdue_one: "Última copia: hace {n} día — ¡vencida!",
     backup_overdue_many: "Última copia: hace {n} días — ¡vencida!",
 
+    // Export/import
     export_backup_title: "Exportar copia de seguridad",
     export_backup_msg:
       "Tu copia de seguridad se exportará como un archivo cifrado. Solo puede descifrarse con tu PIN. Mantenla privada.",
     export: "Exportar",
     export_failed_title: "Error al exportar",
-    export_failed_msg:
-      "No se pudo exportar la copia de seguridad. Por favor, inténtalo de nuevo.",
+    export_failed_msg: "No se pudo exportar la copia de seguridad. Por favor, inténtalo de nuevo.",
     enter_backup_pin_title: "Ingresar PIN de copia de seguridad",
     enter_backup_pin_msg:
       "Ingresa el PIN que estaba activo cuando se creó esta copia de seguridad.",
@@ -1422,20 +1456,21 @@ const LOCALES = {
     invalid_backup_title: "Copia de seguridad inválida",
     invalid_backup_msg: "Este formato de copia de seguridad no es compatible.",
     import_failed_title: "Error al importar",
-    import_failed_msg:
-      "No se pudo leer el archivo de copia de seguridad. Asegúrate de que sea válido.",
+    import_failed_msg: "No se pudo leer el archivo de copia de seguridad. Asegúrate de que sea válido.",
 
+    // Storage info
     storage_used: "{sizeKB} KB (IndexedDB)",
     storage_unknown: "Desconocido",
 
+    // Erase data
     erase_title: "Borrar todos los datos",
     erase_msg:
-      "Esto eliminará permanentemente todos tus datos del ciclo y no se puede deshacer. ¿Estás absolutamente segura?",
+      "Esto eliminará permanentemente todos tus datos del ciclo y no se puede deshacer. ¿Confirmas que deseas continuar?",
     erase_confirm: "Sí, borrar todo",
     erase_failed_title: "Error al borrar",
-    erase_failed_msg:
-      "No se pudieron borrar los datos. Por favor, inténtalo de nuevo.",
+    erase_failed_msg: "No se pudieron borrar los datos. Por favor, inténtalo de nuevo.",
 
+    // Change PIN
     confirm_new_pin: "Confirmar nuevo PIN",
     enter_new_pin: "Ingresar nuevo PIN",
     reenter_pin_msg: "Vuelve a ingresar tu nuevo PIN para confirmar.",
@@ -1445,19 +1480,65 @@ const LOCALES = {
     pin_changed_msg:
       "Tu PIN ha sido actualizado y todos los datos han sido cifrados nuevamente.\n\nNota: las copias de seguridad anteriores a este cambio aún requerirán tu PIN anterior para restaurarse.",
     pin_change_failed_title: "Error al cambiar el PIN",
-    pin_change_failed_msg:
-      "No se pudo actualizar el PIN. Por favor, inténtalo de nuevo.",
+    pin_change_failed_msg: "No se pudo actualizar el PIN. Por favor, inténtalo de nuevo.",
 
+    // Calendar aria-labels
     calendar_day_period: "día de período",
     calendar_day_ovulation: "día de ovulación",
     calendar_day_fertile: "día fértil",
-    calendar_day_regular: "día regular",
+    calendar_day_regular: "día normal",
+    calendar_day_period_possible: "posible día de período",
 
+    // Statistical cycle tracking (shown in Insights once 3+ cycles tracked)
+    stat_std_dev: "Desviación estándar",
+    stat_range: "Rango del ciclo",
+    stat_prediction_window: "Margen de predicción",
+    stat_regularity: "Regularidad",
+    stat_regular: "Regular",
+    stat_variable: "Variable",
+    stat_rolling_title: "Últimos 6 meses",
+    stat_rolling_hint: "Se usa para las predicciones",
+    stat_overall_title: "Todo el historial",
+    stat_cycles_count: "Ciclos",
+    cycle_shift_longer:
+      "El último ciclo duró {days} días más que tu promedio de 6 meses",
+    cycle_shift_shorter:
+      "El último ciclo duró {days} días menos que tu promedio de 6 meses",
+    cycle_shift_tooltip: "Diferencia de {days} días respecto al promedio de 6 meses",
+    cycle_spread_caution:
+      "En los últimos 6 meses, la duración del ciclo varió {spread} días ({min}–{max} días). Una variación leve es normal.",
+    cycle_spread_irregular:
+      "En los últimos 6 meses, la duración del ciclo varió {spread} días ({min}–{max} días). Las diferencias de más de 9 días entre ciclos pueden indicar irregularidad.",
+    cycle_spread_caution_short: "Ciclos variables: diferencia de {spread} d (últimos 6 meses)",
+    cycle_spread_irregular_short: "Patrón irregular: diferencia de {spread} d (últimos 6 meses)",
+    history_current: "En curso",
+    legend_shifted: "Desviado (>3 d respecto al prom. de 6 meses)",
+
+    // Phase badge labels (short, uppercase-safe)
     follicular: "Folicular",
     menstrual: "Menstrual",
     other_cycle_days: "Otros días del ciclo",
     history_daily_pattern: "Patrón diario: flujo, dolor y estado de ánimo",
 
+    // Auto-fill setting
+    settings_autofill_label: "Completar automáticamente los días previstos del período",
+    settings_autofill_hint:
+      "Añade flujo ligero durante esta cantidad de días después del inicio del período (p. ej., 5 = día de inicio + 5 días más = 6 días en total). Déjalo en blanco para calcularlo automáticamente según la duración promedio de los períodos registrados en los últimos 6 meses. Introduce 0 para desactivarlo.",
+    settings_autofill_auto: "automático",
+    autofill_banner_msg_one: "Se completó automáticamente {n} día adicional con flujo ligero.",
+    autofill_banner_msg_many: "Se completaron automáticamente {n} días adicionales con flujo ligero.",
+    autofill_banner_settings: "Ajustar en Configuración",
+    autofill_banner_backup_pre: "Recuerda ",
+    autofill_banner_backup: "hacer una copia de seguridad",
+
+    // Theme picker
+    settings_theme_label: "Tema",
+    theme_default: "YCK clásico",
+    theme_light: "Newsroom claro",
+    theme_dark: "Newsroom oscuro",
+    theme_kawaii: "Poder rosa",
+
+    // Language switcher
     language_label: "Idioma",
     lang_en: "English",
     lang_ru: "Русский",
@@ -1471,40 +1552,112 @@ const LOCALES = {
     nav_settings: "Ajustes",
     nav_about: "Acerca de",
 
+    // Settings HTML labels
     settings_cycle_tab: "Configuración del ciclo",
     settings_layout_tab: "Apariencia",
     settings_security_tab: "Seguridad",
     settings_calendar_display: "Calendario",
+    settings_cycle_section: "Configuración del ciclo",
+    settings_last_period: "Fecha de inicio del último período",
+    settings_cycle_length: "Duración promedio del ciclo (días)",
+    settings_period_duration: "Duración del período (días)",
+    settings_update_btn: "Actualizar predicciones",
+    settings_tolerance: "Margen de predicción (días)",
+    settings_tolerance_hint: "Días que se muestran antes y después de cada período previsto en el calendario. Déjalo en blanco para calcularlo automáticamente según la regularidad de tu ciclo.",
+    save: "Guardar",
     settings_show_fertility: "Mostrar estimaciones de fertilidad",
     settings_show_fertility_hint:
       "Muestra los días fértiles y de ovulación estimados en el calendario, y Días fértiles en las estadísticas.",
     settings_show_cycle_timeline: "Mostrar cronología de fases del ciclo",
     settings_show_cycle_timeline_hint:
       "Muestra las fases menstrual, folicular, de ovulación y lútea. Desactívala para ver una cronología simple del progreso del ciclo.",
-    settings_cycle_section: "Configuración del ciclo",
-    settings_last_period: "Fecha de inicio del último período",
-    settings_cycle_length: "Longitud promedio del ciclo (días)",
-    settings_period_duration: "Duración del período (días)",
-    settings_update_btn: "Actualizar predicciones",
     settings_security_section: "Seguridad y privacidad",
     settings_change_pin: "Cambiar PIN",
     settings_export: "Exportar copia de seguridad cifrada",
     settings_import: "Importar copia de seguridad cifrada",
+    settings_import_app: "Importar desde otra app",
     settings_export_app: "Exportar a otra app",
+
+    // Multi-app export wizard
     app_export_title: "Exportar a otra app",
     app_export_format_intro: "Elige un formato para descargar.",
     app_export_format_drip: "drip",
     app_export_format_plain: "CSV simple",
     app_export_hint_drip: "CSV compatible con drip para volver a importar en drip.",
-    app_export_hint_plain:
-      "Hoja de cálculo simple con fechas del ciclo, flujo, dolor, ánimo y notas.",
+    app_export_hint_plain: "Hoja de cálculo sencilla con las fechas del período, el flujo, el dolor, el estado de ánimo y las notas.",
     app_export_empty_title: "No hay datos para exportar",
-    app_export_empty_msg:
-      "Registra algunos datos del ciclo primero y vuelve para exportar.",
+    app_export_empty_msg: "Registra algunos datos del ciclo primero y vuelve para exportar.",
     app_export_downloaded_toast: "Descargado {filename}",
     app_export_failed_title: "Error al exportar",
-    app_export_failed_msg:
-      "No se pudo descargar el archivo. Por favor, inténtalo de nuevo.",
+    app_export_failed_msg: "No se pudo descargar el archivo. Por favor, inténtalo de nuevo.",
+
+    // Multi-app import wizard
+    app_import_title: "Importar desde otra app",
+    app_import_source_intro: "Elige la aplicación desde la que exportaste los datos.",
+    app_import_source_mycalendar: "My Calendar",
+    app_import_source_drip: "drip",
+    app_import_file_hint_mycalendar:
+      "En My Calendar, ve a Configuración → Exportar documento para el médico. Después, carga aquí el archivo .txt generado.",
+    app_import_file_hint_drip:
+      "En drip, pulsa el menú de tres puntos de la esquina superior derecha y ve a Configuración → Datos. Después, carga aquí el archivo .csv exportado.",
+    app_import_choose_file: "Elegir archivo",
+    app_import_back: "Atrás",
+    app_import_review_counts: "{periods} períodos en total; {withFlow} con datos de flujo identificados en el archivo de origen.",
+    app_import_review_warning:
+      "{count} períodos no tienen datos de flujo. Define un patrón para completarlos o continúa para conservar únicamente los datos del archivo de origen.",
+    app_import_pattern_label: "Patrón de flujo (1–4; 0 = manchado)",
+    app_import_pattern_hint:
+      "Si el patrón es más largo que un período, se omitirán los días sobrantes. Si es más corto, el último nivel se repetirá durante el resto del período.",
+    app_import_flow_mode_legend: "Cuando el archivo de origen incluye datos de flujo",
+    app_import_flow_overwrite: "Sobrescribir el flujo existente",
+    app_import_flow_fill_gaps: "Completar solo los períodos sin datos de flujo",
+    app_import_continue: "Continuar",
+    app_import_report_unmapped: "Estados de ánimo sin correspondencia",
+    app_import_report_leftovers: "Otros datos",
+    app_import_copy: "Copiar informe",
+    app_import_export_txt: "Exportar .txt",
+    app_import_export_csv: "Exportar .csv",
+    app_import_done: "Listo",
+    app_import_failed_title: "Error al importar",
+    app_import_empty_title: "No hay nada que importar",
+    app_import_empty_msg: "El archivo no contenía datos utilizables.",
+    app_import_done_msg: "Se importaron correctamente {days} días.",
+    app_import_merge_title: "Importar datos",
+    app_import_merge_msg: "Se encontraron {days} días para importar. ¿Cómo deseas aplicarlos?",
+    app_import_merge: "Combinar (conservar mis datos)",
+    app_import_replace: "Reemplazar (usar los datos importados)",
+    app_import_report_summary_source: "Origen: {source}",
+    app_import_report_summary_periods: "Períodos: {count}",
+    app_import_report_summary_flow_days: "Días con flujo: {count}",
+    app_import_report_summary_mood_days: "Días con estado de ánimo: {count}",
+    app_import_report_summary_leftover_days: "Días con otros datos: {count}",
+    app_import_report_summary_unmapped: "Estados de ánimo sin correspondencia: {count}",
+    app_import_report_summary_imported: "Días importados: {count}",
+    app_import_report_result:
+      "Se importaron {days} días de período correspondientes a {periods} ciclos.",
+    app_import_report_extras_note:
+      "Algunos detalles todavía no se registran en esta aplicación. Se muestran a continuación; puedes copiarlos o exportarlos para conservarlos o añadirlos más adelante como notas.",
+    app_import_copy_success: "Informe copiado al portapapeles",
+    app_import_copy_failed: "No se pudo copiar el informe",
+
+    // drip CSV import flow (legacy merge/replace labels)
+    drip_import_title: "Importar desde drip",
+    drip_import_panel_intro:
+      "Importa el historial del ciclo desde un archivo CSV compatible con drip. En drip, ve a Menú → Exportar datos → Exportar como CSV.",
+    drip_import_panel_before:
+      "Los archivos exportados por My Calendar y drip pueden importarse directamente desde Configuración → Importar desde otra app.",
+    drip_import_choose_csv: "Elegir archivo CSV",
+    drip_import_mycalendar_label: "¿Usas My Calendar en lugar de drip?",
+    drip_import_mycalendar_link: "Importar desde otra app en Configuración →",
+    drip_import_found: "Se encontraron {days} días de datos, incluidos {periods} días con flujo. ¿Cómo deseas importarlos?",
+    drip_import_merge: "Combinar (conservar mis datos)",
+    drip_import_replace: "Reemplazar (usar los datos de drip)",
+    drip_import_done_title: "Importación completada",
+    drip_import_done_msg: "Se importaron correctamente {days} días.",
+    drip_import_failed_title: "Error al importar",
+    drip_import_failed_msg: "No se pudo leer el archivo. Comprueba que sea un CSV exportado por drip.",
+    drip_import_empty_title: "No hay nada que importar",
+    drip_import_empty_msg: "El archivo no contenía datos utilizables.",
     settings_storage_label: "Almacenamiento usado:",
     settings_storage_calculating: "Calculando...",
     settings_erase: "Borrar todos los datos",
@@ -1519,33 +1672,33 @@ const LOCALES = {
     settings_recalc_done_toast: "Historial de ciclos recalculado",
     drive_section_title: "Copia de seguridad en Google Drive",
     drive_section_desc:
-      "Copia cifrada unidireccional en una carpeta oculta de datos de la aplicación en tu Google Drive — <strong>no</strong> es sincronización bidireccional. La aplicación no puede acceder a tus otros archivos de Drive y no tenemos ningún servidor que pueda leer tus datos cifrados. Registrar en un dispositivo no actualiza otro; úsala para restaurar en un teléfono nuevo o tras borrar los datos de la app.",
+      "Copia de seguridad cifrada y unidireccional en una carpeta oculta de datos de la aplicación dentro de Google Drive; <strong>no</strong> es una sincronización bidireccional. La aplicación no puede acceder a tus demás archivos de Drive y no tenemos ningún servidor capaz de leer tus datos cifrados. Los registros de un dispositivo no se actualizan en otro. Usa esta función para restaurar los datos en un teléfono nuevo o después de borrar los datos de la aplicación.",
     drive_test_user_note: "",
     drive_status_not_connected: "No conectado",
     drive_status_last_backup: "Última copia: {date} · Solo copia unidireccional",
-    drive_status_never_synced: "Conectado — aún no se subió ninguna copia",
+    drive_status_never_synced: "Conectado — todavía no se ha subido ninguna copia",
     drive_connect_btn: "Conectar Google Drive",
     drive_disconnect_btn: "Desconectar",
     drive_disconnect_confirm_btn: "Confirmar desconexión",
     drive_disconnect_tap_again: "Pulsa otra vez para confirmar",
-    drive_sync_now_btn: "Copiar ahora",
-    drive_auto_label: "Copiar automáticamente tras cambios (con conexión)",
+    drive_sync_now_btn: "Crear copia ahora",
+    drive_auto_label: "Crear una copia automáticamente después de los cambios (con conexión)",
     drive_auto_hint:
-      "Sube una copia cifrada tras guardar cambios (con retardo). No descarga ni combina datos de otros dispositivos.",
+      "Sube una copia cifrada poco después de guardar cambios. No descarga ni combina datos de otros dispositivos.",
     drive_not_configured:
-      "La copia en Google Drive no está configurada (faltan el ID OAuth y la URL del proxy en drive-config.js; ver drive-oauth-proxy/README.md).",
+      "La copia de seguridad de Google Drive requiere un ID de cliente OAuth y la URL del proxy de tokens en js/drive-config.js (consulta drive-config.example.js y drive-oauth-proxy/README.md).",
     drive_connected_toast: "Google Drive conectado",
     drive_disconnected_toast: "Google Drive desconectado",
     drive_disconnect_failed: "No se pudo desconectar. Inténtalo de nuevo.",
     drive_disconnecting: "Desconectando…",
-    drive_sync_success_toast: "Copia subida",
+    drive_sync_success_toast: "Copia de seguridad subida",
     drive_sync_not_connected:
-      "Google Drive no conectado. Pulsa Conectar primero.",
+      "Google Drive no está conectado. Pulsa Conectar primero.",
     drive_sync_not_unlocked: "Desbloquea la app con tu PIN primero.",
     drive_sync_offline: "Sin conexión.",
-    drive_sync_failed_title: "Error de copia en Google Drive",
+    drive_sync_failed_title: "Error en la copia de seguridad de Google Drive",
     drive_sync_failed_msg:
-      "No se pudo completar la copia en Google Drive. Comprueba tu conexión e inténtalo de nuevo.",
+      "No se pudo completar la copia de seguridad de Google Drive. Comprueba tu conexión e inténtalo de nuevo.",
     drive_oauth_state_mismatch:
       "No se pudo completar el inicio de sesión de Google porque la app perdió la sesión de autorización (suele pasar con el acceso directo desde la pantalla de inicio). Cierra la app por completo, ábrela en el navegador e intenta Conectar otra vez.",
     drive_oauth_redirect_mismatch:
@@ -1570,32 +1723,34 @@ const LOCALES = {
     drive_restore_found_title: "¿Restaurar desde Google Drive?",
     drive_restore_found_msg:
       "Se encontró una copia en tu Google Drive. ¿Restaurarla ahora? Esto <strong>reemplazará</strong> todos los datos de este dispositivo. Necesitarás tu PIN.",
-    drive_restore_confirm: "Restaurar copia",
+    drive_restore_confirm: "Restaurar copia de seguridad",
     drive_restore_skip: "Mantener datos locales",
-    drive_restore_not_found_title: "No se encontró ninguna copia en Google Drive",
+    drive_restore_not_found_title: "No se encontró una copia de seguridad en Google Drive",
     drive_restore_not_found_msg:
-      "Google Drive se conectó correctamente, pero no se encontró ninguna copia de My Cycle Keeper.",
-    settings_autofill_label: "Autocompletar días de período previstos",
-    settings_autofill_hint:
-      "Rellena esta cantidad de días después del día de inicio del período con flujo leve (p. ej. 5 = día de inicio + 5 días más = 6 días en total). Deja en blanco para automático (duración promedio de tus últimos 6 meses). Pon 0 para desactivar.",
+      "Google Drive se conectó correctamente, pero no se encontró ninguna copia de seguridad de My Cycle Keeper.",
 
     // Onboarding
     onboard_sub: "Rastrea tu período y ciclo de forma privada",
     onboard_tagline:
-      "Registra tu flujo, estado de ánimo y síntomas — todo en tu dispositivo. Gratis, sin anuncios, totalmente accesible y con privacidad primero.",
+      "Registra el flujo, el estado de ánimo y los síntomas, todo en tu dispositivo. Gratis, sin anuncios, accesible y centrado en la privacidad.",
     beta_label: "Beta",
     beta_warning_text:
-      "Esta aplicación está en desarrollo activo. Las funciones pueden cambiar y pueden ocurrir errores.",
+      "Esta aplicación se encuentra en desarrollo activo. Las funciones pueden cambiar y podrían producirse errores.",
     ob_last_period: "Primer día de tu último período",
-    ob_cycle_len: "Longitud promedio del ciclo (días)",
+    ob_cycle_len: "Duración promedio del ciclo (días)",
     ob_period_dur: "Duración promedio del período (días)",
-    pin_setup_title: "🔒 Establece un PIN de 4 dígitos",
-    pin_setup_sub_1: "Tu PIN cifra todos los datos localmente.",
-    pin_setup_sub_2: "My Cycle Keeper nunca envía datos a ningún lugar.",
-    pin_setup_sub_3: "Si olvidas tu PIN, los datos serán borrados.",
+    ob_setup_title: "Configura tu ciclo",
+    ob_setup_hint:
+      "Registra tu último período para obtener predicciones de inmediato o importa datos existentes. También puedes omitir la fecha y empezar a registrar.",
+    ob_continue_btn: "Continuar →",
     onboard_restore_backup: "Restaurar copia cifrada",
     onboard_restore_drive: "Restaurar desde Google Drive",
-    onboard_start_btn: "Comenzar seguimiento ✨",
+    ob_back_btn: "← Atrás",
+    pin_setup_title: "🔒 Establece un PIN de 4 dígitos",
+    pin_setup_sub_1: "Tu PIN cifra todos los datos localmente.",
+    pin_setup_sub_2: "My Cycle Keeper nunca envía tus datos a ningún servidor.",
+    pin_setup_sub_3: "Si olvidas tu PIN, se borrarán los datos.",
+    onboard_start_btn: "Empezar a registrar",
     privacy_note_aes: "Cifrado AES-256-GCM.",
     privacy_note_rest:
       "Los datos nunca salen de tu dispositivo. Sin cuentas, sin rastreo, gratis para siempre.",
@@ -1620,13 +1775,15 @@ const LOCALES = {
     log_delete_entry: "Eliminar registro",
     log_done: "Listo",
     log_delete_title: "¿Eliminar este registro?",
-    log_delete_message: "Se eliminarán el flujo, el dolor, el estado de ánimo y las notas de este día.",
+    log_delete_message:
+      "Se eliminarán el flujo, el dolor, el estado de ánimo y las notas de este día.",
     log_entry_deleted: "Registro eliminado",
     log_saved: "Guardado ✓",
     log_saving: "Guardando…",
     log_estimated_flow: "Flujo ligero estimado: elige un valor para confirmarlo.",
     print_options_title: "Imprimir historial de períodos",
-    print_options_intro: "Las fechas y duraciones siempre se incluyen. Los demás datos son opcionales.",
+    print_options_intro:
+      "Las fechas y duraciones siempre se incluyen. Los demás datos son opcionales.",
     print_options_symptoms: "Incluir detalles de síntomas",
     print_options_symptoms_hint: "Resumen de flujo, dolor y estado de ánimo",
     print_options_notes: "Incluir notas",
@@ -1654,52 +1811,63 @@ const LOCALES = {
     no_cycle_history:
       "Aún no hay historial de ciclos. Registra al menos 2 períodos para ver el historial.",
     history_showing: "Mostrando los últimos {shown} de {total} ciclos",
-
-    // History legend
-    legend_short: "Corto (<26d)",
-    legend_normal: "Normal (26–32d)",
-    legend_long: "Largo (>32d)",
-
-    // Hardcoded HTML sections
-    flow_question: "¿Cómo es tu flujo hoy? 🌊",
-    log_force_new_cycle: "Este es un periodo nuevo, no una continuación",
-    log_force_new_cycle_hint:
-      "Solo aplica si se registra el Flujo. Úsalo para separar un periodo nuevo que la app agruparía con uno reciente.",
+    predictions_tab: "Próximos períodos",
+    predictions_empty: "Registra al menos una fecha de inicio del período para ver las predicciones.",
+    history_col_start: "Inicio",
+    history_col_end: "Fin",
+    history_col_dates: "Fechas",
+    history_col_period: "Período",
+    history_col_cycle: "Ciclo",
+    view_all_history: "Ver todo",
+    share_history: "Compartir",
+    share_history_subject: "Fechas recientes de mi período",
+    share_history_intro: "Últimos 6 períodos (inicio–fin):",
+    share_history_empty: "Aún no hay historial de períodos para compartir.",
     print_summary: "Imprimir resumen",
-    print_summary_title: "My Cycle Keeper — Resumen de ciclos",
+    print_summary_title: "My Cycle Keeper — Resumen del ciclo",
     print_summary_generated: "Generado el {date}",
     print_summary_stats_title: "Resumen",
-    print_summary_next_period: "Próximo período previsto",
+    print_summary_next_period: "Próximo período estimado",
     print_summary_col_symptoms: "Notas",
     print_summary_avg_pain: "Dolor prom. {value}/10",
     print_summary_avg_mood: "Ánimo prom. {value}/100",
     print_summary_notes_count_one: "{n} nota",
     print_summary_notes_count_many: "{n} notas",
     print_summary_disclaimer:
-      "Generado a partir de datos autoinformados, solo para referencia personal. Esto no es consejo médico — consulta a un profesional de la salud cualificado para decisiones clínicas.",
+      "Generado a partir de los datos que registraste y únicamente para consulta personal. No constituye asesoramiento médico; consulta a un profesional de la salud para tomar decisiones clínicas.",
+
+    // History legend
+    legend_short: "Corto (<26d)",
+    legend_normal: "Normal (26–32d)",
+    legend_long: "Largo (>32d)",
+    legend_shifted: "Desviado (>3 d respecto al prom. de 6 meses)",
+    history_current: "En curso",
+
+    // Hardcoded HTML sections
+    flow_question: "¿Cómo es tu flujo hoy? 🌊",
+    log_force_new_cycle: "Este es un período nuevo, no una continuación",
+    log_force_new_cycle_hint:
+      "Solo se aplica cuando se ha indicado el flujo. Úsalo para separar un período nuevo que, de otro modo, la aplicación agruparía con uno reciente.",
     security_info:
-      "Todos los datos se cifran con tu PIN antes de guardarse. Cycle Keeper usa la <strong>Web Crypto API</strong> — el mismo estándar que los navegadores usan para HTTPS.<br><br>No se envía ningún dato a ningún servidor. Sin cuentas. Sin analíticas.",
+      "Todos los datos se cifran con tu PIN antes de almacenarse. Cycle Keeper utiliza la <strong>Web Crypto API</strong>, el mismo estándar que emplean los navegadores para HTTPS.<br><br>No se envía ningún dato a servidores. No hay cuentas ni análisis de uso.",
     data_persistence:
       '⚠️ <strong>Persistencia de datos:</strong> Tus datos se almacenan en IndexedDB. Limpiar el caché del navegador es seguro, pero limpiar los "datos del sitio" o "cookies y datos del sitio" en la configuración del navegador BORRARÁ todos tus datos del ciclo. ¡Siempre exporta una copia de seguridad primero!',
     about_info_html:
-      '<strong>My Cycle Keeper</strong> es un fork personal de <a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">Your Cycle Keeper</a>, el rastreador de períodos de código abierto de <a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">pythonime-lab</a>, con cambios según preferencias personales.<br><br>Si te resulta útil, considera apoyar al desarrollador original en <a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">GitHub</a>.<br><br>Tanto Your Cycle Keeper como este fork son gratis para siempre: sin anuncios, sin rastreo y sin recopilación de datos. Las estimaciones son solo informativas. No usar como anticonceptivo. El estrés, las enfermedades y los medicamentos pueden alterar el ciclo.<br><br><strong>Versión:</strong> 1.0.0-beta<br><strong>Licencia:</strong> GNU General Public License v3.0',
+      "<strong>My Cycle Keeper</strong> es un fork personal de <a href=\"https://github.com/pythonime-lab/yourcyclekeeper\" target=\"_blank\" rel=\"noopener\" class=\"accessibility-link\">Your Cycle Keeper</a>, el rastreador de períodos de código abierto de <a href=\"https://github.com/pythonime-lab\" target=\"_blank\" rel=\"noopener\" class=\"accessibility-link\">pythonime-lab</a>, adaptado a preferencias personales.<br><br>Si te resulta útil, considera apoyar al desarrollador original en <a href=\"https://github.com/pythonime-lab\" target=\"_blank\" rel=\"noopener\" class=\"accessibility-link\">GitHub</a>.<br><br>Tanto Your Cycle Keeper como este fork son gratuitos para siempre, sin anuncios, seguimiento ni recopilación de datos. Las estimaciones son solo informativas. No debe usarse como método anticonceptivo. El estrés, las enfermedades y los medicamentos pueden alterar las fechas.<br><br><strong>Versión:</strong> 1.0.0-beta<br><strong>Licencia:</strong> GNU General Public License v3.0",
     fork_title: "Sobre este fork",
     fork_info_html:
-      'Este fork personal añade predicciones rodantes de 6 meses, importación en la app desde My Calendar y drip, exportación a drip o CSV simple, autocompletado de días de período, mensajes de retraso, temas/diseño, e historial compacto con compartir por correo.<br><br>Se quitaron algunas funciones originales; las ideas de predicción y el formato CSV se inspiraron en <a href="https://gitlab.com/bloodyhealth/drip" target="_blank" rel="noopener" class="accessibility-link">drip</a> de bloodyhealth. Hecho con ayuda de IA — <strong>úsalo bajo tu propio riesgo.</strong><br><br><small style="color: var(--text-muted)"><a href="https://fishese.github.io/tools/" target="_blank" rel="noopener" class="accessibility-link">0oo.fish.oo0</a></small>',
+      "Este fork personal añade predicciones basadas en un promedio móvil de 6 meses, importación desde My Calendar y drip, exportación a drip o CSV sencillo, completado automático de los días del período, avisos de retraso, opciones de tema y diseño, y un historial compacto que se puede compartir por correo.<br><br>Se eliminaron algunas funciones del proyecto original. Las ideas de predicción y el formato CSV se basaron en <a href=\"https://gitlab.com/bloodyhealth/drip\" target=\"_blank\" rel=\"noopener\" class=\"accessibility-link\">drip</a>, de bloodyhealth. Desarrollado con ayuda de IA; <strong>úsalo bajo tu propia responsabilidad.</strong><br><br><small style=\"color: var(--text-muted)\"><a href=\"https://fishese.github.io/tools/\" target=\"_blank\" rel=\"noopener\" class=\"accessibility-link\">0oo.fish.oo0</a></small>",
     support_info:
       "Esta app es un fork de <strong>Your Cycle Keeper</strong> de pythonime-lab. Si la encuentras útil, ¡considera apoyar al desarrollador original!",
     support_via: "Apoyar vía",
     support_footer:
-      "Tu apoyo ayuda a mantener este proyecto sin anuncios para todos. ¡Gracias! 💜",
-    privacy_title: "Garantía de privacidad",
+      "Tu apoyo ayuda a mantener el proyecto original Your Cycle Keeper y a que siga siendo gratuito y sin anuncios. ¡Gracias! 💜",
     privacy_info_html:
-      "My Cycle Keeper recopila <strong>cero datos</strong>. Esta aplicación:<br>&nbsp;• Almacena todos los datos localmente solo en tu dispositivo<br>&nbsp;• No tiene servidores, cuentas ni almacenamiento en la nube<br>&nbsp;• No tiene analíticas, rastreo ni telemetría<br>&nbsp;• No tiene anuncios ni código de terceros<br>&nbsp;• Nunca transmite ningún dato<br>&nbsp;• Está cifrada con tu PIN mediante AES-256-GCM<br><br>Tus datos de salud son solo tuyos.",
-    disclaimer_title: "Aviso médico",
+      "My Cycle Keeper no recopila <strong>ningún dato</strong>. Esta aplicación:<br>&nbsp;• Almacena todos los datos únicamente en tu dispositivo<br>&nbsp;• No utiliza servidores, cuentas ni almacenamiento en la nube<br>&nbsp;• No incluye análisis, seguimiento ni telemetría<br>&nbsp;• No contiene anuncios ni código de terceros<br>&nbsp;• Nunca transmite datos<br>&nbsp;• Cifra la información con tu PIN mediante AES-256-GCM<br><br>Tus datos de salud te pertenecen exclusivamente.",
     disclaimer_info_html:
-      "⚠️ <strong>Esta aplicación proporciona estimaciones del ciclo basadas en patrones biológicos promedio.</strong> <em>No</em> es consejo médico y no debe usarse como sustituto de la consulta médica profesional.<br><br>My Cycle Keeper predice tu ciclo rastreando patrones y estimando el momento de ovulación. El momento real del ciclo puede variar debido al estrés, enfermedades, medicamentos y muchos otros factores.<br><br><strong>No</strong> uses esta aplicación como anticonceptivo ni como garantía de fertilidad. Consulta siempre a un profesional de la salud cualificado para decisiones médicas.",
-    accessibility_title: "Accesibilidad",
+      "⚠️ <strong>Esta aplicación ofrece estimaciones del ciclo basadas en patrones biológicos promedio.</strong> <em>No</em> constituye asesoramiento médico ni sustituye una consulta con un profesional de la salud.<br><br>My Cycle Keeper predice el ciclo a partir de los patrones registrados y estima la fecha de ovulación. Las fechas reales pueden variar debido al estrés, las enfermedades, los medicamentos y muchos otros factores.<br><br><strong>No</strong> uses esta aplicación como método anticonceptivo ni como garantía de fertilidad. Consulta a un profesional de la salud para tomar decisiones médicas.",
     accessibility_info_html:
-      'My Cycle Keeper sigue los <strong>estándares de accesibilidad WCAG 2.0</strong>:<br><br>&nbsp;• <strong>Tab/Shift+Tab:</strong> Navegar hacia adelante/atrás por todos los elementos interactivos<br>&nbsp;• <strong>Teclas de flecha:</strong> Navegar por las fechas del calendario<br>&nbsp;• <strong>Enter/Espacio:</strong> Activar botones y enlaces<br>&nbsp;• <strong>Escape:</strong> Cerrar modales y devolver el foco al elemento activador<br>&nbsp;• <strong>Entrada de PIN:</strong> Escribe dígitos 0-9 y Retroceso en todas las pantallas de PIN<br>&nbsp;• <strong>Controles de formulario:</strong> Soporte de teclado nativo para inputs, selects y textareas<br>&nbsp;• <strong>Lectores de pantalla:</strong> HTML semántico con etiquetas ARIA y roles apropiados<br>&nbsp;• <strong>Gestión del foco:</strong> Indicadores de foco visibles, orden de tabulación lógico<br><br>Estándares basados en las <a href="https://trailhead.salesforce.com/content/learn/modules/coding-for-web-accessibility/understand-accessible-navigation" target="_blank" rel="noopener" class="accessibility-link">Directrices de Accesibilidad de Salesforce</a>.',
+      "My Cycle Keeper sigue los <strong>estándares de accesibilidad WCAG 2.0</strong>:<br><br>&nbsp;• <strong>Tab/Shift+Tab:</strong> recorrer hacia delante o hacia atrás todos los elementos interactivos<br>&nbsp;• <strong>Teclas de flecha:</strong> desplazarse por las fechas del calendario<br>&nbsp;• <strong>Enter/Espacio:</strong> activar botones y enlaces<br>&nbsp;• <strong>Escape:</strong> cerrar ventanas y devolver el foco al elemento que las abrió<br>&nbsp;• <strong>Entrada del PIN:</strong> usar los dígitos 0–9 y Retroceso en todas las pantallas del PIN<br>&nbsp;• <strong>Controles de formulario:</strong> compatibilidad nativa con teclado para campos, listas y áreas de texto<br>&nbsp;• <strong>Lectores de pantalla:</strong> HTML semántico con etiquetas y roles ARIA adecuados<br>&nbsp;• <strong>Gestión del foco:</strong> indicadores visibles y un orden de tabulación lógico<br><br>Estándares basados en las <a href=\"https://trailhead.salesforce.com/content/learn/modules/coding-for-web-accessibility/understand-accessible-navigation\" target=\"_blank\" rel=\"noopener\" class=\"accessibility-link\">directrices de accesibilidad de Salesforce</a>.",
   },
 
   // ── Japanese ───────────────────────────────────────────────────────────────
@@ -1805,7 +1973,7 @@ const LOCALES = {
     mood_neutral: "普通",
     set_mood: "気分",
 
-    period_expected_in_many: "生理予定日は{n}日後です",
+    period_expected_in_many: "次の生理は{n}日後と予測されています",
 
     phase_menstruation: "生理中",
     phase_follicular: "卵胞期",
@@ -1816,16 +1984,16 @@ const LOCALES = {
     subtitle_menstruation: "生理{day}日目",
     subtitle_fertile: "{start}〜{end}日目は妊娠しやすい時期です",
     subtitle_ovulation: "今日は妊娠しやすさのピークです",
-    subtitle_other: "次の生理予定日まで{n}日",
+    subtitle_other: "次の生理まであと{n}日（予測）",
 
     status_cycle_day_of: "{total}日周期の{day}日目",
-    status_period_today: "今日は生理開始予定日です",
-    status_period_soon_date: "生理は今日から{date}ごろまでに始まる可能性があります",
-    status_period_in_date: "次の生理は{date}ごろに始まる予定です",
+    status_period_today: "次の生理は今日始まると予測されています",
+    status_period_soon_date: "次の生理は今日から{date}ごろまでに始まる可能性があります",
+    status_period_in_date: "次の生理は{date}ごろに始まると予測されています",
     status_period_late_one: "生理が1日遅れています",
     status_period_late_many: "生理が{n}日遅れています",
     status_period_expected_on:
-      "過去の記録では、生理開始予定日は{date}でした",
+      "過去の記録では、{date}ごろに始まると予測されていました",
     status_phase_line: "フェーズ{num} — {phase}  ·  {detail}",
     now: "今日",
     bar_day: "{n}日目",
@@ -2001,7 +2169,7 @@ const LOCALES = {
     settings_recalc_done_toast: "周期履歴を再計算しました",
     drive_section_title: "Google Driveバックアップ",
     drive_section_desc:
-      "Google Drive内の非表示のアプリデータフォルダに、暗号化ファイルを一方向でバックアップします。<strong>双方向同期ではありません</strong>。このアプリは他のDriveファイルにアクセスできず、暗号化されたデータを読み取れる独自のサーバーもありません。一方の端末で記録しても別の端末には反映されません。機種変更時やアプリデータを削除した後の復元に使用できます。",
+      "Google Drive内の非表示のアプリデータフォルダに、暗号化されたバックアップを一方向で保存します。<strong>双方向同期ではありません</strong>。このアプリはDrive内のほかのファイルにはアクセスできず、暗号化されたデータを読み取るサーバーもありません。一方の端末で記録しても、別の端末には自動で反映されません。機種変更時やアプリデータを削除した後の復元に使用できます。",
     drive_test_user_note: "",
     drive_status_not_connected: "未接続",
     drive_status_last_backup: "最終バックアップ：{date} · 一方向バックアップ",
@@ -2054,7 +2222,7 @@ const LOCALES = {
       "Google Driveにバックアップが見つかりました。復元しますか？この端末の<strong>すべてのデータが置き換えられます</strong>。PINが必要です。",
     drive_restore_confirm: "バックアップを復元",
     drive_restore_skip: "ローカルデータを保持",
-    drive_restore_not_found_title: "Google Driveバックアップが見つかりません",
+    drive_restore_not_found_title: "Google Driveのバックアップが見つかりません",
     drive_restore_not_found_msg:
       "Google Driveには接続できましたが、My Cycle Keeperのバックアップは見つかりませんでした。",
 
@@ -2124,7 +2292,7 @@ const LOCALES = {
 
     no_cycle_history: "周期履歴はまだありません。生理開始日を2回以上記録してください。",
     history_showing: "全{total}周期のうち、直近{shown}周期を表示",
-    predictions_tab: "今後の生理予定",
+    predictions_tab: "今後の生理予測",
     predictions_empty: "予測を表示するには、生理開始日を1回以上記録してください。",
     history_col_start: "開始",
     history_col_end: "終了",
@@ -2140,7 +2308,7 @@ const LOCALES = {
     print_summary_title: "My Cycle Keeper — 周期の概要",
     print_summary_generated: "作成日：{date}",
     print_summary_stats_title: "概要",
-    print_summary_next_period: "次回の生理予定日",
+    print_summary_next_period: "次回の生理予測",
     print_summary_col_symptoms: "メモ",
     print_summary_avg_pain: "平均の痛み：{value}/10",
     print_summary_avg_mood: "平均の気分：{value}/100",
@@ -2154,7 +2322,7 @@ const LOCALES = {
 
     // Complete Japanese translations for keys previously falling back to English
     incorrect_pin_one: "PINが正しくありません。残り{remaining}回です。",
-    period_expected_in_one: "生理予定日は{n}日後です",
+    period_expected_in_one: "次の生理は{n}日後と予測されています",
     history_days_one: "{n}日",
     backup_days_ago_one: "最終バックアップ：{n}日前",
     backup_overdue_one: "最終バックアップ：{n}日前 — バックアップをおすすめします",
@@ -2554,7 +2722,7 @@ const LOCALES = {
     settings_recalc_done_toast: "週期紀錄已重新計算",
     drive_section_title: "Google Drive 備份",
     drive_section_desc:
-      "將加密備份單向上傳至 Google Drive 的隱藏應用程式資料夾；這<strong>不是</strong>雙向同步。本應用程式無法存取你在 Drive 中的其他檔案，也沒有能夠讀取加密資料的伺服器。在一台裝置上新增紀錄不會自動更新其他裝置；此功能可在更換手機或清除應用程式資料後還原。",
+      "將加密備份單向儲存至 Google Drive 中隱藏的應用程式資料夾；這<strong>不是</strong>雙向同步。本應用程式無法存取你在 Drive 中的其他檔案，也沒有任何可讀取加密資料的伺服器。在一台裝置上新增的紀錄不會自動同步至其他裝置；此功能可用於更換手機或清除應用程式資料後還原紀錄。",
     drive_test_user_note: "",
     drive_status_not_connected: "未連線",
     drive_status_last_backup: "上次備份：{date} · 單向備份",
@@ -2608,7 +2776,7 @@ const LOCALES = {
     drive_restore_skip: "保留裝置上的資料",
     drive_restore_not_found_title: "找不到 Google Drive 備份",
     drive_restore_not_found_msg:
-      "已成功連線 Google Drive，但找不到 My Cycle Keeper 備份。",
+      "已成功連線至 Google Drive，但找不到 My Cycle Keeper 的備份。",
 
     onboard_sub: "在裝置上私密記錄月經週期",
     onboard_tagline:
