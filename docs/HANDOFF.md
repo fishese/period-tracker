@@ -6,7 +6,7 @@
 
 This document is the **current source of truth** for continuing work. Older implementation history remains available in Git; verify historical notes against current code for predictions, storage keys, fertility defaults, and branding.
 
-**Current `CACHE_VERSION`:** `v20260730b` (in `service-worker.js`)
+**Current `CACHE_VERSION`:** `v20260730d` (in `service-worker.js`)
 
 ---
 
@@ -21,7 +21,7 @@ This document is the **current source of truth** for continuing work. Older impl
 | **Stack** | Vanilla JS ES modules, no build step, IndexedDB + AES-256-GCM, Service Worker |
 | **Privacy** | Zero server data; no backend. Google Drive backup (optional) talks to Google APIs from the browser only |
 
-**Live URL (this fork):** https://fishese.github.io/period-tracker/
+**Live URL (this fork):** https://period.fishese.cc/
 
 **Why the fork exists:** Migrate history from **My Calendar** or **drip** directly into this app; continue tracking with rolling predictions, auto-fill, and optional export to **drip** or **plain CSV** (My Calendar export is not offered).
 
@@ -49,7 +49,7 @@ fishese/period-tracker/           # GitHub repo (GitHub Pages) — app at repo r
 └── CLAUDE.md
 ```
 
-**Pages URL:** `https://fishese.github.io/period-tracker/` (repo root = site root for this project).
+**Pages URL:** `https://period.fishese.cc/` (custom domain; app files live at the repo root).
 
 ---
 
@@ -57,7 +57,7 @@ fishese/period-tracker/           # GitHub repo (GitHub Pages) — app at repo r
 
 ### Deploy (GitHub Pages)
 
-**Live app:** https://fishese.github.io/period-tracker/
+**Live app:** https://period.fishese.cc/
 
 Push to `period-tracker` remote **`master`** (not `origin`, not `main`):
 
@@ -79,7 +79,7 @@ python -m http.server 8000
 # NOT file://
 ```
 
-Note: serve from repo root locally (`http://localhost:8000/`). OAuth redirect URIs must match Pages (`…/period-tracker/`) and localhost (see `js/drive-config.example.js`). Custom domain `period.fishese.cc` planned separately.
+Note: serve from repo root locally (`http://localhost:8000/`). OAuth redirect URIs must include `https://period.fishese.cc/` and localhost (see `js/drive-config.example.js`).
 
 ### Pre-deploy checklist
 
@@ -223,8 +223,8 @@ Only while **actively bleeding** (`isPeriodEpisodeActive`).
 
 ### Fertility and timeline toggles
 
-- **Show fertility estimates** defaults to `false`. It controls fertile/ovulation calendar highlights, fertility-specific status labels, and the **Fertile Days** insight.
-- **Show cycle phase timeline** defaults to `true` and is independent of fertility estimates. On, the timeline shows **Menstrual / Follicular / Ovulation / Luteal**; off, it shows a neutral **Period / Other cycle days** progress view.
+- **Show fertility estimates** defaults to `false`. It controls fertile/ovulation calendar highlights, explicitly fertile status wording, and the **Fertile Days** insight. When it is off but cycle phases remain on, the status may still name **Follicular / Ovulation / Luteal** without saying the user is fertile.
+- **Show cycle phase timeline** defaults to `true` and is independent of fertility estimates. On, the timeline and status show **Menstrual / Follicular / Ovulation / Luteal**; off, the timeline shows a neutral **Period / Other cycle days** view and the status omits phase names except **Menstrual** while a period is active.
 - Existing encrypted state without `showCyclePhases` migrates to `true`.
 
 ### Cycle history
@@ -395,9 +395,9 @@ Settings → Export to another app (in-app wizard)
 6. GitHub Pages: `.nojekyll` + `_config.yml` so Liquid in docs cannot break deploys.
 7. Calendar flow dots: full-circle rose→peach radial gradients with wider core-size steps (1–4); level 4 deeper core + light rim; spotting stays a hollow ring.
 
-### Repo flatten session (2026-07-30; cache `v20260730b`)
+### Repo flatten and custom-domain session (2026-07-30; cache `v20260730d`)
 
-Moved the app from nested `period-tracker/` up to **repo root** so GitHub Pages serves at `https://fishese.github.io/period-tracker/` (no double path). Updated manifest scope, share URL, Drive redirect helpers, and docs. Custom domain `period.fishese.cc` deferred (Cloudflare + Google OAuth updates later).
+Moved the app from nested `period-tracker/` up to **repo root**, then configured GitHub Pages to publish it at `https://period.fishese.cc/`. Updated the manifest scope, public metadata, share URL, Drive redirect helpers, and docs.
 
 ---
 
@@ -417,7 +417,7 @@ Spec (as-built): [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
 - Settings → Security (**below** local export/import): Connect / Back up now / **Disconnect** (two-tap confirm) + auto-backup (~45s debounce after `save()`)
 - First connect: optional restore from Drive (replaces local; PIN required)
 - OAuth: Web client + **Client ID in SPA**; **Client secret only on `drive-oauth-proxy` Worker**; consent **Testing** + test users
-- Origins/redirects: GitHub Pages double path + localhost (see `drive-config.example.js`)
+- Origins/redirects: custom domain + GitHub Pages fallback + localhost (see `drive-config.example.js`)
 - If Google warns about a published secret: **rotate secret**, put new secret on Worker only, never recommit to the SPA
 - PKCE state mirrored in IndexedDB + localStorage; `save()` isolates Drive errors from local encrypt
 - i18n: en / es / ja / zh-TW

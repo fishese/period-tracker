@@ -1,7 +1,8 @@
 # Google Drive backup — as built
 
 **Status:** Shipped (2026-07-20); **token proxy** (2026-07-21); **disconnect + deploy fixes** (2026-07-23, SW `v20260723h`)  
-**Live app:** https://fishese.github.io/period-tracker/  
+**Live app:** https://period.fishese.cc/
+
 **Scope:** repo-root PWA (GitHub Pages — `firebase.json` unused)
 
 Optional one-way encrypted backup to the user's own Google Drive. Health data stays encrypted; the browser talks to Google Drive APIs after connect. **Token exchange/refresh** goes through a tiny Cloudflare Worker so the OAuth **Client secret never ships in public JS**.
@@ -81,10 +82,10 @@ That means a Client secret was found in a public place (e.g. this repo / Pages J
 2. **OAuth consent screen** → **Testing** + **Test users**.
 3. **Credentials → OAuth 2.0 Client ID → Web application**
 4. **Authorized JavaScript origins:**
-   - `https://fishese.github.io`
+   - `https://period.fishese.cc`
    - `http://localhost:8000`
 5. **Authorized redirect URIs** (exact, trailing slash):
-   - `https://fishese.github.io/period-tracker/`
+   - `https://period.fishese.cc/`
    - `http://localhost:8000/`
 6. Deploy **`drive-oauth-proxy/`** (see its README) with secrets `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET`.
 7. Set `DRIVE_TOKEN_PROXY_URL` in `js/drive-config.js` to the Worker URL. Client ID may stay in that file; **secret must not**.

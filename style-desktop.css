@@ -341,7 +341,7 @@ body:has(.settings-wrap.visible) .insights-wrap {
   gap: 1.5rem 2.5rem;
   max-width: 64rem;
   margin: 0 auto;
-  padding: 2rem 2rem;
+  padding: 0.75rem 2rem;
   align-items: center;
   justify-content: center;
   overflow-y: auto;
@@ -357,6 +357,16 @@ body:has(.settings-wrap.visible) .insights-wrap {
   align-self: center;
 }
 
+.desktop.column-left .onboard-moon {
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.desktop.column-left .logo-onboard {
+  width: 5rem;
+  height: 5rem;
+}
+
 .desktop.column-right {
   grid-column: 2;
   align-self: center;
@@ -365,14 +375,8 @@ body:has(.settings-wrap.visible) .insights-wrap {
   align-items: center;
 }
 
-.desktop.column-right .onboard-moon {
-  display: flex;
-  justify-content: center;
-}
-
-.desktop.column-right .logo-onboard {
-  width: 4rem;
-  height: 4rem;
+.desktop.column-right .privacy-note {
+  margin-top: 0.5rem;
 }
 
 /* Right column container */

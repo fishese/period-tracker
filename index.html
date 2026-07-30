@@ -41,10 +41,10 @@
       property="og:description"
       content="Predict your next period and ovulation, track flow, mood and symptoms. Spot patterns in your cycle — 100% private, no account, no data collection."
     />
-    <meta property="og:url" content="https://fishese.github.io/period-tracker/" />
+    <meta property="og:url" content="https://period.fishese.cc/" />
     <meta
       property="og:image"
-      content="https://fishese.github.io/period-tracker/icons/android-chrome-512x512.png"
+      content="https://period.fishese.cc/icons/android-chrome-512x512.png"
     />
     <meta property="og:image:width" content="512" />
     <meta property="og:image:height" content="512" />
@@ -65,12 +65,12 @@
     />
     <meta
       name="twitter:image"
-      content="https://fishese.github.io/period-tracker/icons/android-chrome-512x512.png"
+      content="https://period.fishese.cc/icons/android-chrome-512x512.png"
     />
     <meta name="twitter:image:alt" content="My Cycle Keeper logo" />
 
     <!-- Canonical URL -->
-    <link rel="canonical" href="https://fishese.github.io/period-tracker/" />
+    <link rel="canonical" href="https://period.fishese.cc/" />
 
     <link rel="stylesheet" href="style.css" />
     <link
@@ -98,7 +98,7 @@
         "name": "My Cycle Keeper",
         "alternateName": "Cycle Keeper",
         "description": "Free menstruation and period tracker. Predict your next period, track ovulation, flow, mood and symptoms. Know what's normal for your cycle — 100% private, no account needed, no data collection.",
-        "url": "https://fishese.github.io/period-tracker/",
+        "url": "https://period.fishese.cc/",
         "applicationCategory": "HealthApplication",
         "operatingSystem": "Web",
         "browserRequirements": "Requires JavaScript, Web Crypto API",
@@ -122,8 +122,8 @@
           "Encrypted backup & restore",
           "Free forever, no ads"
         ],
-        "screenshot": "https://fishese.github.io/period-tracker/icons/android-chrome-512x512.png",
-        "image": "https://fishese.github.io/period-tracker/icons/android-chrome-512x512.png"
+        "screenshot": "https://period.fishese.cc/icons/android-chrome-512x512.png",
+        "image": "https://period.fishese.cc/icons/android-chrome-512x512.png"
       }
     </script>
 
@@ -192,6 +192,15 @@
     <!-- ONBOARDING -->
     <div id="onboarding" class="hidden">
       <div class="desktop column-left">
+        <div class="onboard-moon">
+          <img
+            src="logo/my_cycle_keeper_logo.png"
+            alt="My Cycle Keeper Logo"
+            class="logo-onboard"
+            width="96"
+            height="96"
+          />
+        </div>
         <h1 class="onboard-logo">My <span>Cycle</span> Keeper</h1>
         <p class="onboard-sub">Track Your Period and Cycle Privately</p>
         <p class="onboard-tagline">
@@ -202,17 +211,16 @@
           ⚠️ <strong>Beta</strong> — This app is currently in active development.
           Features may change and bugs may occur.
         </div>
+        <button
+          type="button"
+          class="onboard-import-btn onboard-restore-btn"
+          onclick="restoreBackupOnboarding()"
+          data-i18n="onboard_restore_backup"
+        >
+          Restore encrypted backup
+        </button>
       </div>
       <div class="desktop column-right">
-        <div class="onboard-moon">
-          <img
-            src="logo/my_cycle_keeper_logo.png"
-            alt="My Cycle Keeper Logo"
-            class="logo-onboard"
-            width="96"
-            height="96"
-          />
-        </div>
         <div class="onboard-form" id="onboard-step-pin">
           <div class="pin-setup-title">🔒 Set a 4-digit PIN</div>
             <div class="pin-setup-sub">
@@ -248,14 +256,6 @@
               data-i18n="ob_continue_btn"
             >
               Continue →
-            </button>
-            <button
-              type="button"
-              class="onboard-import-btn"
-              onclick="restoreBackupOnboarding()"
-              data-i18n="onboard_restore_backup"
-            >
-              Restore encrypted backup
             </button>
           </div>
           <p class="privacy-note">

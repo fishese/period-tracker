@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **My Cycle Keeper** is a personal fork of Your Cycle Keeper: a privacy-first period tracking PWA with client-side AES-256-GCM encryption. Health data stays encrypted in IndexedDB; the only optional external transfer is an encrypted backup to the user's Google Drive. Built with vanilla JavaScript ES6 modules (no frameworks, no build tools, no dependencies).
 
-**Live URL (this fork):** https://fishese.github.io/period-tracker/
+**Live URL (this fork):** https://period.fishese.cc/
 
 Upstream branding/URL in older docs may still say Your Cycle Keeper / yourcyclekeeper.web.app.
 
@@ -24,7 +24,7 @@ npx http-server
 git push period-tracker master   # NOT origin — origin is upstream pythonime-lab
 ```
 
-**Repo layout:** App code at repo root. Live URL is `https://fishese.github.io/period-tracker/` (GitHub Pages project site).
+**Repo layout:** App code at repo root. GitHub Pages publishes it at the custom domain `https://period.fishese.cc/`.
 
 ### Git remotes (this fork)
 

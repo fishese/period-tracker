@@ -2,7 +2,7 @@
 
 Privacy-first period tracking PWA — AES-256-GCM encryption, no server, optional Google Drive backup.
 
-**Open the app:** https://fishese.github.io/period-tracker/
+**Open the app:** https://period.fishese.cc/
 
 App code lives at the **repo root** (GitHub Pages serves this folder as `/period-tracker/`).
 
@@ -21,7 +21,7 @@ App code lives at the **repo root** (GitHub Pages serves this folder as `/period
 
 | | This fork | Upstream |
 |---|-----------|----------|
-| **App** | [My Cycle Keeper](https://fishese.github.io/period-tracker/) | [Your Cycle Keeper](https://yourcyclekeeper.web.app) |
+| **App** | [My Cycle Keeper](https://period.fishese.cc/) | [Your Cycle Keeper](https://yourcyclekeeper.web.app) |
 | **Repo** | [fishese/period-tracker](https://github.com/fishese/period-tracker) | [pythonime-lab/yourcyclekeeper](https://github.com/pythonime-lab/yourcyclekeeper) |
 
 ## Develop locally

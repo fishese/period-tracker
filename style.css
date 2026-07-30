@@ -462,6 +462,10 @@ body {
 .onboard-import-btn:hover {
   background: rgba(255, 107, 138, 0.08);
 }
+.onboard-restore-btn {
+  max-width: 21.25rem;
+  margin: 1rem auto 0;
+}
 
 .onboard-setup-overlay {
   position: fixed;

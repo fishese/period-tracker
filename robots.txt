@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://fishese.github.io/period-tracker/sitemap.xml
+Sitemap: https://period.fishese.cc/sitemap.xml

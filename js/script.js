@@ -1,7 +1,7 @@
 "use strict";
 
-/** Live app URL (GitHub Pages) — used in chart export footers */
-const APP_SHARE_URL = "fishese.github.io/period-tracker";
+/** Live app URL — used in chart export footers */
+const APP_SHARE_URL = "period.fishese.cc";
 
 // Import modular utilities
 import { toISO, fromISO, addDays, diffDays, today } from "./dateUtils.js";
@@ -1518,11 +1518,11 @@ function showMoodModal() {
 
 function getStatusPhaseLabel(info) {
   let phase = info.phase;
-  if (
-    !isFertilityVisible() &&
-    (phase === "Fertile Window" || phase === "Ovulation Day")
-  ) {
-    phase = info.cycleDay <= info.ovulationDay ? "Follicular" : "Luteal";
+  // Hiding fertility estimates must not reveal that today is inside the
+  // estimated fertile window. The broader cycle-phase timeline remains an
+  // independent preference, so its Ovulation phase name may still be shown.
+  if (!isFertilityVisible() && phase === "Fertile Window") {
+    phase = "Follicular";
   }
 
   const phaseNum = {
@@ -1612,13 +1612,17 @@ function updateStatusCard() {
       periodMsg = t("status_period_in_date", { date: predictedDate });
     }
 
+    const showPhaseInStatus =
+      isCyclePhaseTimelineVisible() || info.phase === "Menstruation";
     safeText(
       "status-subtitle",
-      t("status_phase_line", {
-        num: phaseNum,
-        phase: t(phaseNameKey),
-        detail: periodMsg,
-      })
+      showPhaseInStatus
+        ? t("status_phase_line", {
+            num: phaseNum,
+            phase: t(phaseNameKey),
+            detail: periodMsg,
+          })
+        : periodMsg
     );
   }
 

@@ -8,9 +8,9 @@
  * 1. Google Cloud Console → enable Drive API
  * 2. OAuth consent screen → Testing → add test users
  * 3. Credentials → Web application client:
- *    Origins: https://fishese.github.io , http://localhost:8000
+ *    Origins: https://period.fishese.cc , http://localhost:8000
  *    Redirects:
- *      https://fishese.github.io/period-tracker/
+ *      https://period.fishese.cc/
  *      http://localhost:8000/
  * 4. Deploy drive-oauth-proxy/ (see its README) with
  *    GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET as Worker secrets
