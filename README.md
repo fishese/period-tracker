@@ -31,6 +31,9 @@ My Cycle Keeper is built to keep cycle data under the user's control:
 
 As with any browser-based app, clearing site data may remove locally stored records. Keep an encrypted backup or enable Google Drive backup if the data is important to you.
 
+**Legal Documents:**
+Please review our [Privacy Policy and Terms of Service](legal.html) for complete details on our offline architecture, data handling, and terms of use.
+
 ## About this fork
 
 My Cycle Keeper is based on [Your Cycle Keeper](https://github.com/pythonime-lab/yourcyclekeeper), an open-source project by [pythonime-lab](https://github.com/pythonime-lab), and continues to use the GPL v3 license.
