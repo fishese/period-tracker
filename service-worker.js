@@ -19,7 +19,7 @@ const IS_DEV =
   self.location.hostname === "localhost" ||
   self.location.hostname === "127.0.0.1";
 
-const CACHE_VERSION = "v20260730a";
+const CACHE_VERSION = "v20260730b";
 const CACHE_NAME = `mycyclekeeper-${CACHE_VERSION}`;
 
 // Derive base path from the SW's own URL (repo root on GitHub Pages = /period-tracker/).

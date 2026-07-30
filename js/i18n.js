@@ -520,6 +520,7 @@ const LOCALES = {
     ob_setup_hint:
       "Add your last period for immediate predictions, or import existing data. You can also skip the date and start logging.",
     ob_continue_btn: "Continue →",
+    onboard_restore_backup: "Restore encrypted backup",
     ob_back_btn: "← Back",
     pin_setup_title: "🔒 Set a 4-digit PIN",
     pin_setup_sub_1: "Your PIN encrypts all data locally.",
@@ -1589,6 +1590,7 @@ const LOCALES = {
     pin_setup_sub_1: "Tu PIN cifra todos los datos localmente.",
     pin_setup_sub_2: "My Cycle Keeper nunca envía datos a ningún lugar.",
     pin_setup_sub_3: "Si olvidas tu PIN, los datos serán borrados.",
+    onboard_restore_backup: "Restaurar copia cifrada",
     onboard_start_btn: "Comenzar seguimiento ✨",
     privacy_note_aes: "Cifrado AES-256-GCM.",
     privacy_note_rest:
@@ -2169,6 +2171,7 @@ const LOCALES = {
     ob_setup_title: "周期を設定",
     ob_setup_hint: "直近の生理開始日を入力すると、すぐに予測を表示できます。既存データのインポートや、日付を入力せずに記録を始めることもできます。",
     ob_continue_btn: "続ける →",
+    onboard_restore_backup: "暗号化バックアップを復元",
     ob_back_btn: "← 戻る",
     app_import_title: "他のアプリからインポート",
     app_import_source_intro: "データを書き出したアプリを選択してください。",
@@ -2718,6 +2721,7 @@ const LOCALES = {
     ob_setup_title: "設定月經週期",
     ob_setup_hint: "輸入最近一次月經開始日期，即可顯示初步預測；亦可匯入現有資料，或略過日期直接開始記錄。",
     ob_continue_btn: "繼續 →",
+    onboard_restore_backup: "還原加密備份",
     ob_back_btn: "← 返回",
     app_import_title: "從其他應用程式匯入",
     app_import_source_intro: "請選擇資料原本由哪個應用程式匯出。",

@@ -191,15 +191,6 @@
 
     <!-- ONBOARDING -->
     <div id="onboarding" class="hidden">
-      <div class="onboard-moon">
-        <img
-          src="logo/my_cycle_keeper_logo.png"
-          alt="My Cycle Keeper Logo"
-          class="logo-onboard"
-          width="192"
-          height="192"
-        />
-      </div>
       <div class="desktop column-left">
         <h1 class="onboard-logo">My <span>Cycle</span> Keeper</h1>
         <p class="onboard-sub">Track Your Period and Cycle Privately</p>
@@ -213,6 +204,15 @@
         </div>
       </div>
       <div class="desktop column-right">
+        <div class="onboard-moon">
+          <img
+            src="logo/my_cycle_keeper_logo.png"
+            alt="My Cycle Keeper Logo"
+            class="logo-onboard"
+            width="96"
+            height="96"
+          />
+        </div>
         <div class="onboard-form" id="onboard-step-pin">
           <div class="pin-setup-title">🔒 Set a 4-digit PIN</div>
             <div class="pin-setup-sub">
@@ -248,6 +248,14 @@
               data-i18n="ob_continue_btn"
             >
               Continue →
+            </button>
+            <button
+              type="button"
+              class="onboard-import-btn"
+              onclick="restoreBackupOnboarding()"
+              data-i18n="onboard_restore_backup"
+            >
+              Restore encrypted backup
             </button>
           </div>
           <p class="privacy-note">

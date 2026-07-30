@@ -6,7 +6,7 @@
 
 This document is the **current source of truth** for continuing work. Older implementation history remains available in Git; verify historical notes against current code for predictions, storage keys, fertility defaults, and branding.
 
-**Current `CACHE_VERSION`:** `v20260730a` (in `service-worker.js`)
+**Current `CACHE_VERSION`:** `v20260730b` (in `service-worker.js`)
 
 ---
 
@@ -395,7 +395,7 @@ Settings → Export to another app (in-app wizard)
 6. GitHub Pages: `.nojekyll` + `_config.yml` so Liquid in docs cannot break deploys.
 7. Calendar flow dots: full-circle rose→peach radial gradients with wider core-size steps (1–4); level 4 deeper core + light rim; spotting stays a hollow ring.
 
-### Repo flatten session (2026-07-30; cache `v20260730a`)
+### Repo flatten session (2026-07-30; cache `v20260730b`)
 
 Moved the app from nested `period-tracker/` up to **repo root** so GitHub Pages serves at `https://fishese.github.io/period-tracker/` (no double path). Updated manifest scope, share URL, Drive redirect helpers, and docs. Custom domain `period.fishese.cc` deferred (Cloudflare + Google OAuth updates later).
 

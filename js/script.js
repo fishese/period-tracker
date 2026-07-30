@@ -654,6 +654,8 @@ function proceedToOnboardSetup() {
     });
     return;
   }
+  _importOnSuccessCallback = null;
+  _importUseEnteredPinAsSession = false;
   sessionPin = setupPin;
   const overlay = document.getElementById("onboard-setup-overlay");
   if (overlay) {
@@ -4007,12 +4009,15 @@ async function exportData() {
 let _importPinBuffer = "";
 let _importOnSuccessCallback = null;
 let _importPinContext = null;
+/** When true, backup PIN becomes the device session PIN (onboarding restore). */
+let _importUseEnteredPinAsSession = false;
 let _importPinSubmitting = false;
 
 function _clearImportPinContext() {
   _importPinBuffer = "";
   _importPinContext = null;
   _importPinSubmitting = false;
+  _importUseEnteredPinAsSession = false;
 }
 
 function _handleImportPinKeyboardInput(key) {
@@ -4153,7 +4158,12 @@ async function _submitImportPin(bundle, backupSalt) {
       _importPinSubmitting = false;
       return;
     }
-    // Decryption succeeded — restore data, keep current session PIN and salt
+    // Decryption succeeded — restore data
+    if (_importUseEnteredPinAsSession) {
+      sessionPin = enteredPin;
+      setupPin = enteredPin;
+      _importUseEnteredPinAsSession = false;
+    }
     state = restored;
     setCyclesState(state);
     setPeriodMarkingState(state);
@@ -4201,6 +4211,19 @@ async function importData() {
 async function importDataOnboarding() {
   if (setupPin.length < 4) return;
   sessionPin = setupPin;
+  _importUseEnteredPinAsSession = false;
+  _importOnSuccessCallback = async () => {
+    await _finishOnboardingAfterImport(
+      t("restored_title"),
+      t("restored_msg")
+    );
+  };
+  _pickAndImportBackup();
+}
+
+/** Onboarding PIN step: restore .bin and keep the backup PIN as the device PIN. */
+async function restoreBackupOnboarding() {
+  _importUseEnteredPinAsSession = true;
   _importOnSuccessCallback = async () => {
     await _finishOnboardingAfterImport(
       t("restored_title"),
@@ -5262,6 +5285,7 @@ window.startApp = startApp;
 window.proceedToOnboardSetup = proceedToOnboardSetup;
 window.backToOnboardPin = backToOnboardPin;
 window.importDataOnboarding = importDataOnboarding;
+window.restoreBackupOnboarding = restoreBackupOnboarding;
 window.importAppOnboarding = importAppOnboarding;
 window.importFromAnotherApp = importFromAnotherApp;
 window.showAppImportWizard = showAppImportWizard;

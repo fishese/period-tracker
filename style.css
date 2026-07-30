@@ -304,6 +304,9 @@ body {
 .onboard-moon {
   font-size: 4rem;
   animation: pulse 3s ease-in-out infinite;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.25rem;
 }
 @keyframes pulse {
   0%,
@@ -313,6 +316,11 @@ body {
   50% {
     transform: scale(1.08);
   }
+}
+.logo-onboard {
+  width: 4.5rem;
+  height: 4.5rem;
+  object-fit: contain;
 }
 .onboard-logo {
   font-family: Georgia, serif;
@@ -2528,14 +2536,7 @@ body {
   object-fit: contain;
 }
 
-.logo-onboard {
-  width: 5rem;
-  height: 5rem;
-  object-fit: contain;
-}
-
-/* Forgot PIN Button */
-.forgot-pin-wrapper {
+/* Forgot PIN Button */.forgot-pin-wrapper {
   text-align: center;
   margin-top: 1.25rem;
 }

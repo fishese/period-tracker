@@ -337,24 +337,42 @@ body:has(.settings-wrap.visible) .insights-wrap {
 #onboarding {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: 1fr;
   gap: 1.5rem 2.5rem;
   max-width: 64rem;
   margin: 0 auto;
-  padding: 3rem 2rem;
-  align-items: start;
+  padding: 2rem 2rem;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
 }
 
 .onboard-moon {
-  grid-column: 1 / -1;
+  grid-column: auto;
+  margin-bottom: 0.25rem;
 }
 
 .desktop.column-left {
   grid-column: 1;
+  align-self: center;
 }
 
 .desktop.column-right {
   grid-column: 2;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.desktop.column-right .onboard-moon {
+  display: flex;
+  justify-content: center;
+}
+
+.desktop.column-right .logo-onboard {
+  width: 4rem;
+  height: 4rem;
 }
 
 /* Right column container */
