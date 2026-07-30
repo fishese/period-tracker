@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Opening My Cycle Keeper…</title>
+    <script>
+      (() => {
+        const legacyPaths = new Set([
+          "/period-tracker",
+          "/period-tracker/",
+          "/period-tracker/index.html",
+          "/period-tracker/period-tracker",
+          "/period-tracker/period-tracker/",
+          "/period-tracker/period-tracker/index.html",
+        ]);
+
+        if (legacyPaths.has(window.location.pathname)) {
+          window.location.replace(
+            "/" + window.location.search + window.location.hash
+          );
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <main>
+      <h1>Page not found</h1>
+      <p>
+        The app may have moved.
+        <a href="/">Open My Cycle Keeper</a>.
+      </p>
+    </main>
+  </body>
+</html>

@@ -19,7 +19,7 @@ const IS_DEV =
   self.location.hostname === "localhost" ||
   self.location.hostname === "127.0.0.1";
 
-const CACHE_VERSION = "v20260730j";
+const CACHE_VERSION = "v20260730k";
 const CACHE_NAME = `mycyclekeeper-${CACHE_VERSION}`;
 
 // Derive the base path from the SW URL ("/" on the custom domain).
@@ -27,6 +27,15 @@ const BASE_PATH = self.location.pathname.substring(
   0,
   self.location.pathname.lastIndexOf("/") + 1
 );
+
+const LEGACY_APP_PATHS = new Set([
+  "/period-tracker",
+  "/period-tracker/",
+  "/period-tracker/index.html",
+  "/period-tracker/period-tracker",
+  "/period-tracker/period-tracker/",
+  "/period-tracker/period-tracker/index.html",
+]);
 
 const ASSETS_TO_CACHE = [
   BASE_PATH,
@@ -116,7 +125,13 @@ self.addEventListener("fetch", (event) => {
   ) {
     event.respondWith(
       fetch(event.request)
-        .then((response) => {
+        .then(async (response) => {
+          if (response.status === 404 && LEGACY_APP_PATHS.has(url.pathname)) {
+            return (
+              (await caches.match(BASE_PATH + "index.html")) ||
+              fetch(BASE_PATH + "index.html")
+            );
+          }
           if (
             response &&
             response.status === 200 &&
@@ -130,8 +145,13 @@ self.addEventListener("fetch", (event) => {
           return response;
         })
         .catch(() => {
-          // Fallback to cache if network fails
-          return caches.match(event.request);
+          // Fall back to the requested page, then the cached app shell.
+          return caches
+            .match(event.request)
+            .then(
+              (cached) =>
+                cached || caches.match(BASE_PATH + "index.html")
+            );
         })
     );
     return;
