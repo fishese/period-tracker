@@ -93,4 +93,4 @@ Command: `cd period-tracker && npm test`
 ℹ tests 13 | pass 13 | fail 0
 ```
 
-**Commit:** `test: cover drip flow-4 export round-trip`
+**Commit:** `67b56fb` — test: cover drip flow-4 export round-trip

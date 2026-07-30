@@ -17,3 +17,5 @@ firebase-debug.log
 sampledata/
 # Cloudflare Wrangler local cache
 **/drive-oauth-proxy/.wrangler/
+.superpowers
+.superpowers/*
