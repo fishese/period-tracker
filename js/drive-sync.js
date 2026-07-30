@@ -24,9 +24,9 @@ const OAUTH_LS_PREFIX = "mycyclekeeper_drive_oauth_";
 
 /** Must match Google Cloud Console redirect URIs exactly. */
 const DRIVE_REDIRECT_BY_ORIGIN = {
-  "https://fishese.github.io": "https://fishese.github.io/period-tracker/period-tracker/",
-  "http://localhost:8000": "http://localhost:8000/period-tracker/",
-  "http://127.0.0.1:8000": "http://127.0.0.1:8000/period-tracker/",
+  "https://fishese.github.io": "https://fishese.github.io/period-tracker/",
+  "http://localhost:8000": "http://localhost:8000/",
+  "http://127.0.0.1:8000": "http://127.0.0.1:8000/",
 };
 
 function normalizeRedirectPath(pathname) {

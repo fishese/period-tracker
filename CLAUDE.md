@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **My Cycle Keeper** is a personal fork of Your Cycle Keeper: a privacy-first period tracking PWA with client-side AES-256-GCM encryption. Health data stays encrypted in IndexedDB; the only optional external transfer is an encrypted backup to the user's Google Drive. Built with vanilla JavaScript ES6 modules (no frameworks, no build tools, no dependencies).
 
-**Live URL (this fork):** https://fishese.github.io/period-tracker/period-tracker/
+**Live URL (this fork):** https://fishese.github.io/period-tracker/
 
 Upstream branding/URL in older docs may still say Your Cycle Keeper / yourcyclekeeper.web.app.
 
@@ -18,13 +18,13 @@ python -m http.server 8000
 # or
 npx http-server
 
-# Access at http://localhost:8000/period-tracker/ (NOT file://)
+# Access at http://localhost:8000/ (NOT file://)
 
-# Deploy: push to fishese/period-tracker (GitHub Pages). Root index.html redirects to period-tracker/ app folder.
+# Deploy: push to fishese/period-tracker (GitHub Pages). App lives at repo root.
 git push period-tracker master   # NOT origin — origin is upstream pythonime-lab
 ```
 
-**Repo layout:** Root = redirect only. App code in `period-tracker/`. Live app URL remains `…/period-tracker/period-tracker/` (repo name + app folder on GitHub Pages).
+**Repo layout:** App code at repo root. Live URL is `https://fishese.github.io/period-tracker/` (GitHub Pages project site).
 
 ### Git remotes (this fork)
 
@@ -35,7 +35,7 @@ git push period-tracker master   # NOT origin — origin is upstream pythonime-l
 
 ### Pre-Deploy Checklist
 
-1. Bump `CACHE_VERSION` in `period-tracker/service-worker.js` (current value is documented in `period-tracker/docs/HANDOFF.md`)
+1. Bump `CACHE_VERSION` in `service-worker.js` (current value is documented in `docs/HANDOFF.md`)
 2. Test offline: DevTools → Network → Offline → Reload
 3. Push: `git push period-tracker master`
 4. Hard-refresh or unregister Service Worker after deploy (avoids mixed-cache JS errors)
@@ -75,7 +75,7 @@ Missing symptom properties mean “not recorded”; they are not zero. Use `getF
 
 ### Storage Layer: IndexedDB → AES-GCM → State
 
-1. **IndexedDB** (`period-tracker/js/indexeddb-storage.js`): Persistent key-value store — loaded as a **classic script** before modules; exposes `getFromDB` / `setInDB` / `deleteFromDB` on `globalThis`
+1. **IndexedDB** (`js/indexeddb-storage.js`): Persistent key-value store — loaded as a **classic script** before modules; exposes `getFromDB` / `setInDB` / `deleteFromDB` on `globalThis`
 2. **Encryption** (`js/crypto.js`): PBKDF2 (250k iterations) + AES-256-GCM with 12-byte IV
 3. **Session** (`js/session.js`): PIN held in memory only, auto-lock after 5 min idle
 
@@ -96,7 +96,7 @@ Missing symptom properties mean “not recorded”; they are not zero. Use `getF
 | `js/drive-config.js` | OAuth Client ID + `DRIVE_TOKEN_PROXY_URL` only (no Client secret) |
 | `js/import/` | Multi-app import wizard helpers + My Calendar / drip adapters |
 | `js/export/` | Export wizard helpers + drip / plain-CSV adapters |
-| `period-tracker/drive-oauth-proxy/` | Cloudflare Worker — holds Client secret |
+| `drive-oauth-proxy/` | Cloudflare Worker — holds Client secret |
 
 ### Cycle Prediction Algorithm
 
@@ -120,8 +120,8 @@ Calendar Rhythm Method + Standard Days Method:
 - **Fast PIN validation:** HMAC hash check before attempting decryption
 - **Single-flight unlock:** `unlockInProgress` blocks overlapping PIN submissions and prevents service-worker activation from reloading during partial entry/hash/decrypt
 - **Schema versioning:** Encrypted envelope wraps state as `{ v: SCHEMA_VERSION, payload: state }`
-- **Drive backup docs:** `period-tracker/docs/google-drive-sync-plan.md`
-- **Import / export docs:** `period-tracker/docs/HANDOFF.md` §7; design specs under `docs/superpowers/specs/`
+- **Drive backup docs:** `docs/google-drive-sync-plan.md`
+- **Import / export docs:** `docs/HANDOFF.md` §7; design specs under `docs/superpowers/specs/`
 
 ### UI Screens
 

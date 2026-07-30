@@ -18,7 +18,7 @@ ever committed or shipped in `drive-config.js`. Treat that secret as burned:
 ### 2. Deploy this Worker (Cloudflare, free tier)
 
 ```bash
-cd period-tracker/drive-oauth-proxy
+cd drive-oauth-proxy
 npx wrangler login
 npx wrangler secret put GOOGLE_CLIENT_ID      # paste Client ID
 npx wrangler secret put GOOGLE_CLIENT_SECRET # paste NEW Client secret only
@@ -29,7 +29,7 @@ Copy the Worker URL (e.g. `https://mycyclekeeper-drive-oauth.<you>.workers.dev`)
 
 ### 3. Point the app at the Worker
 
-In `period-tracker/js/drive-config.js`:
+In `js/drive-config.js`:
 
 ```js
 export const GOOGLE_CLIENT_ID = "….apps.googleusercontent.com";

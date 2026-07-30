@@ -1,7 +1,7 @@
 "use strict";
 
 /** Live app URL (GitHub Pages) — used in chart export footers */
-const APP_SHARE_URL = "fishese.github.io/period-tracker/period-tracker";
+const APP_SHARE_URL = "fishese.github.io/period-tracker";
 
 // Import modular utilities
 import { toISO, fromISO, addDays, diffDays, today } from "./dateUtils.js";

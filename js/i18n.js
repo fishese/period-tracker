@@ -482,9 +482,9 @@ const LOCALES = {
     drive_oauth_state_mismatch:
       "Google sign-in could not be completed because the app lost track of the login session (common when opening from a home-screen shortcut). Close the app completely, open it again in your browser, then try Connect once more.",
     drive_oauth_redirect_mismatch:
-      "Google rejected the sign-in (redirect URI mismatch). In Google Cloud Console → Credentials → your Web client, confirm this exact redirect URI is listed:\n\nhttps://fishese.github.io/period-tracker/period-tracker/\n\nAlso confirm the client type is Web application (not Desktop).",
+      "Google rejected the sign-in (redirect URI mismatch). In Google Cloud Console → Credentials → your Web client, confirm this exact redirect URI is listed:\n\nhttps://fishese.github.io/period-tracker/\n\nAlso confirm the client type is Web application (not Desktop).",
     drive_oauth_missing_secret:
-      "Drive backup is not fully set up: deploy the token proxy (period-tracker/drive-oauth-proxy) with your Client secret, set DRIVE_TOKEN_PROXY_URL in drive-config.js, then hard-refresh. Never put the Client secret in the public app.",
+      "Drive backup is not fully set up: deploy the token proxy (drive-oauth-proxy) with your Client secret, set DRIVE_TOKEN_PROXY_URL in drive-config.js, then hard-refresh. Never put the Client secret in the public app.",
     drive_oauth_invalid_grant:
       "Google would not accept the sign-in code — it may have expired or already been used. Tap Connect Google Drive once and complete the flow without refreshing the page.",
     drive_oauth_no_refresh:
@@ -1548,9 +1548,9 @@ const LOCALES = {
     drive_oauth_state_mismatch:
       "No se pudo completar el inicio de sesión de Google porque la app perdió la sesión de autorización (suele pasar con el acceso directo desde la pantalla de inicio). Cierra la app por completo, ábrela en el navegador e intenta Conectar otra vez.",
     drive_oauth_redirect_mismatch:
-      "Google rechazó el inicio de sesión (URI de redirección no coincide). En Google Cloud Console → Credenciales → tu cliente Web, confirma esta URI exacta:\n\nhttps://fishese.github.io/period-tracker/period-tracker/\n\nTambién confirma que el tipo es Aplicación web (no Escritorio).",
+      "Google rechazó el inicio de sesión (URI de redirección no coincide). En Google Cloud Console → Credenciales → tu cliente Web, confirma esta URI exacta:\n\nhttps://fishese.github.io/period-tracker/\n\nTambién confirma que el tipo es Aplicación web (no Escritorio).",
     drive_oauth_missing_secret:
-      "La copia en Drive no está completa: despliega el proxy de tokens (period-tracker/drive-oauth-proxy) con el secreto de cliente, pon DRIVE_TOKEN_PROXY_URL en drive-config.js y recarga. Nunca pongas el secreto en la app pública.",
+      "La copia en Drive no está completa: despliega el proxy de tokens (drive-oauth-proxy) con el secreto de cliente, pon DRIVE_TOKEN_PROXY_URL en drive-config.js y recarga. Nunca pongas el secreto en la app pública.",
     drive_oauth_invalid_grant:
       "Google no aceptó el código de autorización — puede haber caducado o haberse usado ya. Pulsa Conectar Google Drive una vez y completa el flujo sin actualizar la página.",
     drive_oauth_no_refresh:
@@ -2027,9 +2027,9 @@ const LOCALES = {
     drive_oauth_state_mismatch:
       "アプリがログイン状態を見失ったため、Googleサインインを完了できませんでした（ホーム画面ショートカットで起きやすいです）。アプリを完全に閉じてブラウザで開き直し、「接続」をもう一度試してください。",
     drive_oauth_redirect_mismatch:
-      "Googleがサインインを拒否しました（リダイレクトURI不一致）。Google Cloud Console → 認証情報 → Webクライアントで、次のURIが正確に登録されているか確認してください:\n\nhttps://fishese.github.io/period-tracker/period-tracker/\n\nクライアントの種類が「ウェブアプリケーション」（デスクトップではない）であることも確認してください。",
+      "Googleがサインインを拒否しました（リダイレクトURI不一致）。Google Cloud Console → 認証情報 → Webクライアントで、次のURIが正確に登録されているか確認してください:\n\nhttps://fishese.github.io/period-tracker/\n\nクライアントの種類が「ウェブアプリケーション」（デスクトップではない）であることも確認してください。",
     drive_oauth_missing_secret:
-      "Driveバックアップの設定が未完了です。クライアントシークレットを Worker（period-tracker/drive-oauth-proxy）に置き、drive-config.js の DRIVE_TOKEN_PROXY_URL を設定して再読み込みしてください。シークレットを公開アプリに入れないでください。",
+      "Driveバックアップの設定が未完了です。クライアントシークレットを Worker（drive-oauth-proxy）に置き、drive-config.js の DRIVE_TOKEN_PROXY_URL を設定して再読み込みしてください。シークレットを公開アプリに入れないでください。",
     drive_oauth_invalid_grant:
       "Googleが認証コードを受け付けませんでした。期限切れか、すでに使用済みの可能性があります。「Google Driveに接続」を一度押し、ページを更新せずに完了してください。",
     drive_oauth_no_refresh:
@@ -2576,9 +2576,9 @@ const LOCALES = {
     drive_oauth_state_mismatch:
       "應用程式遺失登入狀態，無法完成 Google 登入（從主畫面捷徑開啟時較常見）。請完全關閉應用程式，改用瀏覽器開啟，然後再試一次連線。",
     drive_oauth_redirect_mismatch:
-      "Google 拒絕登入（重新導向 URI 不符）。請在 Google Cloud Console → 憑證 → Web 用戶端確認已登錄此精確 URI：\n\nhttps://fishese.github.io/period-tracker/period-tracker/\n\n並確認類型為「網頁應用程式」（非桌面應用程式）。",
+      "Google 拒絕登入（重新導向 URI 不符）。請在 Google Cloud Console → 憑證 → Web 用戶端確認已登錄此精確 URI：\n\nhttps://fishese.github.io/period-tracker/\n\n並確認類型為「網頁應用程式」（非桌面應用程式）。",
     drive_oauth_missing_secret:
-      "Drive 備份尚未完成設定：請部署 token proxy（period-tracker/drive-oauth-proxy）並放入 Client secret，在 drive-config.js 設定 DRIVE_TOKEN_PROXY_URL 後重新整理。請勿將 Client secret 放進公開應用程式。",
+      "Drive 備份尚未完成設定：請部署 token proxy（drive-oauth-proxy）並放入 Client secret，在 drive-config.js 設定 DRIVE_TOKEN_PROXY_URL 後重新整理。請勿將 Client secret 放進公開應用程式。",
     drive_oauth_invalid_grant:
       "Google 不接受授權碼——可能已過期或已使用。請再按一次「連線 Google Drive」，完成流程時不要重新整理頁面。",
     drive_oauth_no_refresh:

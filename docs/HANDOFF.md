@@ -1,12 +1,12 @@
 # My Cycle Keeper — Handoff Document
 
-**Last updated:** 2026-07-28 (multi-app import/export + report/pattern UX)<br>
+**Last updated:** 2026-07-30 (app flattened to repo root; Pages at /period-tracker/)<br>
 **Maintainer:** Personal fork (fishese)  
 **Status:** Stable for personal use. Latest on `period-tracker/master`. Come back in a new chat with the prompt in §13.
 
 This document is the **current source of truth** for continuing work. Older implementation history remains available in Git; verify historical notes against current code for predictions, storage keys, fertility defaults, and branding.
 
-**Current `CACHE_VERSION`:** `v20260728e` (in `period-tracker/service-worker.js`)
+**Current `CACHE_VERSION`:** `v20260730a` (in `service-worker.js`)
 
 ---
 
@@ -17,11 +17,11 @@ This document is the **current source of truth** for continuing work. Older impl
 | **This fork** | **My Cycle Keeper** — personal period-tracking PWA |
 | **Upstream** | [**Your Cycle Keeper**](https://github.com/pythonime-lab/yourcyclekeeper) by pythonime-lab (GPL v3, open source) |
 | **This repo** | [`fishese/period-tracker`](https://github.com/fishese/period-tracker) on GitHub |
-| **App path** | `period-tracker/` inside the repo (not repo root) |
+| **App path** | Repo root (GitHub Pages serves as `/period-tracker/`) |
 | **Stack** | Vanilla JS ES modules, no build step, IndexedDB + AES-256-GCM, Service Worker |
 | **Privacy** | Zero server data; no backend. Google Drive backup (optional) talks to Google APIs from the browser only |
 
-**Live URL (this fork):** https://fishese.github.io/period-tracker/period-tracker/
+**Live URL (this fork):** https://fishese.github.io/period-tracker/
 
 **Why the fork exists:** Migrate history from **My Calendar** or **drip** directly into this app; continue tracking with rolling predictions, auto-fill, and optional export to **drip** or **plain CSV** (My Calendar export is not offered).
 
@@ -32,21 +32,24 @@ This document is the **current source of truth** for continuing work. Older impl
 ## 2. Repository layout
 
 ```
-fishese/period-tracker/           # GitHub repo (GitHub Pages)
-├── index.html                    # Redirect → period-tracker/ (app folder)
-├── README.md                     # Fork readme (this repo)
-├── LICENSE.txt                   # GPL v3
-├── CLAUDE.md                     # AI / dev notes
-└── period-tracker/               # ★ THE WEB APP ★
-    ├── index.html
-    ├── js/
-    ├── docs/
-    │   ├── HANDOFF.md
-    │   └── google-drive-sync-plan.md
-    └── service-worker.js
+fishese/period-tracker/           # GitHub repo (GitHub Pages) — app at repo root
+├── index.html
+├── js/
+├── style.css
+├── service-worker.js
+├── manifest.json
+├── icons/
+├── docs/
+│   ├── HANDOFF.md
+│   ├── google-drive-sync-plan.md
+│   └── superpowers/              # design specs / plans
+├── drive-oauth-proxy/            # Cloudflare Worker (Client secret)
+├── README.md
+├── LICENSE.txt
+└── CLAUDE.md
 ```
 
-**Pages URLs:** repo root `…/period-tracker/` redirects to app `…/period-tracker/period-tracker/`.
+**Pages URL:** `https://fishese.github.io/period-tracker/` (repo root = site root for this project).
 
 ---
 
@@ -54,7 +57,7 @@ fishese/period-tracker/           # GitHub repo (GitHub Pages)
 
 ### Deploy (GitHub Pages)
 
-**Live app:** https://fishese.github.io/period-tracker/period-tracker/
+**Live app:** https://fishese.github.io/period-tracker/
 
 Push to `period-tracker` remote **`master`** (not `origin`, not `main`):
 
@@ -70,17 +73,17 @@ Root `firebase.json`, upstream marketing site, and Firebase hosting are **remove
 ### Local dev (required for SW + Web Crypto)
 
 ```bash
-cd period-tracker          # repo root (clone root)
+# from repo root
 python -m http.server 8000
-# Open: http://localhost:8000/period-tracker/
+# Open: http://localhost:8000/
 # NOT file://
 ```
 
-Note: local path is single `period-tracker/`; GitHub Pages uses double — OAuth redirect URIs must register **both** (see `drive-config.example.js`).
+Note: serve from repo root locally (`http://localhost:8000/`). OAuth redirect URIs must match Pages (`…/period-tracker/`) and localhost (see `js/drive-config.example.js`). Custom domain `period.fishese.cc` planned separately.
 
 ### Pre-deploy checklist
 
-1. Bump `CACHE_VERSION` in `period-tracker/service-worker.js` (see value at top of this doc)
+1. Bump `CACHE_VERSION` in `service-worker.js` (see value at top of this doc)
 2. Test offline: DevTools → Network → Offline → reload
 3. Push to GitHub (`period-tracker` remote)
 4. Confirm GitHub Pages build succeeded (Jekyll is disabled via `.nojekyll` + `_config.yml` exclude for `docs/`)
@@ -390,7 +393,11 @@ Settings → Export to another app (in-app wizard)
 4. Import report shortened to `Imported {days} period days across {periods} cycles.`; extras note + lists + copy/export only when unmapped/leftovers exist.
 5. Flow pattern hint (truncate extras / repeat last level); empty pattern defaults to `1` when periods need flow.
 6. GitHub Pages: `.nojekyll` + `_config.yml` so Liquid in docs cannot break deploys.
-7. Calendar flow dots: clearer growing fills for levels 1–3; level 4 (very heavy) is a deeper full crimson with a light rim; spotting stays a hollow ring.
+7. Calendar flow dots: full-circle rose→peach radial gradients with wider core-size steps (1–4); level 4 deeper core + light rim; spotting stays a hollow ring.
+
+### Repo flatten session (2026-07-30; cache `v20260730a`)
+
+Moved the app from nested `period-tracker/` up to **repo root** so GitHub Pages serves at `https://fishese.github.io/period-tracker/` (no double path). Updated manifest scope, share URL, Drive redirect helpers, and docs. Custom domain `period.fishese.cc` deferred (Cloudflare + Google OAuth updates later).
 
 ---
 
@@ -448,7 +455,7 @@ Spec (as-built): [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
 5. `autoFillDays`: `null` = auto (rolling avg), `0` = off, `1–10` = days ahead after start (not including the start day itself)  
 6. Onboarding CSV import has nothing to merge with (fresh state); non-onboarding import offers a real Merge/Replace choice — see §7  
 7. GitHub Pages path quirks for `manifest.json` (`dd363ef`)  
-8. Drive OAuth: **Testing** + test users; **never** put Client secret in `drive-config.js` — use `drive-oauth-proxy/`. Rotate secret immediately if Google reports a leak. Redirect URI must match Pages path (double `period-tracker/`).  
+8. Drive OAuth: **Testing** + test users; **never** put Client secret in `drive-config.js` — use `drive-oauth-proxy/`. Rotate secret immediately if Google reports a leak. Redirect URI must match Pages path (`/period-tracker/`).  
 9. iOS PWA OAuth remains awkward — test on a real device if supporting iPhone shortcuts  
 10. `log.flow` is truthy-checked pervasively (`if (log.flow)`) — a future 4th flow level must not be `0`/falsy, or it'll silently behave like "not set" everywhere. This is exactly why `spotting` was added as its own boolean field instead of `flow: 0`.  
 11. If cycle history / predictions ever look wrong, try Settings → Cycle → "Recalculate Cycle History" before debugging further — it's a safe, non-destructive rebuild from logs.  
@@ -490,8 +497,8 @@ Spec (as-built): [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
 
 ```
 I'm continuing work on My Cycle Keeper (fork of Your Cycle Keeper).
-Repo: github.com/fishese/period-tracker, app in period-tracker/.
-Read period-tracker/docs/HANDOFF.md and period-tracker/docs/google-drive-sync-plan.md first.
+Repo: github.com/fishese/period-tracker (app at repo root).
+Read docs/HANDOFF.md and docs/google-drive-sync-plan.md first.
 
 [Describe your task here]
 ```

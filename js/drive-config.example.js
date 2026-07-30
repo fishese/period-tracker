@@ -10,9 +10,9 @@
  * 3. Credentials → Web application client:
  *    Origins: https://fishese.github.io , http://localhost:8000
  *    Redirects:
- *      https://fishese.github.io/period-tracker/period-tracker/
- *      http://localhost:8000/period-tracker/
- * 4. Deploy period-tracker/drive-oauth-proxy/ (see its README) with
+ *      https://fishese.github.io/period-tracker/
+ *      http://localhost:8000/
+ * 4. Deploy drive-oauth-proxy/ (see its README) with
  *    GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET as Worker secrets
  * 5. Set DRIVE_TOKEN_PROXY_URL below to the Worker URL
  * 6. If Google emailed you about a leaked secret: rotate/reset the secret

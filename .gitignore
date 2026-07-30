@@ -13,3 +13,7 @@ build/
 .firebase/
 firebase-debug.log
 .firebaserc
+
+sampledata/
+# Cloudflare Wrangler local cache
+**/drive-oauth-proxy/.wrangler/
