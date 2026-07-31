@@ -75,7 +75,7 @@ const LOCALES = {
     mood: "Mood",
     how_it_works: "How it Works",
     how_it_works_p1:
-      "My Cycle Keeper estimates your fertile window by tracking cycle patterns. Predictions use a rolling 6-month average of your logged cycles. Cycles that differ from this average by more than 3 days are flagged. If your shortest and longest cycles in that window differ by more than 7 days (or more than 9 days, which may indicate irregular cycles per Cleveland Clinic guidance), you'll see a variability notice. Ovulation is estimated ~14 days before your next period. Fertile days are calculated as day 8 through (cycle length − 11).",
+      "My Cycle Keeper estimates upcoming period dates by identifying patterns in your recorded cycles. Predictions use a rolling 6-month average of your logged cycles. Cycles that differ from this average by more than 3 days are flagged. If your shortest and longest cycles in that window differ by more than 7 days (or more than 9 days, which may indicate irregular cycles per Cleveland Clinic guidance), you'll see a variability notice. Ovulation is estimated ~14 days before your next period. Fertile days are calculated as day 8 through (cycle length − 11).",
     how_it_works_p2:
       "For regular 28-day cycles, this means days 8–17 are typically fertile, with ovulation around day 14.",
     disclaimer: "Disclaimer",
@@ -670,7 +670,7 @@ const LOCALES = {
     mood: "Настроение",
     how_it_works: "Как это работает",
     how_it_works_p1:
-      "My Cycle Keeper оценивает ваше фертильное окно, отслеживая паттерны цикла. Овуляция оценивается ~ за 14 дней до следующей менструации. Фертильные дни рассчитываются по формуле: день 8 — (длина цикла − 11).",
+      "My Cycle Keeper прогнозирует даты следующих менструаций на основе закономерностей в записанных циклах. Овуляция оценивается ~ за 14 дней до следующей менструации. Фертильные дни рассчитываются по формуле: день 8 — (длина цикла − 11).",
     how_it_works_p2:
       "При регулярном цикле в 28 дней это означает, что дни с 8 по 17 обычно являются фертильными с овуляцией примерно на 14 день.",
     disclaimer: "Отказ от ответственности",
@@ -1297,7 +1297,7 @@ const LOCALES = {
     mood: "Ánimo",
     how_it_works: "Cómo funciona",
     how_it_works_p1:
-      "My Cycle Keeper estima tu ventana fértil a partir de los patrones de tu ciclo. Las predicciones usan el promedio móvil de los últimos 6 meses de ciclos registrados. Los ciclos que se apartan de este promedio por más de 3 días se marcan. Si, dentro de ese período, la diferencia entre tu ciclo más corto y el más largo supera los 7 días (o los 9 días, lo que puede indicar ciclos irregulares según la orientación de Cleveland Clinic), verás un aviso de variabilidad. La ovulación se estima aproximadamente 14 días antes del próximo período. Los días fértiles se calculan desde el día 8 hasta el día correspondiente a la duración del ciclo menos 11.",
+      "My Cycle Keeper estima las fechas de tus próximas menstruaciones a partir de los patrones de los ciclos que has registrado. Las predicciones usan el promedio móvil de los últimos 6 meses de ciclos registrados. Los ciclos que se apartan de este promedio por más de 3 días se marcan. Si, dentro de ese período, la diferencia entre tu ciclo más corto y el más largo supera los 7 días (o los 9 días, lo que puede indicar ciclos irregulares según la orientación de Cleveland Clinic), verás un aviso de variabilidad. La ovulación se estima aproximadamente 14 días antes del próximo período. Los días fértiles se calculan desde el día 8 hasta el día correspondiente a la duración del ciclo menos 11.",
     how_it_works_p2:
       "Para ciclos regulares de 28 días, esto significa que los días 8–17 suelen ser fértiles, con ovulación alrededor del día 14.",
     disclaimer: "Aviso",
@@ -1909,7 +1909,7 @@ const LOCALES = {
     mood: "気分",
     how_it_works: "予測方法",
     how_it_works_p1:
-      "My Cycle Keeperは、記録された周期の傾向から妊娠しやすい期間を推定します。予測には直近6か月の周期の移動平均を使用し、その平均と3日を超えて異なる周期には印が付きます。直近6か月の最短周期と最長周期の差が7日を超える場合は変動に関する通知が表示され、9日を超える場合はCleveland Clinicの案内に基づき、不規則な周期の可能性があることを示します。排卵日は次回の生理開始予定日の約14日前、妊娠しやすい期間は周期8日目から「周期日数－11」日目までとして推定されます。",
+      "My Cycle Keeperは、記録された周期の傾向から今後の生理開始日を予測します。予測には直近6か月の周期の移動平均を使用し、その平均と3日を超えて異なる周期には印が付きます。直近6か月の最短周期と最長周期の差が7日を超える場合は変動に関する通知が表示され、9日を超える場合はCleveland Clinicの案内に基づき、不規則な周期の可能性があることを示します。排卵日は次回の生理開始予定日の約14日前、妊娠しやすい期間は周期8日目から「周期日数－11」日目までとして推定されます。",
     how_it_works_p2:
       "28日周期が規則的に続く場合、通常は8〜17日目が妊娠しやすい期間で、排卵日は14日目ごろと推定されます。",
     disclaimer: "免責事項",
@@ -2462,7 +2462,7 @@ const LOCALES = {
     mood: "情緒",
     how_it_works: "預測方式",
     how_it_works_p1:
-      "My Cycle Keeper 會根據已記錄的月經週期估算易受孕期。預測採用最近 6 個月週期的滾動平均值；與此平均值相差超過 3 天的週期會加上標記。若這段期間內最短與最長週期相差超過 7 天，系統會顯示週期變動提示；若相差超過 9 天，依 Cleveland Clinic 的指引，可能屬於週期不規律。排卵日估計為下次月經開始前約 14 天；易受孕期則估計為週期第 8 天至「週期長度 − 11」天。",
+      "My Cycle Keeper 會根據已記錄的月經週期規律，估算接下來的月經開始日期。預測採用最近 6 個月週期的滾動平均值；與此平均值相差超過 3 天的週期會加上標記。若這段期間內最短與最長週期相差超過 7 天，系統會顯示週期變動提示；若相差超過 9 天，依 Cleveland Clinic 的指引，可能屬於週期不規律。排卵日估計為下次月經開始前約 14 天；易受孕期則估計為週期第 8 天至「週期長度 − 11」天。",
     how_it_works_p2:
       "以規律的 28 天週期為例，第 8 至 17 天通常屬於易受孕期，排卵日約在第 14 天。",
     disclaimer: "注意事項",
