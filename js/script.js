@@ -94,26 +94,358 @@ const BACKUP_KEY = "mycyclekeeper_lastbackup_v1"; // ISO date of last export
 const THEME_KEY = "mycyclekeeper_theme"; // UI-only preference, not sensitive
 const SCHEMA_VERSION = 1; // bump when state shape changes
 
-const VALID_THEMES = ["default", "light", "dark", "kawaii"];
+const BASE_THEMES = ["default", "light", "dark", "kawaii"];
+const VALID_THEMES = [...BASE_THEMES, "custom"];
 
-function setTheme(name) {
-  const t = VALID_THEMES.includes(name) ? name : "default";
-  if (t === "default") {
+// UI-only preferences, not sensitive. The draft holds whatever the customizer is
+// currently showing; the preset is the one palette the user chose to keep.
+const CUSTOM_THEME_KEY = "mycyclekeeper_custom_theme_v1";
+const CUSTOM_THEME_DRAFT_KEY = "mycyclekeeper_custom_theme_draft_v1";
+
+// The palette the customizer exposes. Everything else is derived from these.
+// `read` is the CSS value the probe evaluates; the flow endpoints are stored as
+// "r g b" triplets in CSS, so they need wrapping before they parse as a colour.
+const CUSTOM_THEME_FIELDS = [
+  { prop: "--bg", i18n: "custom_theme_bg" },
+  { prop: "--card", i18n: "custom_theme_card" },
+  { prop: "--text", i18n: "custom_theme_text" },
+  { prop: "--text-muted", i18n: "custom_theme_text_muted" },
+  { prop: "--rose", i18n: "custom_theme_accent" },
+  { prop: "--rose-light", i18n: "custom_theme_accent_light" },
+  { prop: "--lavender", i18n: "custom_theme_highlight" },
+  { prop: "--fertile-green", i18n: "custom_theme_fertile" },
+  { prop: "--ovulation", i18n: "custom_theme_ovulation" },
+  {
+    prop: "--flow-start-rgb",
+    read: "rgb(var(--flow-start-rgb))",
+    i18n: "custom_theme_flow_start",
+  },
+  {
+    prop: "--flow-end-rgb",
+    read: "rgb(var(--flow-end-rgb))",
+    i18n: "custom_theme_flow_end",
+  },
+];
+
+// Every variable applied inline by a custom theme, so it can be fully undone.
+const CUSTOM_THEME_APPLIED_PROPS = [
+  "--bg", "--bg2", "--bg3", "--card", "--text", "--text-muted", "--border",
+  "--rose", "--rose-light", "--rose-pale", "--lavender", "--deep-purple",
+  "--coral", "--amber", "--fertile-green", "--success", "--ovulation",
+  "--danger", "--status-card-bg",
+  "--flow-start-rgb", "--flow-end-rgb", "--flow-text",
+];
+
+let customThemeDraft = null;
+
+function clampByte(n) {
+  return Math.max(0, Math.min(255, Math.round(n)));
+}
+
+function hexToRgb(hex) {
+  const m = /^#?([0-9a-f]{6}|[0-9a-f]{3})$/i.exec(String(hex ?? "").trim());
+  if (!m) return null;
+  let h = m[1].toLowerCase();
+  if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+  return [
+    parseInt(h.slice(0, 2), 16),
+    parseInt(h.slice(2, 4), 16),
+    parseInt(h.slice(4, 6), 16),
+  ];
+}
+
+function rgbToHex(rgb) {
+  return "#" + rgb.map((v) => clampByte(v).toString(16).padStart(2, "0")).join("");
+}
+
+function parseCssRgb(value) {
+  const m = /rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/i.exec(String(value));
+  return m ? [Number(m[1]), Number(m[2]), Number(m[3])] : null;
+}
+
+/** Blend `a` towards `b`; `ratio` is the weight of `b`. */
+function mixRgb(a, b, ratio) {
+  return [0, 1, 2].map((i) => a[i] + (b[i] - a[i]) * ratio);
+}
+
+function relativeLuminance(rgb) {
+  const lin = (c) => {
+    const v = c / 255;
+    return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+  };
+  return 0.2126 * lin(rgb[0]) + 0.7152 * lin(rgb[1]) + 0.0722 * lin(rgb[2]);
+}
+
+/**
+ * Resolve the palette the browser is painting right now. Reading through a probe
+ * element means derived values (rgb(var(--…)), color-mix, …) come back as plain
+ * rgb() no matter how the variable was written.
+ */
+function readRenderedThemeColors() {
+  const probe = document.createElement("span");
+  probe.setAttribute("aria-hidden", "true");
+  probe.style.cssText = "position:absolute;left:-9999px;top:0;width:0;height:0;";
+  (document.body || document.documentElement).appendChild(probe);
+  const colors = {};
+  for (const field of CUSTOM_THEME_FIELDS) {
+    probe.style.color = "";
+    probe.style.color = field.read || `var(${field.prop})`;
+    const rgb = parseCssRgb(getComputedStyle(probe).color);
+    colors[field.prop] = rgb ? rgbToHex(rgb) : "#808080";
+  }
+  probe.remove();
+  return colors;
+}
+
+function normalizeCustomThemePreset(raw) {
+  if (!raw || typeof raw !== "object" || !raw.colors) return null;
+  const colors = {};
+  for (const field of CUSTOM_THEME_FIELDS) {
+    const rgb = hexToRgb(raw.colors[field.prop]);
+    if (!rgb) return null;
+    colors[field.prop] = rgbToHex(rgb);
+  }
+  const base = BASE_THEMES.includes(raw.base) ? raw.base : "default";
+  return { base, colors };
+}
+
+function readCustomThemePreset(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? normalizeCustomThemePreset(JSON.parse(raw)) : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function writeCustomThemePreset(key, preset) {
+  try { localStorage.setItem(key, JSON.stringify(preset)); } catch (_) {}
+}
+
+function applyBaseTheme(name) {
+  if (name === "default") {
     delete document.documentElement.dataset.theme;
   } else {
-    document.documentElement.dataset.theme = t;
+    document.documentElement.dataset.theme = name;
   }
-  try { localStorage.setItem(THEME_KEY, t); } catch (_) {}
+}
+
+function clearCustomThemeVars() {
+  const style = document.documentElement.style;
+  CUSTOM_THEME_APPLIED_PROPS.forEach((prop) => style.removeProperty(prop));
+  delete document.documentElement.dataset.themeCustom;
+}
+
+/**
+ * Write the custom palette as inline variables on :root. The base theme stays on
+ * data-theme so its light/dark-specific rules (inputs, tab bars) still apply,
+ * and inline values win over the theme block.
+ */
+function applyCustomThemeColors(colors) {
+  const pick = (prop, fallback) => hexToRgb(colors[prop]) || hexToRgb(fallback);
+  const bg = pick("--bg", "#120818");
+  const card = pick("--card", "#1c0f2b");
+  const text = pick("--text", "#f9f0ff");
+  const muted = pick("--text-muted", "#c4b5fd");
+  const accent = pick("--rose", "#e6233b");
+  const accentLight = pick("--rose-light", "#ff5a6e");
+  const highlight = pick("--lavender", "#a78bfa");
+  const fertile = pick("--fertile-green", "#34d399");
+  const ovulation = pick("--ovulation", "#f59e0b");
+  const flowStart = pick("--flow-start-rgb", "#ffbe96");
+  const flowEnd = pick("--flow-end-rgb", "#ff3d6b");
+
+  const bg2 = mixRgb(bg, text, 0.07);
+  const bg3 = mixRgb(bg, text, 0.14);
+
+  const style = document.documentElement.style;
+  const set = (prop, value) => style.setProperty(prop, value);
+
+  set("--bg", rgbToHex(bg));
+  set("--bg2", rgbToHex(bg2));
+  set("--bg3", rgbToHex(bg3));
+  set("--card", rgbToHex(card));
+  set("--text", rgbToHex(text));
+  set("--text-muted", rgbToHex(muted));
+  set("--border", `rgb(${highlight.map(clampByte).join(" ")} / 0.3)`);
+  set("--rose", rgbToHex(accent));
+  set("--rose-light", rgbToHex(accentLight));
+  set("--rose-pale", rgbToHex(mixRgb(card, accent, 0.14)));
+  set("--lavender", rgbToHex(highlight));
+  set("--deep-purple", rgbToHex(mixRgb(highlight, bg, 0.35)));
+  set("--coral", rgbToHex(flowStart));
+  set("--amber", rgbToHex(ovulation));
+  set("--fertile-green", rgbToHex(fertile));
+  set("--success", rgbToHex(fertile));
+  set("--ovulation", rgbToHex(ovulation));
+  set("--danger", rgbToHex(accent));
+  set(
+    "--status-card-bg",
+    `linear-gradient(135deg, ${rgbToHex(bg2)} 0%, ${rgbToHex(bg)} 100%)`
+  );
+  set("--flow-start-rgb", flowStart.map(clampByte).join(" "));
+  set("--flow-end-rgb", flowEnd.map(clampByte).join(" "));
+  // Numbers sit on the --flow-end core, so pick ink that survives a pale core.
+  set("--flow-text", relativeLuminance(flowEnd) > 0.45 ? "#14121a" : "#ffffff");
+}
+
+function applyCustomTheme(preset) {
+  applyBaseTheme(preset.base);
+  document.documentElement.dataset.themeCustom = "on";
+  applyCustomThemeColors(preset.colors);
+}
+
+function snapshotRenderedThemeAsPreset() {
+  const active = document.documentElement.dataset.theme || "default";
+  return {
+    base: BASE_THEMES.includes(active) ? active : "default",
+    colors: readRenderedThemeColors(),
+  };
+}
+
+function setTheme(name) {
+  const theme = VALID_THEMES.includes(name) ? name : "default";
+  if (theme === "custom") {
+    // Snapshot happens before anything is applied, so "Customize" opens on the
+    // palette the user was just looking at.
+    const preset =
+      customThemeDraft ||
+      readCustomThemePreset(CUSTOM_THEME_DRAFT_KEY) ||
+      readCustomThemePreset(CUSTOM_THEME_KEY) ||
+      snapshotRenderedThemeAsPreset();
+    customThemeDraft = preset;
+    writeCustomThemePreset(CUSTOM_THEME_DRAFT_KEY, preset);
+    applyCustomTheme(preset);
+  } else {
+    clearCustomThemeVars();
+    applyBaseTheme(theme);
+  }
+  try { localStorage.setItem(THEME_KEY, theme); } catch (_) {}
   // Sync the radio buttons (called programmatically as well as from onclick)
   document.querySelectorAll('input[name="theme"]').forEach(r => {
-    r.checked = r.value === t;
+    r.checked = r.value === theme;
   });
+  syncThemeCustomizer(theme);
 }
 
 function loadTheme() {
-  let saved = "dark";
-  try { saved = localStorage.getItem(THEME_KEY) || "dark"; } catch (_) {}
+  let saved = "light";
+  try { saved = localStorage.getItem(THEME_KEY) || "light"; } catch (_) {}
   setTheme(saved);
+}
+
+// ── Theme customizer panel ───────────────────────────────────────────────────
+
+function buildCustomThemeFields() {
+  const host = document.getElementById("custom-theme-fields");
+  if (!host || host.childElementCount > 0) return;
+  for (const field of CUSTOM_THEME_FIELDS) {
+    const row = document.createElement("label");
+    row.className = "color-field";
+
+    const label = document.createElement("span");
+    label.className = "color-field__label";
+    label.dataset.i18n = field.i18n;
+    label.textContent = t(field.i18n);
+
+    const input = document.createElement("input");
+    input.type = "color";
+    input.className = "color-field__input";
+    input.dataset.themeProp = field.prop;
+    input.addEventListener("input", () =>
+      updateCustomThemeColor(field.prop, input.value)
+    );
+
+    const hex = document.createElement("span");
+    hex.className = "color-field__hex";
+    hex.dataset.themeHexFor = field.prop;
+
+    const control = document.createElement("span");
+    control.className = "color-field__control";
+    control.append(input, hex);
+    row.append(label, control);
+    host.appendChild(row);
+  }
+}
+
+function fillCustomThemeInputs(preset) {
+  const baseSelect = document.getElementById("custom-theme-base");
+  if (baseSelect) baseSelect.value = preset.base;
+  for (const field of CUSTOM_THEME_FIELDS) {
+    const value = preset.colors[field.prop];
+    const input = document.querySelector(
+      `.color-field__input[data-theme-prop="${field.prop}"]`
+    );
+    if (input) input.value = value;
+    const hex = document.querySelector(
+      `.color-field__hex[data-theme-hex-for="${field.prop}"]`
+    );
+    if (hex) hex.textContent = value;
+  }
+  const loadBtn = document.getElementById("custom-theme-load-btn");
+  if (loadBtn) loadBtn.disabled = !readCustomThemePreset(CUSTOM_THEME_KEY);
+}
+
+function syncThemeCustomizer(theme) {
+  const panel = document.getElementById("theme-custom-panel");
+  if (!panel) return;
+  panel.classList.toggle("hidden", theme !== "custom");
+  if (theme !== "custom" || !customThemeDraft) return;
+  buildCustomThemeFields();
+  fillCustomThemeInputs(customThemeDraft);
+}
+
+function updateCustomThemeColor(prop, value) {
+  const rgb = hexToRgb(value);
+  if (!rgb || !customThemeDraft) return;
+  customThemeDraft = {
+    base: customThemeDraft.base,
+    colors: { ...customThemeDraft.colors, [prop]: rgbToHex(rgb) },
+  };
+  writeCustomThemePreset(CUSTOM_THEME_DRAFT_KEY, customThemeDraft);
+  applyCustomTheme(customThemeDraft);
+  const hex = document.querySelector(
+    `.color-field__hex[data-theme-hex-for="${prop}"]`
+  );
+  if (hex) hex.textContent = customThemeDraft.colors[prop];
+}
+
+/** Reload the selected base theme's palette as the new starting point. */
+function resetCustomThemeToBase() {
+  const base = customThemeDraft?.base || "default";
+  clearCustomThemeVars();
+  applyBaseTheme(base);
+  customThemeDraft = { base, colors: readRenderedThemeColors() };
+  writeCustomThemePreset(CUSTOM_THEME_DRAFT_KEY, customThemeDraft);
+  applyCustomTheme(customThemeDraft);
+  fillCustomThemeInputs(customThemeDraft);
+}
+
+function changeCustomThemeBase(base) {
+  if (!BASE_THEMES.includes(base) || !customThemeDraft) return;
+  customThemeDraft = { base, colors: customThemeDraft.colors };
+  resetCustomThemeToBase();
+}
+
+function saveCustomThemePreset() {
+  if (!customThemeDraft) return;
+  writeCustomThemePreset(CUSTOM_THEME_KEY, customThemeDraft);
+  const loadBtn = document.getElementById("custom-theme-load-btn");
+  if (loadBtn) loadBtn.disabled = false;
+  showToast(t("custom_theme_saved"));
+}
+
+function loadCustomThemePreset() {
+  const preset = readCustomThemePreset(CUSTOM_THEME_KEY);
+  if (!preset) {
+    showToast(t("custom_theme_none_saved"));
+    return;
+  }
+  customThemeDraft = preset;
+  writeCustomThemePreset(CUSTOM_THEME_DRAFT_KEY, preset);
+  applyCustomTheme(preset);
+  fillCustomThemeInputs(preset);
+  showToast(t("custom_theme_loaded"));
 }
 
 // The old deriveKey, encryptData, decryptData, hashPin functions are now imported from crypto.js
@@ -3242,6 +3574,7 @@ function renderCalendar() {
     let cls = "cal-day";
     if (dayType === "period") cls += " period";
     else if (dayType === "predicted-period") cls += " predicted-period";
+    else if (dayType === "tolerance-period") cls += " tolerance-period";
     else if (dayType === "ovulation" && isFertilityVisible()) cls += " ovulation";
     else if (dayType === "fertile" && isFertilityVisible()) cls += " fertile";
     if (dateStr === todayStr) cls += " today";
@@ -3266,7 +3599,7 @@ function renderCalendar() {
           ? t("calendar_day_ovulation")
           : dayType === "fertile" && isFertilityVisible()
           ? t("calendar_day_fertile")
-          : dayType === "predicted-period"
+          : dayType === "predicted-period" || dayType === "tolerance-period"
           ? t("calendar_day_period_possible")
           : t("calendar_day_regular")
       }${flowSuffix}`
@@ -5451,6 +5784,10 @@ window.importData = importData;
 window.confirmClear = confirmClear;
 window.switchTab = switchTab;
 window.setTheme = setTheme;
+window.changeCustomThemeBase = changeCustomThemeBase;
+window.saveCustomThemePreset = saveCustomThemePreset;
+window.loadCustomThemePreset = loadCustomThemePreset;
+window.resetCustomThemeToBase = resetCustomThemeToBase;
 window.changeLanguage = (lang) => {
   setLanguage(lang);
   applyI18n();

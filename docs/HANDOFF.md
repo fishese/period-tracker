@@ -6,7 +6,7 @@
 
 This document is the **current source of truth** for continuing work. Older implementation history remains available in Git; verify historical notes against current code for predictions, storage keys, fertility defaults, and branding.
 
-**Current `CACHE_VERSION`:** `v20260730j` (in `service-worker.js`)
+**Current `CACHE_VERSION`:** `v20260801a` (in `service-worker.js`)
 
 ---
 
@@ -118,7 +118,9 @@ Note: serve from repo root locally (`http://localhost:8000/`). OAuth redirect UR
 | `mycyclekeeper_salt_v1` | PBKDF2 salt |
 | `mycyclekeeper_ph_v1` | PIN HMAC (fast wrong-PIN check) |
 | `mycyclekeeper_lastbackup_v1` | ISO date of last manual export |
-| `mycyclekeeper_theme` | Theme preference (localStorage, not encrypted) |
+| `mycyclekeeper_theme` | Theme preference — one of `default` / `light` / `dark` / `kawaii` / `custom` (localStorage, not encrypted) |
+| `mycyclekeeper_custom_theme_v1` | Custom theme preset the user chose to keep (localStorage, not encrypted) |
+| `mycyclekeeper_custom_theme_draft_v1` | Custom theme colours currently applied, so the panel survives theme switches and reloads (localStorage, not encrypted) |
 | `mycyclekeeper_drive_*` | Google Drive OAuth tokens, file id, last sync, auto-backup flag (see [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)) |
 
 **Settings → “Storage used”** shows `navigator.storage.estimate()` for the **whole origin** (IndexedDB + Service Worker cache + localStorage), not the size of cycle logs alone. Mobile PWA often reports much higher numbers than desktop because of offline cache.
@@ -217,9 +219,34 @@ Only while **actively bleeding** (`isPeriodEpisodeActive`).
 |------|--------|
 | Calendar tab | Status → **calendar** → **timeline bar** (bar under calendar); tapping a day opens the compact accordion editor |
 | Insights | Recent period profile with adaptive flow/pain/mood tracks; the six recent History rows combine dates, duration, cycle length, and a compact daily flow/pain/mood SVG chart / Predictions / How it works |
-| Settings Layout | Fertility estimates + cycle phase timeline toggles → **Language** → Theme |
+| Settings Layout | Fertility estimates + cycle phase timeline toggles → **Language** → Theme (incl. **Customize** colour panel) |
 | About → Developer | Combined About (no PayPal); separate **About This Fork** summary |
 | zh-TW terminology | 經期 / 月經 (not 生理期 / 生理) |
+
+### Calendar flow colours
+
+Every flow level shares one two-colour gradient (coral → pink-red from the original indicator), so heavier flow reads as more of the same colour rather than a new one. Built-in themes leave these alone; only Customize overrides them.
+
+| Variable | Meaning |
+|----------|---------|
+| `--flow-start-rgb` | Lightest flow — outer ring (`255 190 150` / `#ffbe96`) |
+| `--flow-end-rgb` | Heaviest flow — inner core (`255 61 107` / `#ff3d6b`) |
+| `--flow-text` | Ink for filled flow days (auto-picked for custom themes) |
+
+- `.cal-day.flow-1` → `.flow-3` use a gradual blend (small digit-sized core → wider core → soft outer ring). `.flow-4` keeps a sharp solid core (~86 %) with a thin outer rim.
+- Spotting (`.flow-0`) is a solid `--flow-end` ring over a low-opacity fill of the same colour.
+- `.predicted-period` uses a 2 px dotted `--flow-end` ring; `.tolerance-period` (the padding days) uses a 1 px dotted `--flow-start` ring and a fainter fill, so real predictions still lead.
+- `getDayType()` now returns **`tolerance-period`** for the variation padding instead of `predicted-period`. Both still satisfy `dayType.includes("period")`, which is what the insights aggregates rely on.
+- The derived `--flow-*` variables are declared for `:root, [data-theme]` because a custom property inherits its already-substituted value; re-declaring them wherever the triplets are overridden is required.
+
+### Theme customizer
+
+Settings → Layout → Theme has a fifth option, **Customize**, which opens an inline panel.
+
+- Selecting it snapshots whatever palette is on screen (read through a hidden probe element, so any `rgb(var(…))` or `color-mix()` value resolves to plain hex).
+- The panel edits 11 colours; `applyCustomThemeColors()` derives `--bg2`, `--bg3`, `--border`, `--rose-pale`, `--deep-purple`, `--coral`, `--amber`, `--danger`, `--success`, `--status-card-bg`, and `--flow-text` from them and writes everything as inline variables on `:root`.
+- `data-theme` stays on the chosen **base** theme so its light/dark-specific rules (inputs, tab bars) keep working; `data-theme-custom="on"` marks that inline overrides are active. Leaving Customize calls `clearCustomThemeVars()`, which removes every property in `CUSTOM_THEME_APPLIED_PROPS`.
+- Two storage keys: a **draft** (auto-saved on every edit, survives switching themes) and one explicitly **saved preset** (Save preset / Load saved preset). *Reset to theme colours* reloads the base theme's palette.
 
 ### Fertility and timeline toggles
 
@@ -476,7 +503,9 @@ Spec (as-built): [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
 - [ ] Onboarding / CSV import / unlock  
 - [ ] Enter a correct PIN while a new service worker activates — app unlocks once and does not immediately show a second login screen
 - [ ] Enter only part of a PIN while a new service worker activates — entry is not interrupted
-- [ ] Late period message + dashed predicted days  
+- [ ] Late period message + dotted predicted days (heavy-flow ring) vs. lighter dotted tolerance days (light-flow ring)
+- [ ] Flow levels 1–4 read as one gradient in all four themes; the date stays legible on the level-1 core
+- [ ] Theme → Customize: opens on the palette you were viewing, previews live, Save/Load preset survives switching themes, Reset restores the base theme, and leaving Customize clears every inline override
 - [ ] Fertility estimates toggle: calendar highlights + Fertile Days stat; cycle phase timeline remains independently configurable
 - [ ] Disable cycle phase timeline — neutral timeline shows only Period / Other cycle days with no Ovulation or Luteal legend
 - [ ] Activate a new service worker while unlocked — app stays open, then refreshes when the session locks

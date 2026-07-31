@@ -1066,7 +1066,7 @@
                 </div>
               </label>
               <label class="theme-option">
-                <input type="radio" name="theme" value="light" onchange="setTheme('light')" />
+                <input type="radio" name="theme" value="light" onchange="setTheme('light')" checked />
                 <div class="theme-swatch ts-light-bg">
                   <div class="theme-swatch__dots">
                     <span class="theme-swatch__dot ts-light"></span>
@@ -1077,7 +1077,7 @@
                 </div>
               </label>
               <label class="theme-option">
-                <input type="radio" name="theme" value="dark" onchange="setTheme('dark')" checked />
+                <input type="radio" name="theme" value="dark" onchange="setTheme('dark')" />
                 <div class="theme-swatch ts-dark-bg">
                   <div class="theme-swatch__dots">
                     <span class="theme-swatch__dot ts-dark"></span>
@@ -1098,6 +1098,91 @@
                   <span class="theme-swatch__name" data-i18n="theme_kawaii">Pink Power 🌸</span>
                 </div>
               </label>
+              <label class="theme-option">
+                <input type="radio" name="theme" value="custom" onchange="setTheme('custom')" />
+                <div class="theme-swatch ts-custom-bg">
+                  <div class="theme-swatch__dots">
+                    <span class="theme-swatch__dot ts-custom"></span>
+                    <span class="theme-swatch__dot ts-custom-a"></span>
+                    <span class="theme-swatch__dot ts-custom-b"></span>
+                  </div>
+                  <span class="theme-swatch__name" data-i18n="theme_custom">Customize</span>
+                </div>
+              </label>
+            </div>
+
+            <div id="theme-custom-panel" class="theme-custom-panel hidden">
+              <div class="field-hint" data-i18n="custom_theme_hint">
+                These start from the colours you were just viewing. Edits preview
+                straight away. Save a preset to keep it while you try other themes.
+              </div>
+
+              <div class="field-label" data-i18n="custom_theme_base_label">Start from</div>
+              <select
+                id="custom-theme-base"
+                class="field-input"
+                onchange="changeCustomThemeBase(this.value)"
+                aria-describedby="custom-theme-base-hint"
+              >
+                <option value="default" data-i18n="theme_default">YCK Classic</option>
+                <option value="light" data-i18n="theme_light">Newsroom Light</option>
+                <option value="dark" data-i18n="theme_dark">Newsroom Dark</option>
+                <option value="kawaii" data-i18n="theme_kawaii">Pink Power</option>
+              </select>
+              <div class="field-hint" id="custom-theme-base-hint" data-i18n="custom_theme_base_hint">
+                Changing this reloads that theme's colours as your starting point.
+              </div>
+
+              <div class="field-label" data-i18n="custom_theme_preview_label">Calendar preview</div>
+              <div class="flow-preview">
+                <span class="flow-preview__item">
+                  <span class="flow-preview__cell cal-day flow-0" aria-hidden="true">12</span>
+                  <span class="flow-preview__caption" data-i18n="flow_spotting">Spotting</span>
+                </span>
+                <span class="flow-preview__item">
+                  <span class="flow-preview__cell cal-day flow-1" aria-hidden="true">12</span>
+                  <span class="flow-preview__caption" data-i18n="flow_light">Light</span>
+                </span>
+                <span class="flow-preview__item">
+                  <span class="flow-preview__cell cal-day flow-2" aria-hidden="true">12</span>
+                  <span class="flow-preview__caption" data-i18n="flow_medium">Medium</span>
+                </span>
+                <span class="flow-preview__item">
+                  <span class="flow-preview__cell cal-day flow-3" aria-hidden="true">12</span>
+                  <span class="flow-preview__caption" data-i18n="flow_heavy">Heavy</span>
+                </span>
+                <span class="flow-preview__item">
+                  <span class="flow-preview__cell cal-day flow-4" aria-hidden="true">12</span>
+                  <span class="flow-preview__caption" data-i18n="flow_very_heavy">Very heavy</span>
+                </span>
+                <span class="flow-preview__item">
+                  <span class="flow-preview__cell cal-day predicted-period" aria-hidden="true">12</span>
+                  <span class="flow-preview__caption" data-i18n="custom_theme_preview_predicted">Predicted</span>
+                </span>
+                <span class="flow-preview__item">
+                  <span class="flow-preview__cell cal-day tolerance-period" aria-hidden="true">12</span>
+                  <span class="flow-preview__caption" data-i18n="custom_theme_preview_tolerance">Extra days</span>
+                </span>
+              </div>
+
+              <div class="color-field-grid" id="custom-theme-fields"></div>
+
+              <div class="custom-theme-actions">
+                <button class="apply-btn" onclick="saveCustomThemePreset()" data-i18n="custom_theme_save">
+                  Save preset
+                </button>
+                <button
+                  id="custom-theme-load-btn"
+                  class="apply-btn btn--secondary"
+                  onclick="loadCustomThemePreset()"
+                  data-i18n="custom_theme_load"
+                >
+                  Load saved preset
+                </button>
+                <button class="apply-btn btn--secondary" onclick="resetCustomThemeToBase()" data-i18n="custom_theme_reset">
+                  Reset to theme colours
+                </button>
+              </div>
             </div>
           </div>
 

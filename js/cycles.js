@@ -468,12 +468,13 @@ export function getDayType(dateStr) {
     if (d >= p.fertileStart && d <= p.fertileEnd) return "fertile";
   }
 
+  // Tolerance padding around a prediction — same meaning, weaker confidence.
   if (d > todayD) {
     for (const p of preds) {
       if (p.variation > 0) {
         const varStart = addDays(p.periodStart, -p.variation);
         const varEnd = addDays(p.periodEnd, p.variation);
-        if (d >= varStart && d <= varEnd) return "predicted-period";
+        if (d >= varStart && d <= varEnd) return "tolerance-period";
       }
     }
   }
@@ -482,5 +483,6 @@ export function getDayType(dateStr) {
 }
 
 export function isPredictedFuturePeriod(dateStr) {
-  return getDayType(dateStr) === "predicted-period";
+  const type = getDayType(dateStr);
+  return type === "predicted-period" || type === "tolerance-period";
 }

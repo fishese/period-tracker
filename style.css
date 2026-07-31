@@ -25,6 +25,12 @@
   --danger: #e6233b;
   --success: #34d399;
   --status-card-bg: linear-gradient(135deg, #2a1040 0%, #1a0828 100%);
+
+  /* Calendar flow gradient — fixed coral → pink-red across all built-in themes.
+     Only Customize overrides these. start = lightest (outer), end = heaviest (core). */
+  --flow-start-rgb: 255 190 150;
+  --flow-end-rgb: 255 61 107;
+  --flow-text: #ffffff;
 }
 
 /* ── Newsroom Light ─────────────────────────────────────────────────────────── */
@@ -1114,10 +1120,10 @@ body {
 .cal-day.period {
   background: linear-gradient(
     135deg,
-    rgba(255, 61, 107, 0.85),
-    rgba(255, 107, 74, 0.85)
+    rgb(var(--flow-end-rgb)),
+    rgb(var(--flow-start-rgb))
   );
-  color: white;
+  color: var(--flow-text);
 }
 .cal-day.fertile {
   background: rgba(52, 211, 153, 0.2);
@@ -1128,64 +1134,74 @@ body {
   background: rgba(245, 158, 11, 0.85);
   color: white;
 }
+/* Predicted period: dotted ring in the heavy-flow colour over a faint tint */
 .cal-day.predicted-period {
-  background: rgba(255, 61, 107, 0.13);
-  color: var(--rose-light);
-  border: 0.09375rem dashed rgba(255, 61, 107, 0.5);
+  background: rgb(var(--flow-end-rgb) / 0.18);
+  color: var(--text);
+  color: color-mix(in srgb, rgb(var(--flow-end-rgb)) 62%, var(--text));
+  border: 0.125rem dotted rgb(var(--flow-end-rgb));
 }
+/* Tolerance days padding the prediction: same shape in the light-flow colour,
+   drawn lighter so the days actually predicted still lead. */
 .cal-day.tolerance-period {
-  color: var(--rose-light);
-  border: 0.09375rem dashed rgba(255, 61, 107, 0.35);
+  background: rgb(var(--flow-start-rgb) / 0.1);
+  color: var(--text);
+  color: color-mix(in srgb, rgb(var(--flow-start-rgb)) 55%, var(--text));
+  border: 0.0625rem dotted rgb(var(--flow-start-rgb));
 }
-/* Logged flow intensity — full-circle gradient; heavier = larger solid core */
+/* Logged flow: one --flow-start → --flow-end gradient for every level.
+   Levels 1–3 blend gradually (small core → wider core → thin outer ring);
+   level 4 stays sharp. Percentages are radii of the inscribed circle. */
 .cal-day.flow-0 {
-  background: rgba(255, 61, 107, 0.18);
-  color: var(--rose-light);
-  border: 0.09375rem solid rgba(255, 90, 110, 0.75);
+  background: rgb(var(--flow-end-rgb) / 0.24);
+  color: var(--text);
+  color: color-mix(in srgb, rgb(var(--flow-end-rgb)) 62%, var(--text));
+  border: 0.09375rem solid rgb(var(--flow-end-rgb));
 }
 .cal-day.flow-1,
 .cal-day.flow-2,
 .cal-day.flow-3,
 .cal-day.flow-4 {
-  color: white;
+  color: var(--flow-text);
   border: none;
 }
 .cal-day.flow-1 {
+  /* Small core ~digit size, wide gradual coral rim */
   background: radial-gradient(
-    circle at center,
-    rgb(255, 61, 107) 0%,
-    rgb(255, 61, 107) 18%,
-    rgb(255, 140, 110) 55%,
-    rgb(255, 190, 150) 100%
+    circle closest-side at center,
+    rgb(var(--flow-end-rgb)) 0%,
+    rgb(var(--flow-end-rgb)) 14%,
+    rgb(var(--flow-start-rgb)) 52%,
+    rgb(var(--flow-start-rgb)) 100%
   );
 }
 .cal-day.flow-2 {
   background: radial-gradient(
-    circle at center,
-    rgb(255, 61, 107) 0%,
-    rgb(255, 61, 107) 42%,
-    rgb(255, 120, 90) 72%,
-    rgb(255, 160, 120) 100%
+    circle closest-side at center,
+    rgb(var(--flow-end-rgb)) 0%,
+    rgb(var(--flow-end-rgb)) 36%,
+    rgb(var(--flow-start-rgb)) 70%,
+    rgb(var(--flow-start-rgb)) 100%
   );
 }
 .cal-day.flow-3 {
+  /* Mostly inner colour, with a clear soft outer ring */
   background: radial-gradient(
-    circle at center,
-    rgb(255, 61, 107) 0%,
-    rgb(255, 61, 107) 68%,
-    rgb(255, 100, 80) 88%,
-    rgb(255, 130, 100) 100%
+    circle closest-side at center,
+    rgb(var(--flow-end-rgb)) 0%,
+    rgb(var(--flow-end-rgb)) 52%,
+    rgb(var(--flow-start-rgb)) 82%,
+    rgb(var(--flow-start-rgb)) 100%
   );
 }
 .cal-day.flow-4 {
+  /* Sharp: solid core, thin outer rim */
   background: radial-gradient(
-    circle at center,
-    rgb(190, 20, 70) 0%,
-    rgb(220, 30, 80) 55%,
-    rgb(255, 61, 107) 82%,
-    rgb(255, 100, 90) 100%
+    circle closest-side at center,
+    rgb(var(--flow-end-rgb)) 0%,
+    rgb(var(--flow-end-rgb)) 86%,
+    rgb(var(--flow-start-rgb)) 100%
   );
-  box-shadow: inset 0 0 0 0.09375rem rgba(255, 255, 255, 0.35);
 }
 .cal-day.flow-0::before,
 .cal-day.flow-1::before,
@@ -1200,7 +1216,7 @@ body {
   bottom: 0.125rem;
   width: 0.25rem;
   height: 0.25rem;
-  background: white;
+  background: currentColor;
   border-radius: 50%;
 }
 .cal-day.has-log::before {
@@ -1215,11 +1231,6 @@ body {
 }
 .cal-day.selected-log {
   box-shadow: 0 0 0 0.15625rem var(--lavender);
-}
-.cal-day.flow-4.selected-log {
-  box-shadow:
-    inset 0 0 0 0.09375rem rgba(255, 255, 255, 0.35),
-    0 0 0 0.15625rem var(--lavender);
 }
 
 .log-modal-overlay {
@@ -1751,10 +1762,10 @@ body {
   justify-content: center;
   min-height: 1.5rem;
 }
-.profile-day--flow-1 { background: rgba(255, 61, 107, 0.28); }
-.profile-day--flow-2 { background: rgba(255, 61, 107, 0.56); }
-.profile-day--flow-3 { background: rgba(255, 61, 107, 0.88); color: white; }
-.profile-day--flow-4 { background: rgba(255, 61, 107, 1); color: white; box-shadow: inset 0 0 0 0.0625rem rgba(255, 255, 255, 0.4); }
+.profile-day--flow-1 { background: rgb(var(--flow-end-rgb) / 0.28); }
+.profile-day--flow-2 { background: rgb(var(--flow-end-rgb) / 0.56); }
+.profile-day--flow-3 { background: rgb(var(--flow-end-rgb) / 0.88); color: var(--flow-text); }
+.profile-day--flow-4 { background: rgb(var(--flow-end-rgb)); color: var(--flow-text); box-shadow: inset 0 0 0 0.0625rem rgba(255, 255, 255, 0.4); }
 .profile-day--pain { background: rgba(255, 140, 0, var(--pain-alpha)); }
 .profile-day--mood-low { background: rgba(139, 127, 232, 0.55); }
 .profile-day--mood-neutral { background: rgba(167, 139, 250, 0.24); }
@@ -3131,6 +3142,114 @@ body {
 .ts-kawaii-a { background: #c084fc; }
 .ts-kawaii-b { background: #f43f8e; }
 .ts-kawaii-bg { background: #fff8fc; border: 1px solid #f9a8d4; }
+
+/* Customize swatch previews the live palette instead of a fixed one */
+.ts-custom    { background: var(--bg); border: 1px solid var(--border); }
+.ts-custom-a  { background: rgb(var(--flow-start-rgb)); }
+.ts-custom-b  { background: rgb(var(--flow-end-rgb)); }
+.ts-custom-bg { background: var(--card); border: 1px solid var(--border); }
+.ts-custom-bg .theme-swatch__name { color: var(--text); }
+
+/* ── Theme customizer ───────────────────────────────────────────────────────── */
+.theme-custom-panel {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 0.0625rem solid var(--border);
+}
+.theme-custom-panel.hidden {
+  display: none;
+}
+.flow-preview {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.625rem 0.5rem;
+  margin-bottom: 1rem;
+}
+@media (min-width: 28rem) {
+  .flow-preview {
+    grid-template-columns: repeat(7, 1fr);
+  }
+}
+.flow-preview__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+}
+.flow-preview__cell {
+  width: 2.25rem;
+  cursor: default;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+.flow-preview__caption {
+  font-size: 0.625rem;
+  line-height: 1.2;
+  color: var(--text-muted);
+  text-align: center;
+}
+.color-field-grid {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.color-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+.color-field__label {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  min-width: 0;
+}
+.color-field__control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+.color-field__hex {
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  min-width: 4.25rem;
+  text-align: right;
+}
+.color-field__input {
+  width: 2.5rem;
+  height: 1.75rem;
+  padding: 0;
+  background: none;
+  border: 0.0625rem solid var(--border);
+  border-radius: 0.375rem;
+  cursor: pointer;
+}
+.color-field__input::-webkit-color-swatch-wrapper {
+  padding: 0.125rem;
+}
+.color-field__input::-webkit-color-swatch {
+  border: none;
+  border-radius: 0.25rem;
+}
+.color-field__input::-moz-color-swatch {
+  border: none;
+  border-radius: 0.25rem;
+}
+.custom-theme-actions {
+  display: grid;
+  gap: 0.5rem;
+}
+.custom-theme-actions .apply-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.custom-theme-actions .btn--secondary {
+  margin: 0;
+}
 
 /* ── Calendar nav disabled state ────────────────────────────────────────────── */
 .cal-nav-btn.nav-disabled {
