@@ -320,9 +320,6 @@ const LOCALES = {
     // Theme customizer
     custom_theme_hint:
       "These start from the colours you were just viewing. Edits preview straight away. Save a preset to keep it while you try other themes.",
-    custom_theme_base_label: "Start from",
-    custom_theme_base_hint:
-      "Changing this reloads that theme's colours as your starting point.",
     custom_theme_preview_label: "Calendar preview",
     custom_theme_preview_predicted: "Predicted",
     custom_theme_preview_tolerance: "Extra days",
@@ -1576,9 +1573,6 @@ const LOCALES = {
     // Theme customizer
     custom_theme_hint:
       "Empiezan con los colores que estabas viendo. Los cambios se previsualizan al instante. Guarda un preajuste para conservarlo mientras pruebas otros temas.",
-    custom_theme_base_label: "Partir de",
-    custom_theme_base_hint:
-      "Cambiar esto recarga los colores de ese tema como punto de partida.",
     custom_theme_preview_label: "Vista previa del calendario",
     custom_theme_preview_predicted: "Previsto",
     custom_theme_preview_tolerance: "Días extra",
@@ -2172,9 +2166,6 @@ const LOCALES = {
 
     custom_theme_hint:
       "直前に表示していた配色から始まります。変更はすぐにプレビューされます。プリセットを保存すれば、他のテーマを試したあとでも戻せます。",
-    custom_theme_base_label: "ベースにするテーマ",
-    custom_theme_base_hint:
-      "変更すると、そのテーマの配色が出発点として読み込まれます。",
     custom_theme_preview_label: "カレンダーのプレビュー",
     custom_theme_preview_predicted: "予測日",
     custom_theme_preview_tolerance: "前後の日",
@@ -2758,8 +2749,6 @@ const LOCALES = {
 
     custom_theme_hint:
       "以你剛才看到的配色為起點，修改後會立即預覽。儲存為預設組合，之後切換其他主題也能隨時取回。",
-    custom_theme_base_label: "以哪個主題為基礎",
-    custom_theme_base_hint: "變更後會載入該主題的配色作為起點。",
     custom_theme_preview_label: "日曆預覽",
     custom_theme_preview_predicted: "預測日",
     custom_theme_preview_tolerance: "前後彈性日",

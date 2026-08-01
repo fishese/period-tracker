@@ -6,7 +6,7 @@
 
 This document is the **current source of truth** for continuing work. Older implementation history remains available in Git; verify historical notes against current code for predictions, storage keys, fertility defaults, and branding.
 
-**Current `CACHE_VERSION`:** `v20260801c` (in `service-worker.js`)
+**Current `CACHE_VERSION`:** `v20260801d` (in `service-worker.js`)
 
 ---
 
@@ -229,10 +229,10 @@ Every flow level shares one two-colour gradient, so heavier flow reads as more o
 
 | Theme | `--flow-start-rgb` (light / outer) | `--flow-end-rgb` (heavy / core) | `--flow-text` |
 |-------|------------------------------------|----------------------------------|---------------|
-| YCK Classic | `255 138 101` / `#ff8a65` | `194 24 91` / `#c2185b` | White |
-| Newsroom Light | `107 114 128` / `#6b7280` | `31 41 55` / `#1f2937` | White |
-| Newsroom Dark | `147 197 253` / `#93c5fd` | `37 99 235` / `#2563eb` | White |
-| Pink Power | `219 39 119` / `#db2777` | `157 23 77` / `#9d174d` | White |
+| YCK Classic | `213 149 255` / `#d595ff` | `197 52 246` / `#c534f6` | Dark ink |
+| Newsroom Light | `245 96 97` / `#f56061` | `216 45 45` / `#d82d2d` | White |
+| Newsroom Dark | `92 151 217` / `#5c97d9` | `24 71 172` / `#1847ac` | White |
+| Pink Power | `255 142 195` / `#ff8ec3` | `255 74 147` / `#ff4a93` | Dark ink |
 
 `--flow-text` is the ink for filled flow days and is auto-picked for custom themes.
 
@@ -246,11 +246,11 @@ Every flow level shares one two-colour gradient, so heavier flow reads as more o
 
 Settings → Layout → Theme has a fifth option, **Customize**, which opens an inline panel.
 
-- Selecting it snapshots whatever palette is on screen (read through a hidden probe element, so any `rgb(var(…))` or `color-mix()` value resolves to plain hex).
+- Selecting it snapshots whatever palette is currently on screen (read through a hidden probe element, so any `rgb(var(…))` or `color-mix()` value resolves to plain hex). This applies whether the current theme is built-in or already customized; there is no separate “Start from” control.
 - The panel edits 11 colours. Each swatch opens one shared saturation/brightness gradient with a hue slider; the adjacent hex field remains editable for exact values. Reusing one picker keeps the DOM and event work small.
-- `applyCustomThemeColors()` derives `--bg2`, `--bg3`, `--border`, `--rose-pale`, `--deep-purple`, `--coral`, `--amber`, `--danger`, `--success`, `--status-card-bg`, and `--flow-text` from those colours and writes everything as inline variables on `:root`.
+- `applyCustomThemeColors()` derives `--bg2`, `--bg3`, `--border`, `--rose-pale`, `--deep-purple`, `--coral`, `--amber`, `--danger`, `--success`, `--status-card-bg`, the theme-aware navigation tokens, and `--flow-text` from those colours and writes everything as inline variables on `:root`.
 - `data-theme` stays on the chosen **base** theme so its light/dark-specific rules (inputs, tab bars) keep working; `data-theme-custom="on"` marks that inline overrides are active. Leaving Customize calls `clearCustomThemeVars()`, which removes every property in `CUSTOM_THEME_APPLIED_PROPS`.
-- Two storage keys: a **draft** (auto-saved on every edit, survives switching themes) and one explicitly **saved preset** (Save preset / Load saved preset). *Reset to theme colours* reloads the base theme's palette.
+- Two storage keys: a **draft** (auto-saved on every edit, survives switching themes) and one explicitly **saved preset** (Save preset / Load saved preset). *Reset to theme colours* reloads the built-in theme captured when Customize was opened.
 
 ### Fertility and timeline toggles
 

@@ -25,13 +25,20 @@
   --danger: #e6233b;
   --success: #34d399;
   --status-card-bg: linear-gradient(135deg, #2a1040 0%, #1a0828 100%);
+  --nav-bg: rgba(26, 16, 37, 0.92);
+  --nav-item-bg: rgba(167, 139, 250, 0.08);
+  --nav-item-border: rgba(167, 139, 250, 0.35);
+  --nav-item-text: #c4b5fd;
+  --nav-item-active-bg: rgba(167, 139, 250, 0.2);
+  --nav-item-active-border: rgba(167, 139, 250, 0.65);
+  --nav-item-active-text: #e9ddff;
 
-  /* Calendar flow gradient — warm coral → raspberry for YCK Classic.
+  /* Calendar flow gradient — violet → magenta for YCK Classic.
      Each built-in theme supplies its own readable pair; Customize can override
      either endpoint. start = lightest (outer), end = heaviest (core). */
-  --flow-start-rgb: 255 138 101;
-  --flow-end-rgb: 194 24 91;
-  --flow-text: #ffffff;
+  --flow-start-rgb: 213 149 255;
+  --flow-end-rgb: 197 52 246;
+  --flow-text: #14121a;
 }
 
 /* ── Newsroom Light ─────────────────────────────────────────────────────────── */
@@ -55,8 +62,15 @@
   --danger: #dc2626;
   --success: #166534;
   --status-card-bg: linear-gradient(135deg, #e6e6e3 0%, #f0f0ed 100%);
-  --flow-start-rgb: 107 114 128;
-  --flow-end-rgb: 31 41 55;
+  --nav-bg: rgba(255, 255, 255, 0.94);
+  --nav-item-bg: rgba(255, 255, 255, 0.98);
+  --nav-item-border: rgba(55, 65, 81, 0.28);
+  --nav-item-text: #374151;
+  --nav-item-active-bg: #e5e7eb;
+  --nav-item-active-border: #6b7280;
+  --nav-item-active-text: #111827;
+  --flow-start-rgb: 245 96 97;
+  --flow-end-rgb: 216 45 45;
   --flow-text: #ffffff;
 }
 
@@ -81,8 +95,15 @@
   --danger: #ef4444;
   --success: #34d399;
   --status-card-bg: linear-gradient(135deg, #1f2937 0%, #111827 100%);
-  --flow-start-rgb: 147 197 253;
-  --flow-end-rgb: 37 99 235;
+  --nav-bg: rgba(17, 24, 39, 0.94);
+  --nav-item-bg: rgba(92, 151, 217, 0.1);
+  --nav-item-border: rgba(92, 151, 217, 0.35);
+  --nav-item-text: #bfdbfe;
+  --nav-item-active-bg: rgba(92, 151, 217, 0.22);
+  --nav-item-active-border: rgba(92, 151, 217, 0.7);
+  --nav-item-active-text: #eff6ff;
+  --flow-start-rgb: 92 151 217;
+  --flow-end-rgb: 24 71 172;
   --flow-text: #ffffff;
 }
 
@@ -108,9 +129,16 @@
   --danger: #db2777;
   --success: #15803d;
   --status-card-bg: linear-gradient(135deg, #ffd6e8 0%, #fff0f7 100%);
-  --flow-start-rgb: 219 39 119;
-  --flow-end-rgb: 157 23 77;
-  --flow-text: #ffffff;
+  --nav-bg: rgba(255, 248, 252, 0.94);
+  --nav-item-bg: rgba(219, 39, 119, 0.06);
+  --nav-item-border: rgba(219, 39, 119, 0.24);
+  --nav-item-text: #9d174d;
+  --nav-item-active-bg: rgba(219, 39, 119, 0.12);
+  --nav-item-active-border: rgba(219, 39, 119, 0.45);
+  --nav-item-active-text: #9d174d;
+  --flow-start-rgb: 255 142 195;
+  --flow-end-rgb: 255 74 147;
+  --flow-text: #14121a;
 }
 
 * {
@@ -1817,10 +1845,10 @@ body {
   flex: 1;
   min-width: 0;
   padding: 0.75rem 0.5rem;
-  background: rgba(167, 139, 250, 0.04);
+  background: var(--nav-item-bg);
   border: 0.0625rem solid var(--border);
   border-radius: 0;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--nav-item-text);
   font-family: Georgia, serif;
   font-size: 0.85rem;
   font-weight: 400;
@@ -1851,13 +1879,13 @@ body {
   margin-left: -0.0625rem;
 }
 .insight-tab-btn:hover:not(.active) {
-  background: rgba(167, 139, 250, 0.12);
-  color: rgba(255, 255, 255, 0.7);
+  background: var(--nav-item-active-bg);
+  color: var(--nav-item-active-text);
 }
 .insight-tab-btn.active {
-  background: var(--card);
-  border-bottom-color: var(--card);
-  color: #fff;
+  background: var(--nav-item-active-bg);
+  border-bottom-color: var(--nav-item-active-border);
+  color: var(--nav-item-active-text);
   font-weight: 500;
   z-index: 11;
   opacity: 1;
@@ -2524,7 +2552,7 @@ body {
   transform: translateX(-50%);
   width: 100%;
   max-width: 30rem;
-  background: rgba(26, 16, 37, 0.92);
+  background: var(--nav-bg);
   backdrop-filter: blur(1.25rem);
   -webkit-backdrop-filter: blur(1.25rem);
   border-top: 0.0625rem solid var(--border);
@@ -2541,7 +2569,7 @@ body {
   gap: 0.1875rem;
   cursor: pointer;
   font-size: 0.625rem;
-  color: var(--text-muted);
+  color: var(--nav-item-text);
   transition: opacity 0.2s, transform 0.2s;
   user-select: none;
   padding: 0.25rem 0;
@@ -2564,7 +2592,7 @@ body {
   margin: auto;
 }
 .bnav-item.active {
-  color: var(--rose-light);
+  color: var(--nav-item-active-text);
 }
 
 @media (min-width: 600px) {

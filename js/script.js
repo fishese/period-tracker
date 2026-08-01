@@ -133,6 +133,8 @@ const CUSTOM_THEME_APPLIED_PROPS = [
   "--rose", "--rose-light", "--rose-pale", "--lavender", "--deep-purple",
   "--coral", "--amber", "--fertile-green", "--success", "--ovulation",
   "--danger", "--status-card-bg",
+  "--nav-bg", "--nav-item-bg", "--nav-item-border", "--nav-item-text",
+  "--nav-item-active-bg", "--nav-item-active-border", "--nav-item-active-text",
   "--flow-start-rgb", "--flow-end-rgb", "--flow-text",
 ];
 
@@ -294,8 +296,8 @@ function applyCustomThemeColors(colors) {
   const highlight = pick("--lavender", "#a78bfa");
   const fertile = pick("--fertile-green", "#34d399");
   const ovulation = pick("--ovulation", "#f59e0b");
-  const flowStart = pick("--flow-start-rgb", "#ff8a65");
-  const flowEnd = pick("--flow-end-rgb", "#c2185b");
+  const flowStart = pick("--flow-start-rgb", "#d595ff");
+  const flowEnd = pick("--flow-end-rgb", "#c534f6");
 
   const bg2 = mixRgb(bg, text, 0.07);
   const bg3 = mixRgb(bg, text, 0.14);
@@ -325,6 +327,13 @@ function applyCustomThemeColors(colors) {
     "--status-card-bg",
     `linear-gradient(135deg, ${rgbToHex(bg2)} 0%, ${rgbToHex(bg)} 100%)`
   );
+  set("--nav-bg", rgbToHex(card));
+  set("--nav-item-bg", `rgb(${highlight.map(clampByte).join(" ")} / 0.08)`);
+  set("--nav-item-border", `rgb(${highlight.map(clampByte).join(" ")} / 0.35)`);
+  set("--nav-item-text", rgbToHex(muted));
+  set("--nav-item-active-bg", `rgb(${highlight.map(clampByte).join(" ")} / 0.2)`);
+  set("--nav-item-active-border", `rgb(${highlight.map(clampByte).join(" ")} / 0.65)`);
+  set("--nav-item-active-text", rgbToHex(text));
   set("--flow-start-rgb", flowStart.map(clampByte).join(" "));
   set("--flow-end-rgb", flowEnd.map(clampByte).join(" "));
   // Numbers sit on the --flow-end core, so pick ink that survives a pale core.
@@ -345,16 +354,17 @@ function snapshotRenderedThemeAsPreset() {
   };
 }
 
-function setTheme(name) {
+function setTheme(name, { restoreCustom = false } = {}) {
   const theme = VALID_THEMES.includes(name) ? name : "default";
   if (theme === "custom") {
-    // Snapshot happens before anything is applied, so "Customize" opens on the
-    // palette the user was just looking at.
-    const preset =
-      customThemeDraft ||
-      readCustomThemePreset(CUSTOM_THEME_DRAFT_KEY) ||
-      readCustomThemePreset(CUSTOM_THEME_KEY) ||
-      snapshotRenderedThemeAsPreset();
+    // Selecting Customize always captures the palette currently on screen.
+    // Reloading is the one exception: restore the persisted custom palette
+    // because the browser starts with the default CSS before loadTheme runs.
+    const preset = restoreCustom
+      ? readCustomThemePreset(CUSTOM_THEME_DRAFT_KEY) ||
+        readCustomThemePreset(CUSTOM_THEME_KEY) ||
+        snapshotRenderedThemeAsPreset()
+      : snapshotRenderedThemeAsPreset();
     customThemeDraft = preset;
     writeCustomThemePreset(CUSTOM_THEME_DRAFT_KEY, preset);
     applyCustomTheme(preset);
@@ -373,7 +383,7 @@ function setTheme(name) {
 function loadTheme() {
   let saved = "light";
   try { saved = localStorage.getItem(THEME_KEY) || "light"; } catch (_) {}
-  setTheme(saved);
+  setTheme(saved, { restoreCustom: saved === "custom" });
 }
 
 // ── Theme customizer panel ───────────────────────────────────────────────────
@@ -618,8 +628,6 @@ function applyGradientPickerSelection() {
 }
 
 function fillCustomThemeInputs(preset) {
-  const baseSelect = document.getElementById("custom-theme-base");
-  if (baseSelect) baseSelect.value = preset.base;
   for (const field of CUSTOM_THEME_FIELDS) {
     const value = preset.colors[field.prop];
     const swatch = document.querySelector(
@@ -681,12 +689,6 @@ function resetCustomThemeToBase() {
   writeCustomThemePreset(CUSTOM_THEME_DRAFT_KEY, customThemeDraft);
   applyCustomTheme(customThemeDraft);
   fillCustomThemeInputs(customThemeDraft);
-}
-
-function changeCustomThemeBase(base) {
-  if (!BASE_THEMES.includes(base) || !customThemeDraft) return;
-  customThemeDraft = { base, colors: customThemeDraft.colors };
-  resetCustomThemeToBase();
 }
 
 function saveCustomThemePreset() {
@@ -6050,7 +6052,6 @@ window.importData = importData;
 window.confirmClear = confirmClear;
 window.switchTab = switchTab;
 window.setTheme = setTheme;
-window.changeCustomThemeBase = changeCustomThemeBase;
 window.saveCustomThemePreset = saveCustomThemePreset;
 window.loadCustomThemePreset = loadCustomThemePreset;
 window.resetCustomThemeToBase = resetCustomThemeToBase;
