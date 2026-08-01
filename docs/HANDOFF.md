@@ -6,7 +6,7 @@
 
 This document is the **current source of truth** for continuing work. Older implementation history remains available in Git; verify historical notes against current code for predictions, storage keys, fertility defaults, and branding.
 
-**Current `CACHE_VERSION`:** `v20260801a` (in `service-worker.js`)
+**Current `CACHE_VERSION`:** `v20260801c` (in `service-worker.js`)
 
 ---
 
@@ -225,13 +225,16 @@ Only while **actively bleeding** (`isPeriodEpisodeActive`).
 
 ### Calendar flow colours
 
-Every flow level shares one two-colour gradient (coral → pink-red from the original indicator), so heavier flow reads as more of the same colour rather than a new one. Built-in themes leave these alone; only Customize overrides them.
+Every flow level shares one two-colour gradient, so heavier flow reads as more of the same colour rather than a new one. Each built-in theme provides a palette suited to its background; Customize can override either endpoint.
 
-| Variable | Meaning |
-|----------|---------|
-| `--flow-start-rgb` | Lightest flow — outer ring (`255 190 150` / `#ffbe96`) |
-| `--flow-end-rgb` | Heaviest flow — inner core (`255 61 107` / `#ff3d6b`) |
-| `--flow-text` | Ink for filled flow days (auto-picked for custom themes) |
+| Theme | `--flow-start-rgb` (light / outer) | `--flow-end-rgb` (heavy / core) | `--flow-text` |
+|-------|------------------------------------|----------------------------------|---------------|
+| YCK Classic | `255 138 101` / `#ff8a65` | `194 24 91` / `#c2185b` | White |
+| Newsroom Light | `107 114 128` / `#6b7280` | `31 41 55` / `#1f2937` | White |
+| Newsroom Dark | `147 197 253` / `#93c5fd` | `37 99 235` / `#2563eb` | White |
+| Pink Power | `219 39 119` / `#db2777` | `157 23 77` / `#9d174d` | White |
+
+`--flow-text` is the ink for filled flow days and is auto-picked for custom themes.
 
 - `.cal-day.flow-1` → `.flow-3` use a gradual blend (small digit-sized core → wider core → soft outer ring). `.flow-4` keeps a sharp solid core (~86 %) with a thin outer rim.
 - Spotting (`.flow-0`) is a solid `--flow-end` ring over a low-opacity fill of the same colour.
@@ -244,7 +247,8 @@ Every flow level shares one two-colour gradient (coral → pink-red from the ori
 Settings → Layout → Theme has a fifth option, **Customize**, which opens an inline panel.
 
 - Selecting it snapshots whatever palette is on screen (read through a hidden probe element, so any `rgb(var(…))` or `color-mix()` value resolves to plain hex).
-- The panel edits 11 colours; `applyCustomThemeColors()` derives `--bg2`, `--bg3`, `--border`, `--rose-pale`, `--deep-purple`, `--coral`, `--amber`, `--danger`, `--success`, `--status-card-bg`, and `--flow-text` from them and writes everything as inline variables on `:root`.
+- The panel edits 11 colours. Each swatch opens one shared saturation/brightness gradient with a hue slider; the adjacent hex field remains editable for exact values. Reusing one picker keeps the DOM and event work small.
+- `applyCustomThemeColors()` derives `--bg2`, `--bg3`, `--border`, `--rose-pale`, `--deep-purple`, `--coral`, `--amber`, `--danger`, `--success`, `--status-card-bg`, and `--flow-text` from those colours and writes everything as inline variables on `:root`.
 - `data-theme` stays on the chosen **base** theme so its light/dark-specific rules (inputs, tab bars) keep working; `data-theme-custom="on"` marks that inline overrides are active. Leaving Customize calls `clearCustomThemeVars()`, which removes every property in `CUSTOM_THEME_APPLIED_PROPS`.
 - Two storage keys: a **draft** (auto-saved on every edit, survives switching themes) and one explicitly **saved preset** (Save preset / Load saved preset). *Reset to theme colours* reloads the base theme's palette.
 

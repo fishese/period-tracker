@@ -26,10 +26,11 @@
   --success: #34d399;
   --status-card-bg: linear-gradient(135deg, #2a1040 0%, #1a0828 100%);
 
-  /* Calendar flow gradient — fixed coral → pink-red across all built-in themes.
-     Only Customize overrides these. start = lightest (outer), end = heaviest (core). */
-  --flow-start-rgb: 255 190 150;
-  --flow-end-rgb: 255 61 107;
+  /* Calendar flow gradient — warm coral → raspberry for YCK Classic.
+     Each built-in theme supplies its own readable pair; Customize can override
+     either endpoint. start = lightest (outer), end = heaviest (core). */
+  --flow-start-rgb: 255 138 101;
+  --flow-end-rgb: 194 24 91;
   --flow-text: #ffffff;
 }
 
@@ -54,6 +55,9 @@
   --danger: #dc2626;
   --success: #166534;
   --status-card-bg: linear-gradient(135deg, #e6e6e3 0%, #f0f0ed 100%);
+  --flow-start-rgb: 107 114 128;
+  --flow-end-rgb: 31 41 55;
+  --flow-text: #ffffff;
 }
 
 /* ── Newsroom Dark ──────────────────────────────────────────────────────────── */
@@ -77,6 +81,9 @@
   --danger: #ef4444;
   --success: #34d399;
   --status-card-bg: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  --flow-start-rgb: 147 197 253;
+  --flow-end-rgb: 37 99 235;
+  --flow-text: #ffffff;
 }
 
 /* ── Pink Power 🌸 ──────────────────────────────────────────────────────────── */
@@ -101,6 +108,9 @@
   --danger: #db2777;
   --success: #15803d;
   --status-card-bg: linear-gradient(135deg, #ffd6e8 0%, #fff0f7 100%);
+  --flow-start-rgb: 219 39 119;
+  --flow-end-rgb: 157 23 77;
+  --flow-text: #ffffff;
 }
 
 * {
@@ -3199,7 +3209,6 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  cursor: pointer;
 }
 .color-field__label {
   font-size: 0.8125rem;
@@ -3213,31 +3222,159 @@ body {
   flex-shrink: 0;
 }
 .color-field__hex {
+  width: 5.25rem;
+  padding: 0.375rem 0.4375rem;
+  background: var(--bg2);
+  border: 0.0625rem solid var(--border);
+  border-radius: 0.375rem;
   font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-  font-size: 0.6875rem;
-  color: var(--text-muted);
-  min-width: 4.25rem;
-  text-align: right;
+  font-size: 0.75rem;
+  color: var(--text);
+  text-align: center;
+  text-transform: lowercase;
 }
-.color-field__input {
+.color-field__hex:focus {
+  border-color: var(--rose-light);
+  outline: 0.125rem solid color-mix(in srgb, var(--rose-light) 28%, transparent);
+  outline-offset: 0.0625rem;
+}
+.color-field__trigger {
   width: 2.5rem;
-  height: 1.75rem;
-  padding: 0;
-  background: none;
+  height: 2rem;
+  padding: 0.1875rem;
+  background: var(--bg2);
   border: 0.0625rem solid var(--border);
   border-radius: 0.375rem;
   cursor: pointer;
 }
-.color-field__input::-webkit-color-swatch-wrapper {
-  padding: 0.125rem;
+.color-field__trigger:hover,
+.color-field__trigger[aria-expanded="true"] {
+  border-color: var(--rose-light);
 }
-.color-field__input::-webkit-color-swatch {
-  border: none;
-  border-radius: 0.25rem;
+.color-field__trigger:focus-visible {
+  outline: 0.125rem solid var(--rose-light);
+  outline-offset: 0.125rem;
 }
-.color-field__input::-moz-color-swatch {
-  border: none;
+.color-field__swatch {
+  display: block;
+  width: 100%;
+  height: 100%;
   border-radius: 0.25rem;
+  box-shadow: inset 0 0 0 0.0625rem rgba(255, 255, 255, 0.28);
+}
+
+.gradient-color-picker {
+  --picker-hue: 0;
+  display: grid;
+  gap: 0.625rem;
+  padding: 0.75rem;
+  background: var(--bg2);
+  border: 0.0625rem solid var(--border);
+  border-radius: 0.75rem;
+}
+.gradient-color-picker.hidden {
+  display: none;
+}
+.gradient-color-picker__heading,
+.gradient-color-picker__hue-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.gradient-color-picker__heading strong {
+  font-size: 0.8125rem;
+  color: var(--text);
+}
+.gradient-color-picker__close {
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  background: transparent;
+  border: 0.0625rem solid var(--border);
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1.125rem;
+  line-height: 1;
+}
+.gradient-color-picker__close:hover,
+.gradient-color-picker__close:focus-visible {
+  border-color: var(--rose-light);
+  color: var(--text);
+}
+.gradient-color-picker__surface {
+  position: relative;
+  height: 10rem;
+  overflow: hidden;
+  border: 0.0625rem solid var(--border);
+  border-radius: 0.625rem;
+  background:
+    linear-gradient(to top, #000000, transparent),
+    linear-gradient(to right, #ffffff, hsl(var(--picker-hue) 100% 50%));
+  cursor: crosshair;
+  touch-action: none;
+}
+.gradient-color-picker__surface:focus-visible {
+  outline: 0.125rem solid var(--rose-light);
+  outline-offset: 0.125rem;
+}
+.gradient-color-picker__marker {
+  position: absolute;
+  width: 0.875rem;
+  height: 0.875rem;
+  border: 0.125rem solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 0.0625rem #111827, 0 0.125rem 0.3125rem rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+.gradient-color-picker__hue-row span,
+.gradient-color-picker__hint {
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+}
+.gradient-color-picker__hue {
+  width: min(15rem, 75%);
+  height: 0.875rem;
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  background: linear-gradient(
+    to right,
+    #ff0000,
+    #ffff00,
+    #00ff00,
+    #00ffff,
+    #0000ff,
+    #ff00ff,
+    #ff0000
+  );
+  border: 0.0625rem solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.gradient-color-picker__hue::-webkit-slider-thumb {
+  width: 1.125rem;
+  height: 1.125rem;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  border: 0.125rem solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 0.0625rem #111827;
+}
+.gradient-color-picker__hue::-moz-range-thumb {
+  width: 0.875rem;
+  height: 0.875rem;
+  background: transparent;
+  border: 0.125rem solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 0.0625rem #111827;
+}
+.gradient-color-picker__hint {
+  margin: 0;
+  line-height: 1.4;
 }
 .custom-theme-actions {
   display: grid;

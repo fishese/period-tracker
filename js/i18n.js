@@ -337,6 +337,12 @@ const LOCALES = {
     custom_theme_ovulation: "Ovulation day",
     custom_theme_flow_start: "Flow gradient — light",
     custom_theme_flow_end: "Flow gradient — heavy",
+    custom_theme_picker_hue: "Hue",
+    custom_theme_picker_hint:
+      "Drag in the gradient to set saturation and brightness. Use the hex field for an exact colour.",
+    custom_theme_picker_close: "Close colour picker",
+    custom_theme_picker_value:
+      "{hex}; {saturation}% saturation; {brightness}% brightness",
     custom_theme_save: "Save preset",
     custom_theme_load: "Load saved preset",
     custom_theme_reset: "Reset to theme colours",
@@ -1587,6 +1593,12 @@ const LOCALES = {
     custom_theme_ovulation: "Día de ovulación",
     custom_theme_flow_start: "Degradado de flujo — leve",
     custom_theme_flow_end: "Degradado de flujo — abundante",
+    custom_theme_picker_hue: "Tono",
+    custom_theme_picker_hint:
+      "Arrastra por el degradado para ajustar la saturación y el brillo. Usa el campo hexadecimal para un color exacto.",
+    custom_theme_picker_close: "Cerrar el selector de color",
+    custom_theme_picker_value:
+      "{hex}; {saturation}% de saturación; {brightness}% de brillo",
     custom_theme_save: "Guardar preajuste",
     custom_theme_load: "Cargar preajuste guardado",
     custom_theme_reset: "Restablecer colores del tema",
@@ -2177,6 +2189,12 @@ const LOCALES = {
     custom_theme_ovulation: "排卵日",
     custom_theme_flow_start: "経血量グラデーション — 少ない",
     custom_theme_flow_end: "経血量グラデーション — 多い",
+    custom_theme_picker_hue: "色相",
+    custom_theme_picker_hint:
+      "グラデーション上をドラッグして彩度と明るさを調整します。正確な色は16進数欄に入力できます。",
+    custom_theme_picker_close: "カラーピッカーを閉じる",
+    custom_theme_picker_value:
+      "{hex}、彩度{saturation}%、明るさ{brightness}%",
     custom_theme_save: "プリセットを保存",
     custom_theme_load: "保存したプリセットを読み込む",
     custom_theme_reset: "テーマの配色に戻す",
@@ -2756,6 +2774,12 @@ const LOCALES = {
     custom_theme_ovulation: "排卵日",
     custom_theme_flow_start: "血量漸層 — 少量",
     custom_theme_flow_end: "血量漸層 — 大量",
+    custom_theme_picker_hue: "色相",
+    custom_theme_picker_hint:
+      "在漸層中拖曳以調整飽和度與亮度；如需精確顏色，可直接輸入十六進位色碼。",
+    custom_theme_picker_close: "關閉顏色選擇器",
+    custom_theme_picker_value:
+      "{hex}；飽和度 {saturation}%；亮度 {brightness}%",
     custom_theme_save: "儲存預設組合",
     custom_theme_load: "載入已儲存的組合",
     custom_theme_reset: "還原為主題配色",

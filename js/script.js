@@ -137,6 +137,10 @@ const CUSTOM_THEME_APPLIED_PROPS = [
 ];
 
 let customThemeDraft = null;
+let customThemePickerProp = null;
+let customThemePickerHue = 0;
+let customThemePickerSaturation = 1;
+let customThemePickerValue = 1;
 
 function clampByte(n) {
   return Math.max(0, Math.min(255, Math.round(n)));
@@ -156,6 +160,44 @@ function hexToRgb(hex) {
 
 function rgbToHex(rgb) {
   return "#" + rgb.map((v) => clampByte(v).toString(16).padStart(2, "0")).join("");
+}
+
+function rgbToHsv(rgb) {
+  const [r, g, b] = rgb.map((value) => value / 255);
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const delta = max - min;
+  let hue = 0;
+
+  if (delta) {
+    if (max === r) hue = 60 * (((g - b) / delta) % 6);
+    else if (max === g) hue = 60 * ((b - r) / delta + 2);
+    else hue = 60 * ((r - g) / delta + 4);
+  }
+
+  if (hue < 0) hue += 360;
+  return {
+    hue,
+    saturation: max === 0 ? 0 : delta / max,
+    value: max,
+  };
+}
+
+function hsvToRgb(hue, saturation, value) {
+  const h = ((hue % 360) + 360) % 360;
+  const chroma = value * saturation;
+  const x = chroma * (1 - Math.abs(((h / 60) % 2) - 1));
+  const match = value - chroma;
+  let rgb;
+
+  if (h < 60) rgb = [chroma, x, 0];
+  else if (h < 120) rgb = [x, chroma, 0];
+  else if (h < 180) rgb = [0, chroma, x];
+  else if (h < 240) rgb = [0, x, chroma];
+  else if (h < 300) rgb = [x, 0, chroma];
+  else rgb = [chroma, 0, x];
+
+  return rgb.map((channel) => (channel + match) * 255);
 }
 
 function parseCssRgb(value) {
@@ -252,8 +294,8 @@ function applyCustomThemeColors(colors) {
   const highlight = pick("--lavender", "#a78bfa");
   const fertile = pick("--fertile-green", "#34d399");
   const ovulation = pick("--ovulation", "#f59e0b");
-  const flowStart = pick("--flow-start-rgb", "#ffbe96");
-  const flowEnd = pick("--flow-end-rgb", "#ff3d6b");
+  const flowStart = pick("--flow-start-rgb", "#ff8a65");
+  const flowEnd = pick("--flow-end-rgb", "#c2185b");
 
   const bg2 = mixRgb(bg, text, 0.07);
   const bg3 = mixRgb(bg, text, 0.14);
@@ -339,33 +381,240 @@ function loadTheme() {
 function buildCustomThemeFields() {
   const host = document.getElementById("custom-theme-fields");
   if (!host || host.childElementCount > 0) return;
-  for (const field of CUSTOM_THEME_FIELDS) {
-    const row = document.createElement("label");
+  CUSTOM_THEME_FIELDS.forEach((field, index) => {
+    const row = document.createElement("div");
     row.className = "color-field";
 
     const label = document.createElement("span");
     label.className = "color-field__label";
+    label.id = `custom-theme-label-${index}`;
     label.dataset.i18n = field.i18n;
     label.textContent = t(field.i18n);
 
-    const input = document.createElement("input");
-    input.type = "color";
-    input.className = "color-field__input";
-    input.dataset.themeProp = field.prop;
-    input.addEventListener("input", () =>
-      updateCustomThemeColor(field.prop, input.value)
+    const trigger = document.createElement("button");
+    trigger.type = "button";
+    trigger.className = "color-field__trigger";
+    trigger.dataset.themeProp = field.prop;
+    trigger.setAttribute("aria-labelledby", label.id);
+    trigger.setAttribute("aria-controls", "custom-theme-gradient-picker");
+    trigger.setAttribute("aria-expanded", "false");
+    trigger.addEventListener("click", () =>
+      openCustomThemeGradientPicker(field, trigger)
     );
 
-    const hex = document.createElement("span");
+    const swatch = document.createElement("span");
+    swatch.className = "color-field__swatch";
+    swatch.dataset.themeSwatchFor = field.prop;
+    swatch.setAttribute("aria-hidden", "true");
+    trigger.appendChild(swatch);
+
+    const hex = document.createElement("input");
+    hex.type = "text";
     hex.className = "color-field__hex";
     hex.dataset.themeHexFor = field.prop;
+    hex.setAttribute("aria-labelledby", label.id);
+    hex.setAttribute("autocomplete", "off");
+    hex.setAttribute("autocapitalize", "off");
+    hex.setAttribute("spellcheck", "false");
+    hex.maxLength = 7;
+    hex.placeholder = "#000000";
+    hex.addEventListener("input", () => {
+      if (/^#?[0-9a-f]{6}$/i.test(hex.value.trim())) {
+        updateCustomThemeColor(field.prop, hex.value);
+      }
+    });
+    hex.addEventListener("blur", () => {
+      if (customThemeDraft) hex.value = customThemeDraft.colors[field.prop];
+    });
 
-    const control = document.createElement("span");
+    const control = document.createElement("div");
     control.className = "color-field__control";
-    control.append(input, hex);
+    control.append(trigger, hex);
     row.append(label, control);
     host.appendChild(row);
+  });
+
+  buildCustomThemeGradientPicker(host);
+}
+
+function buildCustomThemeGradientPicker(host) {
+  const picker = document.createElement("section");
+  picker.id = "custom-theme-gradient-picker";
+  picker.className = "gradient-color-picker hidden";
+
+  const heading = document.createElement("div");
+  heading.className = "gradient-color-picker__heading";
+
+  const title = document.createElement("strong");
+  title.id = "custom-theme-gradient-title";
+
+  const close = document.createElement("button");
+  close.type = "button";
+  close.className = "gradient-color-picker__close";
+  close.dataset.i18nAria = "custom_theme_picker_close";
+  close.setAttribute("aria-label", t("custom_theme_picker_close"));
+  close.textContent = "×";
+  close.addEventListener("click", () => closeCustomThemeGradientPicker(true));
+  heading.append(title, close);
+
+  const surface = document.createElement("div");
+  surface.id = "custom-theme-gradient-surface";
+  surface.className = "gradient-color-picker__surface";
+  surface.tabIndex = 0;
+  surface.setAttribute("role", "slider");
+  surface.setAttribute("aria-labelledby", title.id);
+  surface.setAttribute("aria-valuemin", "0");
+  surface.setAttribute("aria-valuemax", "100");
+
+  const marker = document.createElement("span");
+  marker.className = "gradient-color-picker__marker";
+  marker.setAttribute("aria-hidden", "true");
+  surface.appendChild(marker);
+
+  let activePointerId = null;
+  const updateFromPointer = (event) => {
+    const rect = surface.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    customThemePickerSaturation = Math.max(
+      0,
+      Math.min(1, (event.clientX - rect.left) / rect.width)
+    );
+    customThemePickerValue = Math.max(
+      0,
+      Math.min(1, 1 - (event.clientY - rect.top) / rect.height)
+    );
+    applyGradientPickerSelection();
+  };
+  surface.addEventListener("pointerdown", (event) => {
+    activePointerId = event.pointerId;
+    surface.setPointerCapture?.(event.pointerId);
+    updateFromPointer(event);
+    event.preventDefault();
+  });
+  surface.addEventListener("pointermove", (event) => {
+    if (event.pointerId !== activePointerId) return;
+    updateFromPointer(event);
+    event.preventDefault();
+  });
+  const stopPointer = (event) => {
+    if (event.pointerId !== activePointerId) return;
+    activePointerId = null;
+  };
+  surface.addEventListener("pointerup", stopPointer);
+  surface.addEventListener("pointercancel", stopPointer);
+  surface.addEventListener("keydown", (event) => {
+    const step = event.shiftKey ? 0.1 : 0.02;
+    if (event.key === "ArrowLeft") customThemePickerSaturation -= step;
+    else if (event.key === "ArrowRight") customThemePickerSaturation += step;
+    else if (event.key === "ArrowUp") customThemePickerValue += step;
+    else if (event.key === "ArrowDown") customThemePickerValue -= step;
+    else return;
+    customThemePickerSaturation = Math.max(0, Math.min(1, customThemePickerSaturation));
+    customThemePickerValue = Math.max(0, Math.min(1, customThemePickerValue));
+    applyGradientPickerSelection();
+    event.preventDefault();
+  });
+
+  const hueRow = document.createElement("label");
+  hueRow.className = "gradient-color-picker__hue-row";
+  const hueLabel = document.createElement("span");
+  hueLabel.dataset.i18n = "custom_theme_picker_hue";
+  hueLabel.textContent = t("custom_theme_picker_hue");
+  const hue = document.createElement("input");
+  hue.id = "custom-theme-gradient-hue";
+  hue.className = "gradient-color-picker__hue";
+  hue.type = "range";
+  hue.min = "0";
+  hue.max = "359";
+  hue.step = "1";
+  hue.addEventListener("input", () => {
+    customThemePickerHue = Number(hue.value);
+    applyGradientPickerSelection();
+  });
+  hueRow.append(hueLabel, hue);
+
+  const hint = document.createElement("p");
+  hint.className = "gradient-color-picker__hint";
+  hint.dataset.i18n = "custom_theme_picker_hint";
+  hint.textContent = t("custom_theme_picker_hint");
+
+  picker.append(heading, surface, hueRow, hint);
+  host.appendChild(picker);
+}
+
+function openCustomThemeGradientPicker(field, trigger) {
+  if (!customThemeDraft) return;
+  const picker = document.getElementById("custom-theme-gradient-picker");
+  if (!picker) return;
+
+  document.querySelectorAll(".color-field__trigger[aria-expanded='true']").forEach((button) =>
+    button.setAttribute("aria-expanded", "false")
+  );
+  customThemePickerProp = field.prop;
+  trigger.setAttribute("aria-expanded", "true");
+
+  const title = document.getElementById("custom-theme-gradient-title");
+  if (title) {
+    title.dataset.i18n = field.i18n;
+    title.textContent = t(field.i18n);
   }
+  syncGradientPickerFromHex(customThemeDraft.colors[field.prop]);
+  picker.classList.remove("hidden");
+  document.getElementById("custom-theme-gradient-surface")?.focus();
+}
+
+function closeCustomThemeGradientPicker(restoreFocus = false) {
+  const picker = document.getElementById("custom-theme-gradient-picker");
+  if (!picker || picker.classList.contains("hidden")) return false;
+  const trigger = document.querySelector(
+    `.color-field__trigger[data-theme-prop="${customThemePickerProp}"]`
+  );
+  trigger?.setAttribute("aria-expanded", "false");
+  picker.classList.add("hidden");
+  customThemePickerProp = null;
+  if (restoreFocus) trigger?.focus();
+  return true;
+}
+
+function syncGradientPickerFromHex(hex) {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return;
+  const hsv = rgbToHsv(rgb);
+  if (hsv.saturation > 0.01) customThemePickerHue = hsv.hue;
+  customThemePickerSaturation = hsv.saturation;
+  customThemePickerValue = hsv.value;
+  renderGradientPicker(hex);
+}
+
+function renderGradientPicker(hex) {
+  const surface = document.getElementById("custom-theme-gradient-surface");
+  const marker = surface?.querySelector(".gradient-color-picker__marker");
+  const hue = document.getElementById("custom-theme-gradient-hue");
+  if (!surface || !marker || !hue) return;
+
+  surface.style.setProperty("--picker-hue", String(customThemePickerHue));
+  marker.style.left = `${customThemePickerSaturation * 100}%`;
+  marker.style.top = `${(1 - customThemePickerValue) * 100}%`;
+  marker.style.background = hex;
+  hue.value = String(Math.round(customThemePickerHue));
+  surface.setAttribute("aria-valuenow", String(Math.round(customThemePickerSaturation * 100)));
+  surface.setAttribute(
+    "aria-valuetext",
+    t("custom_theme_picker_value", {
+      hex,
+      saturation: Math.round(customThemePickerSaturation * 100),
+      brightness: Math.round(customThemePickerValue * 100),
+    })
+  );
+}
+
+function applyGradientPickerSelection() {
+  if (!customThemePickerProp) return;
+  const hex = rgbToHex(
+    hsvToRgb(customThemePickerHue, customThemePickerSaturation, customThemePickerValue)
+  );
+  updateCustomThemeColor(customThemePickerProp, hex, false);
+  renderGradientPicker(hex);
 }
 
 function fillCustomThemeInputs(preset) {
@@ -373,14 +622,17 @@ function fillCustomThemeInputs(preset) {
   if (baseSelect) baseSelect.value = preset.base;
   for (const field of CUSTOM_THEME_FIELDS) {
     const value = preset.colors[field.prop];
-    const input = document.querySelector(
-      `.color-field__input[data-theme-prop="${field.prop}"]`
+    const swatch = document.querySelector(
+      `.color-field__swatch[data-theme-swatch-for="${field.prop}"]`
     );
-    if (input) input.value = value;
+    if (swatch) swatch.style.background = value;
     const hex = document.querySelector(
       `.color-field__hex[data-theme-hex-for="${field.prop}"]`
     );
-    if (hex) hex.textContent = value;
+    if (hex) hex.value = value;
+  }
+  if (customThemePickerProp) {
+    syncGradientPickerFromHex(preset.colors[customThemePickerProp]);
   }
   const loadBtn = document.getElementById("custom-theme-load-btn");
   if (loadBtn) loadBtn.disabled = !readCustomThemePreset(CUSTOM_THEME_KEY);
@@ -390,24 +642,34 @@ function syncThemeCustomizer(theme) {
   const panel = document.getElementById("theme-custom-panel");
   if (!panel) return;
   panel.classList.toggle("hidden", theme !== "custom");
-  if (theme !== "custom" || !customThemeDraft) return;
+  if (theme !== "custom") {
+    closeCustomThemeGradientPicker();
+    return;
+  }
+  if (!customThemeDraft) return;
   buildCustomThemeFields();
   fillCustomThemeInputs(customThemeDraft);
 }
 
-function updateCustomThemeColor(prop, value) {
+function updateCustomThemeColor(prop, value, syncPicker = true) {
   const rgb = hexToRgb(value);
   if (!rgb || !customThemeDraft) return;
+  const normalized = rgbToHex(rgb);
   customThemeDraft = {
     base: customThemeDraft.base,
-    colors: { ...customThemeDraft.colors, [prop]: rgbToHex(rgb) },
+    colors: { ...customThemeDraft.colors, [prop]: normalized },
   };
   writeCustomThemePreset(CUSTOM_THEME_DRAFT_KEY, customThemeDraft);
   applyCustomTheme(customThemeDraft);
   const hex = document.querySelector(
     `.color-field__hex[data-theme-hex-for="${prop}"]`
   );
-  if (hex) hex.textContent = customThemeDraft.colors[prop];
+  if (hex) hex.value = normalized;
+  const swatch = document.querySelector(
+    `.color-field__swatch[data-theme-swatch-for="${prop}"]`
+  );
+  if (swatch) swatch.style.background = normalized;
+  if (syncPicker && customThemePickerProp === prop) syncGradientPickerFromHex(normalized);
 }
 
 /** Reload the selected base theme's palette as the new starting point. */
@@ -5576,6 +5838,9 @@ function _initLangSwitcher() {
   sel.addEventListener("change", () => {
     setLanguage(sel.value);
     applyI18n();
+    if (customThemePickerProp && customThemeDraft) {
+      renderGradientPicker(customThemeDraft.colors[customThemePickerProp]);
+    }
     _updateMonthDropdown();
     // Re-render dynamic content with new language
     updateStatusCard();
@@ -5689,6 +5954,7 @@ window.addEventListener("appinstalled", () => {
 
 document.addEventListener("keydown", (event) => {
   if (event.key !== "Escape") return;
+  if (closeCustomThemeGradientPicker(true)) return;
   if (document.getElementById("print-options-overlay")?.classList.contains("visible")) {
     closePrintOptions();
     document.getElementById("history-print-btn")?.focus();
@@ -5791,6 +6057,9 @@ window.resetCustomThemeToBase = resetCustomThemeToBase;
 window.changeLanguage = (lang) => {
   setLanguage(lang);
   applyI18n();
+  if (customThemePickerProp && customThemeDraft) {
+    renderGradientPicker(customThemeDraft.colors[customThemePickerProp]);
+  }
   updateStatusCard();
   renderCalendar();
   updateInsights();
