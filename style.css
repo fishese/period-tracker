@@ -3003,6 +3003,42 @@ body {
   margin-bottom: 0;
 }
 
+.btn--biometric-settings {
+  margin-top: 0.625rem;
+}
+
+.android-app-promo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.625rem;
+  padding: 0.75rem 0.875rem;
+  color: var(--text);
+  background: var(--nav-item-bg);
+  border: 0.0625rem solid var(--nav-item-border);
+  border-radius: 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.35;
+  text-decoration: none;
+}
+
+.android-app-promo svg {
+  width: 1.75rem;
+  height: 1.75rem;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: var(--fertile-green);
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.android-app-promo circle {
+  fill: var(--fertile-green);
+  stroke: none;
+}
+
 .btn--export {
   background: linear-gradient(135deg, var(--teal), #0d9488);
   margin-top: 0.625rem;

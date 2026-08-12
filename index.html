@@ -1198,6 +1198,23 @@
               used by browsers for HTTPS.<br /><br />
               Zero data is sent to any server. No accounts. No analytics.
             </div>
+            <a
+              id="android-biometric-promo"
+              class="android-app-promo hidden"
+              href="https://github.com/fishese/period-tracker/releases/download/android-debug/app-debug.apk"
+              target="_blank"
+              rel="noopener"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M7 8h10a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2Z" />
+                <path d="m8 8-1.5-2.5M16 8l1.5-2.5M5 11v4M19 11v4M9 19v2M15 19v2" />
+                <circle cx="9.5" cy="11.5" r="0.75" />
+                <circle cx="14.5" cy="11.5" r="0.75" />
+              </svg>
+              <span data-i18n="android_app_biometric_cta">
+                Install Android app for biometric unlock
+              </span>
+            </a>
             <button
               id="btn-install-pwa"
               class="apply-btn btn--install hidden"
@@ -1215,7 +1232,7 @@
             <button
               type="button"
               id="biometric-settings-btn"
-              class="apply-btn hidden"
+              class="apply-btn btn--biometric-settings hidden"
               onclick="toggleBiometricUnlock()"
               data-i18n="biometric_enable"
             >

@@ -34,6 +34,7 @@ const LOCALES = {
   // ── English ────────────────────────────────────────────────────────────────
   en: {
     calendar_go_to_current_month: "Go to current month",
+    android_app_biometric_cta: "Install Android app for biometric unlock",
     // About section (About, Privacy, Support, Disclaimer, Accessibility)
     about_tab_developer: "Developer",
     about_tab_privacy: "Privacy",
@@ -1302,6 +1303,8 @@ const LOCALES = {
   // ── Spanish ────────────────────────────────────────────────────────────────
   es: {
     calendar_go_to_current_month: "Ir al mes actual",
+    android_app_biometric_cta:
+      "Instala la app de Android para usar el desbloqueo biométrico",
     biometric_unlock: "Desbloquear con biometría",
     biometric_enable: "Activar desbloqueo biométrico",
     biometric_disable: "Desactivar desbloqueo biométrico",
@@ -1965,6 +1968,8 @@ const LOCALES = {
   // ── Japanese ───────────────────────────────────────────────────────────────
   ja: {
     calendar_go_to_current_month: "今月に戻る",
+    android_app_biometric_cta:
+      "生体認証ロック解除を使うにはAndroidアプリをインストール",
     biometric_unlock: "生体認証でロック解除",
     biometric_enable: "生体認証ロック解除を有効にする",
     biometric_disable: "生体認証ロック解除を無効にする",
@@ -2563,6 +2568,7 @@ const LOCALES = {
   // ── Traditional Chinese ────────────────────────────────────────────────────
   "zh-TW": {
     calendar_go_to_current_month: "返回本月",
+    android_app_biometric_cta: "安裝 Android 應用程式以使用生物辨識解鎖",
     biometric_unlock: "使用生物辨識解鎖",
     biometric_enable: "啟用生物辨識解鎖",
     biometric_disable: "停用生物辨識解鎖",

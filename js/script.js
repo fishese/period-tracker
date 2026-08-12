@@ -21,6 +21,7 @@ import {
   authenticateBiometric,
   disableBiometric,
   isBiometricCancellation,
+  setStatusBarStyle,
 } from "./native.js";
 import {
   normalizeFlowLevel,
@@ -230,6 +231,27 @@ function relativeLuminance(rgb) {
   return 0.2126 * lin(rgb[0]) + 0.7152 * lin(rgb[1]) + 0.0722 * lin(rgb[2]);
 }
 
+let lastStatusBarDarkContent = null;
+
+function syncThemeChrome() {
+  const paintedBackground = getComputedStyle(document.body).backgroundColor;
+  const backgroundRgb = parseCssRgb(paintedBackground);
+  if (!backgroundRgb) return;
+
+  const backgroundHex = rgbToHex(backgroundRgb);
+  document
+    .querySelector('meta[name="theme-color"]')
+    ?.setAttribute("content", backgroundHex);
+
+  // This is the luminance crossover where black has better contrast than white.
+  const useDarkContent = relativeLuminance(backgroundRgb) > 0.179;
+  if (useDarkContent === lastStatusBarDarkContent) return;
+  lastStatusBarDarkContent = useDarkContent;
+  void setStatusBarStyle(useDarkContent).catch((error) => {
+    console.warn("Could not update Android status bar style:", error);
+  });
+}
+
 /**
  * Resolve the palette the browser is painting right now. Reading through a probe
  * element means derived values (rgb(var(--…)), color-mix, …) come back as plain
@@ -354,6 +376,7 @@ function applyCustomTheme(preset) {
   applyBaseTheme(preset.base);
   document.documentElement.dataset.themeCustom = "on";
   applyCustomThemeColors(preset.colors);
+  syncThemeChrome();
 }
 
 function snapshotRenderedThemeAsPreset() {
@@ -388,6 +411,7 @@ function setTheme(name, { restoreCustom = false } = {}) {
     r.checked = r.value === theme;
   });
   syncThemeCustomizer(theme);
+  syncThemeChrome();
 }
 
 function loadTheme() {
@@ -1052,7 +1076,11 @@ async function refreshNativeFeatures() {
   const unlockBtn = document.getElementById("biometric-unlock-btn");
   const settingsBtn = document.getElementById("biometric-settings-btn");
   const settingsStatus = document.getElementById("biometric-settings-status");
-  if (!isNativeApp()) {
+  const nativeApp = isNativeApp();
+  document
+    .getElementById("android-biometric-promo")
+    ?.classList.toggle("hidden", nativeApp);
+  if (!nativeApp) {
     unlockBtn?.classList.add("hidden");
     settingsBtn?.classList.add("hidden");
     settingsStatus?.classList.add("hidden");

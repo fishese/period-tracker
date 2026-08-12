@@ -6,7 +6,7 @@
 
 This document is the **current source of truth** for continuing work. Older implementation history remains available in Git; verify historical notes against current code for predictions, storage keys, fertility defaults, and branding.
 
-**Current `CACHE_VERSION`:** `v20260812b` (in `service-worker.js`)
+**Current `CACHE_VERSION`:** `v20260812c` (in `service-worker.js`)
 
 An Android Capacitor wrapper now lives in `android/`; see `docs/android.md`.
 It uses private native storage plus an Android Keystore/`BiometricPrompt`

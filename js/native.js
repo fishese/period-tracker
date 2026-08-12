@@ -2,12 +2,26 @@ function getNativePlugin() {
   return globalThis.Capacitor?.Plugins?.NativeSecure || null;
 }
 
+function getSystemBarsPlugin() {
+  return globalThis.Capacitor?.Plugins?.SystemBars || null;
+}
+
 export function isNativeApp() {
   const capacitor = globalThis.Capacitor;
   return !!(
     getNativePlugin() &&
     (capacitor?.isNativePlatform?.() || capacitor?.getPlatform?.() === "android")
   );
+}
+
+export async function setStatusBarStyle(useDarkContent) {
+  const plugin = getSystemBarsPlugin();
+  if (!plugin || !isNativeApp()) return;
+  await plugin.setStyle({
+    // Capacitor names styles after the background: LIGHT means dark content.
+    style: useDarkContent ? "LIGHT" : "DARK",
+    bar: "StatusBar",
+  });
 }
 
 export async function getBiometricStatus() {
