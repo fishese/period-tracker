@@ -24,7 +24,7 @@ body {
   top: 0;
   z-index: 120;
   background: var(--bg);
-  padding: 1rem 0 0.75rem;
+  padding: calc(1rem + var(--app-safe-area-top)) 0 0.75rem;
   display: flex;
   align-items: center;
   justify-content: space-between;

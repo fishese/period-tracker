@@ -1,0 +1,8 @@
+{
+  "appId": "cc.fishese.mycyclekeeper",
+  "appName": "My Cycle Keeper",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}

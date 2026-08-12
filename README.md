@@ -1,8 +1,15 @@
 # My Cycle Keeper
 
-A private, open-source period and cycle tracker that works in your browser and can be installed as a Progressive Web App (PWA).
+A private, open-source period and cycle tracker available as a browser/PWA app
+and an Android wrapper with separate app-private storage.
 
-**Use the app:** https://period.fishese.cc/
+## Use My Cycle Keeper
+
+- **Web / PWA:** [period.fishese.cc](https://period.fishese.cc/)
+- **Android debug APK:** [Download `app-debug.apk`](https://github.com/fishese/period-tracker/releases/download/android-debug/app-debug.apk)
+
+The APK is debug-signed, so Android may ask you to allow installation from the
+browser or file manager used to open it.
 
 My Cycle Keeper is designed for straightforward daily tracking, useful cycle insights, and control over your own data. Your cycle records are stored locally on your device and encrypted with AES-256-GCM. The app does not use a backend to store your health data, and no account is required unless you choose to connect Google Drive for encrypted backups.
 
@@ -18,6 +25,7 @@ My Cycle Keeper is designed for straightforward daily tracking, useful cycle ins
 - **Optional encrypted Google Drive backup** for restoring your data on another device *(uses Google Drive's [`drive.appdata`](https://developers.google.com/workspace/drive/api/guides/api-specific-auth#drive-api-scopes) scope, which only allows My Cycle Keeper to access its own hidden app-data folder—not your other Drive files or folders)*
 - **Offline support** after the app has been loaded, with an installable mobile-friendly interface
 - Interface available in **English, Spanish, Japanese, and Traditional Chinese**
+- **Android APK wrapper** with app-private storage and optional Keystore-backed biometric unlock
 
 ## Privacy and data ownership
 
@@ -60,6 +68,26 @@ http://localhost:8000/
 ```
 
 Do not open the app directly with a `file://` URL.
+
+## Android APK
+
+The repository also includes a Capacitor Android wrapper. Unlike the browser
+PWA, its encrypted records are saved in My Cycle Keeper's private Android app
+storage, separate from Chrome/site data. A 4-digit PIN remains the recovery
+credential; users with an enrolled strong biometric can optionally protect a
+device-bound copy of that PIN with Android Keystore and unlock via the system
+biometric prompt.
+
+**Download:** [`app-debug.apk`](https://github.com/fishese/period-tracker/releases/download/android-debug/app-debug.apk)
+
+```bash
+npm install
+npm run android:apk
+```
+
+The debug APK is written to
+`android/app/build/outputs/apk/debug/app-debug.apk`. See
+[`docs/android.md`](docs/android.md) for build and security details.
 
 ## Deployment
 

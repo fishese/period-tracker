@@ -182,6 +182,15 @@
         <div class="num-btn del" onclick="pinDelete()">⌫</div>
       </div>
       <div class="lock-error" id="lock-error"></div>
+      <button
+        type="button"
+        id="biometric-unlock-btn"
+        class="apply-btn biometric-unlock-btn hidden"
+        onclick="unlockWithBiometrics()"
+        data-i18n="biometric_unlock"
+      >
+        Unlock with biometrics
+      </button>
       <div class="forgot-pin-wrapper">
         <button onclick="forgotPinFlow()" class="forgot-pin-btn">
           Forgot PIN?
@@ -491,7 +500,16 @@
               >
                 ‹
               </button>
-              <div class="cal-month" id="cal-month-label">—</div>
+              <button
+                type="button"
+                class="cal-month"
+                id="cal-month-label"
+                onclick="goToCurrentMonth()"
+                data-i18n-aria="calendar_go_to_current_month"
+                aria-label="Go to current month"
+              >
+                —
+              </button>
               <button
                 class="cal-nav-btn"
                 id="cal-next"
@@ -1194,6 +1212,16 @@
             >
               Change PIN
             </button>
+            <button
+              type="button"
+              id="biometric-settings-btn"
+              class="apply-btn hidden"
+              onclick="toggleBiometricUnlock()"
+              data-i18n="biometric_enable"
+            >
+              Enable biometric unlock
+            </button>
+            <div id="biometric-settings-status" class="field-hint hidden"></div>
 
             <div id="backup-status" class="backup-status"></div>
             <button class="apply-btn btn--export" onclick="exportData()" data-i18n="settings_export">
@@ -1268,7 +1296,7 @@
               <strong data-i18n="settings_storage_label">Storage used:</strong>
               <span id="storage-usage">Calculating...</span>
             </div>
-            <div class="info-box info-box--data-warning" data-i18n-html="data_persistence">
+            <div id="data-persistence-info" class="info-box info-box--data-warning" data-i18n-html="data_persistence">
               ⚠️ <strong>Data Persistence:</strong> Your data is stored in
               IndexedDB. Clearing browser cache is safe, but clearing "site data"
               or "cookies and site data" in your browser settings WILL erase all

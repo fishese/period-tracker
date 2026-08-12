@@ -22,7 +22,7 @@ export function initKeyboardNavigation(callbacks) {
     changePinInput,
     importPinInput,
     closeLogPanel,
-    renderCalendar,
+    setCalendarViewMonth,
   } = callbacks;
 
   document.addEventListener("keydown", (e) => {
@@ -241,12 +241,7 @@ export function initKeyboardNavigation(callbacks) {
               newCell.focus();
             } else {
               // Date is in a different month - navigate to that month
-              viewMonth = new Date(
-                newDate.getFullYear(),
-                newDate.getMonth(),
-                1
-              );
-              renderCalendar();
+              setCalendarViewMonth(newDate);
               setTimeout(() => {
                 const targetCell = document.querySelector(
                   `.cal-day[data-date="${newDateStr}"]`

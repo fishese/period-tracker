@@ -31,6 +31,29 @@ export function resetSessionTimer() {
   }, SESSION_TIMEOUT_MS);
 }
 
+export function hasSessionExpired(now = Date.now()) {
+  return now - lastActivity >= SESSION_TIMEOUT_MS;
+}
+
+/**
+ * Process real user activity without allowing a suspended background timer to
+ * extend an already-expired session when the page/app resumes.
+ */
+export function handleSessionActivity(now = Date.now()) {
+  if (hasSessionExpired(now)) {
+    if (lockApp) lockApp();
+    return false;
+  }
+  resetSessionTimer();
+  return true;
+}
+
+export function enforceSessionTimeout(now = Date.now()) {
+  if (!hasSessionExpired(now)) return false;
+  if (lockApp) lockApp();
+  return true;
+}
+
 export function startCountdown(seconds) {
   clearInterval(countdownInterval);
   let s = seconds;

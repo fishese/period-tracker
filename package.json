@@ -1,8 +1,19 @@
 {
   "name": "mycyclekeeper-period-tracker",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test js/import/tests/*.test.js js/export/tests/*.test.js"
+    "test": "node --test js/import/tests/*.test.js js/export/tests/*.test.js js/tests/*.test.js",
+    "android:sync-www": "node scripts/sync-android-www.mjs",
+    "android:sync": "npm run android:sync-www && cap sync android",
+    "android:open": "npm run android:sync && cap open android",
+    "android:build": "npm run android:sync && cd android && gradlew.bat assembleDebug",
+    "android:apk": "npm run android:build"
+  },
+  "devDependencies": {
+    "@capacitor/android": "8.4.2",
+    "@capacitor/cli": "8.4.2",
+    "@capacitor/core": "8.4.2"
   }
 }

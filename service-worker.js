@@ -19,7 +19,7 @@ const IS_DEV =
   self.location.hostname === "localhost" ||
   self.location.hostname === "127.0.0.1";
 
-const CACHE_VERSION = "v20260801d";
+const CACHE_VERSION = "v20260812b";
 const CACHE_NAME = `mycyclekeeper-${CACHE_VERSION}`;
 
 // Derive the base path from the SW URL ("/" on the custom domain).
@@ -50,6 +50,7 @@ const ASSETS_TO_CACHE = [
   BASE_PATH + "js/dateUtils.js",
   BASE_PATH + "js/i18n.js",
   BASE_PATH + "js/navigation.js",
+  BASE_PATH + "js/native.js",
   BASE_PATH + "js/periodMarking.js",
   BASE_PATH + "js/session.js",
   BASE_PATH + "js/validators.js",

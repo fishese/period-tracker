@@ -33,6 +33,7 @@ const PLURAL_FN = {
 const LOCALES = {
   // ── English ────────────────────────────────────────────────────────────────
   en: {
+    calendar_go_to_current_month: "Go to current month",
     // About section (About, Privacy, Support, Disclaimer, Accessibility)
     about_tab_developer: "Developer",
     about_tab_privacy: "Privacy",
@@ -102,6 +103,17 @@ const LOCALES = {
 
     // Lock screen / PIN
     unlock_subtitle: "Enter your PIN to unlock your private health data",
+    biometric_unlock: "Unlock with biometrics",
+    biometric_enable: "Enable biometric unlock",
+    biometric_disable: "Disable biometric unlock",
+    biometric_enabled: "Biometric unlock is enabled on this device.",
+    biometric_disabled: "Biometric unlock is off.",
+    biometric_unavailable: "Strong biometrics are not available or enrolled on this device.",
+    biometric_failed: "Biometric unlock failed. Enter your PIN or try again.",
+    biometric_enabled_toast: "Biometric unlock enabled",
+    biometric_disabled_toast: "Biometric unlock disabled",
+    storage_incomplete:
+      "Stored security data is incomplete. Restore a backup or use Forgot PIN to reset; new setup is blocked to avoid overwriting recoverable data.",
     too_many_attempts: "Too many attempts. Try again in {secs}s.",
     locked_out: "🚫 Too many attempts. Locked for 60 seconds.",
     lockout_ended: "Lockout ended. Try again.",
@@ -238,6 +250,7 @@ const LOCALES = {
 
     // Storage info
     storage_used: "{sizeKB} KB (IndexedDB)",
+    storage_used_native: "{sizeKB} KB (private app storage)",
     storage_unknown: "Unknown",
 
     // Erase data
@@ -661,6 +674,8 @@ const LOCALES = {
       "All data is encrypted with your PIN before being stored. Cycle Keeper uses the <strong>Web Crypto API</strong> — the same standard used by browsers for HTTPS.<br><br>Zero data is sent to any server. No accounts. No analytics.",
     data_persistence:
       '⚠️ <strong>Data Persistence:</strong> Your data is stored in IndexedDB. Clearing browser cache is safe, but clearing "site data" or "cookies and site data" in your browser settings WILL erase all your cycle data. Always export a backup first!',
+    native_data_persistence:
+      "<strong>APK storage:</strong> Encrypted cycle data is stored in My Cycle Keeper's private Android app storage, separate from Chrome and browser site data. Uninstalling the app or clearing its app data will erase it, so keep an encrypted backup.",
     about_info_html:
       '<strong>My Cycle Keeper</strong> is a personal fork of <a href="https://github.com/pythonime-lab/yourcyclekeeper" target="_blank" rel="noopener" class="accessibility-link">Your Cycle Keeper</a>, the open-source period tracker by <a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">pythonime-lab</a>, with changes applied for personal preferences.<br><br>If you find it helpful, consider supporting the original developer on <a href="https://github.com/pythonime-lab" target="_blank" rel="noopener" class="accessibility-link">GitHub</a>.<br><br>Both Your Cycle Keeper and this fork are free forever — no ads, no tracking, and no data collection. Estimates are for personal information only. Not for contraception. Stress, illness, and medications can shift timing.<br><br><strong>Version:</strong> 1.0.0-beta<br><strong>License:</strong> GNU General Public License v3.0',
     fork_title: "About This Fork",
@@ -1286,6 +1301,21 @@ const LOCALES = {
 
   // ── Spanish ────────────────────────────────────────────────────────────────
   es: {
+    calendar_go_to_current_month: "Ir al mes actual",
+    biometric_unlock: "Desbloquear con biometría",
+    biometric_enable: "Activar desbloqueo biométrico",
+    biometric_disable: "Desactivar desbloqueo biométrico",
+    biometric_enabled: "El desbloqueo biométrico está activado en este dispositivo.",
+    biometric_disabled: "El desbloqueo biométrico está desactivado.",
+    biometric_unavailable: "No hay biometría segura disponible o configurada en este dispositivo.",
+    biometric_failed: "Falló el desbloqueo biométrico. Ingresa tu PIN o inténtalo de nuevo.",
+    biometric_enabled_toast: "Desbloqueo biométrico activado",
+    biometric_disabled_toast: "Desbloqueo biométrico desactivado",
+    storage_incomplete:
+      "Los datos de seguridad guardados están incompletos. Restaura una copia o usa ¿Olvidaste el PIN? para restablecer la app.",
+    storage_used_native: "{sizeKB} KB (almacenamiento privado de la app)",
+    native_data_persistence:
+      "<strong>Almacenamiento APK:</strong> Los datos cifrados se guardan en el almacenamiento privado de My Cycle Keeper, separado de Chrome. Desinstalar la app o borrar sus datos los eliminará; conserva una copia cifrada.",
     // About section (About, Privacy, Support, Disclaimer, Accessibility)
     about_tab_developer: "Desarrollador",
     about_tab_privacy: "Privacidad",
@@ -1934,6 +1964,21 @@ const LOCALES = {
 
   // ── Japanese ───────────────────────────────────────────────────────────────
   ja: {
+    calendar_go_to_current_month: "今月に戻る",
+    biometric_unlock: "生体認証でロック解除",
+    biometric_enable: "生体認証ロック解除を有効にする",
+    biometric_disable: "生体認証ロック解除を無効にする",
+    biometric_enabled: "この端末で生体認証ロック解除が有効です。",
+    biometric_disabled: "生体認証ロック解除は無効です。",
+    biometric_unavailable: "この端末では強力な生体認証が利用または登録されていません。",
+    biometric_failed: "生体認証に失敗しました。PINを入力するか、もう一度お試しください。",
+    biometric_enabled_toast: "生体認証ロック解除を有効にしました",
+    biometric_disabled_toast: "生体認証ロック解除を無効にしました",
+    storage_incomplete:
+      "保存されたセキュリティデータが不完全です。バックアップを復元するか、「PINを忘れた場合」からリセットしてください。",
+    storage_used_native: "{sizeKB} KB（アプリ専用ストレージ）",
+    native_data_persistence:
+      "<strong>APKストレージ：</strong>暗号化されたデータはChromeとは別のMy Cycle Keeper専用ストレージに保存されます。アプリの削除またはアプリデータの消去で失われるため、暗号化バックアップを保管してください。",
     about_tab_developer: "開発者",
     about_tab_privacy: "プライバシー",
     about_tab_disclaimer: "免責事項",
@@ -2517,6 +2562,21 @@ const LOCALES = {
 
   // ── Traditional Chinese ────────────────────────────────────────────────────
   "zh-TW": {
+    calendar_go_to_current_month: "返回本月",
+    biometric_unlock: "使用生物辨識解鎖",
+    biometric_enable: "啟用生物辨識解鎖",
+    biometric_disable: "停用生物辨識解鎖",
+    biometric_enabled: "此裝置已啟用生物辨識解鎖。",
+    biometric_disabled: "生物辨識解鎖已關閉。",
+    biometric_unavailable: "此裝置未提供或未設定強式生物辨識。",
+    biometric_failed: "生物辨識解鎖失敗，請輸入 PIN 碼或再試一次。",
+    biometric_enabled_toast: "已啟用生物辨識解鎖",
+    biometric_disabled_toast: "已停用生物辨識解鎖",
+    storage_incomplete:
+      "已儲存的安全資料不完整。請還原備份，或使用「忘記 PIN 碼」重設應用程式。",
+    storage_used_native: "{sizeKB} KB（應用程式私人儲存空間）",
+    native_data_persistence:
+      "<strong>APK 儲存空間：</strong>加密資料會儲存在 My Cycle Keeper 的 Android 私人儲存空間，與 Chrome 分開。解除安裝或清除應用程式資料會刪除記錄，請保留加密備份。",
     about_tab_developer: "開發者",
     about_tab_privacy: "隱私",
     about_tab_disclaimer: "免責聲明",

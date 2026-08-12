@@ -8,10 +8,20 @@ import { toISO, fromISO, addDays, diffDays, today } from "./dateUtils.js";
 import { deriveKey, encryptData, decryptData, hashPin } from "./crypto.js";
 import {
   resetSessionTimer,
+  handleSessionActivity,
+  enforceSessionTimeout,
   startCountdown,
   hideBanner,
   setLockApp,
 } from "./session.js";
+import {
+  isNativeApp,
+  getBiometricStatus,
+  enableBiometric,
+  authenticateBiometric,
+  disableBiometric,
+  isBiometricCancellation,
+} from "./native.js";
 import {
   normalizeFlowLevel,
   getFlowLevelFromLog,
@@ -797,11 +807,19 @@ function setupEventListeners() {
       document.addEventListener(
         ev,
         () => {
-          if (sessionPin) resetSessionTimer();
+          if (sessionPin) handleSessionActivity();
         },
         { passive: true }
       )
   );
+  document.addEventListener("visibilitychange", () => {
+    if (sessionPin && document.visibilityState === "visible") {
+      enforceSessionTimeout();
+    }
+  });
+  window.addEventListener("pageshow", () => {
+    if (sessionPin) enforceSessionTimeout();
+  });
   const bannerEl = document.getElementById("timeout-banner");
   if (bannerEl) {
     bannerEl.addEventListener("click", () => {
@@ -1015,6 +1033,7 @@ async function submitPin() {
     switchTab("calendar");
     updateInsights(); // Populate insights for desktop view
     loadSettingsFields();
+    await refreshNativeFeatures();
     await completePendingDriveOAuth();
     await maybeCompleteDriveConnectFlow();
     await maybeShowDriveOAuthError();
@@ -1024,6 +1043,102 @@ async function submitPin() {
       t("error_try_again");
   } finally {
     unlockInProgress = false;
+  }
+}
+
+let biometricBusy = false;
+
+async function refreshNativeFeatures() {
+  const unlockBtn = document.getElementById("biometric-unlock-btn");
+  const settingsBtn = document.getElementById("biometric-settings-btn");
+  const settingsStatus = document.getElementById("biometric-settings-status");
+  if (!isNativeApp()) {
+    unlockBtn?.classList.add("hidden");
+    settingsBtn?.classList.add("hidden");
+    settingsStatus?.classList.add("hidden");
+    return;
+  }
+
+  const installBtn = document.getElementById("btn-install-pwa");
+  installBtn?.classList.add("hidden");
+  const persistence = document.getElementById("data-persistence-info");
+  if (persistence) {
+    delete persistence.dataset.i18nHtml;
+    persistence.innerHTML = t("native_data_persistence");
+  }
+
+  try {
+    const status = await getBiometricStatus();
+    unlockBtn?.classList.toggle("hidden", !status.configured);
+    if (settingsBtn) {
+      settingsBtn.classList.toggle("hidden", !status.available && !status.configured);
+      settingsBtn.dataset.i18n = status.configured
+        ? "biometric_disable"
+        : "biometric_enable";
+      settingsBtn.textContent = t(settingsBtn.dataset.i18n);
+    }
+    if (settingsStatus) {
+      settingsStatus.classList.remove("hidden");
+      settingsStatus.textContent = status.configured
+        ? t("biometric_enabled")
+        : status.available
+          ? t("biometric_disabled")
+          : t("biometric_unavailable");
+    }
+  } catch (error) {
+    console.warn("Could not read biometric status:", error);
+    unlockBtn?.classList.add("hidden");
+    settingsBtn?.classList.add("hidden");
+  }
+}
+
+async function unlockWithBiometrics() {
+  if (biometricBusy || unlockInProgress) return;
+  biometricBusy = true;
+  const errorEl = document.getElementById("lock-error");
+  if (errorEl) errorEl.textContent = "";
+  try {
+    const result = await authenticateBiometric();
+    if (!/^\d{4}$/.test(result?.pin || "")) throw new Error("invalid_biometric_pin");
+    pinAttempts = 0;
+    pinLockUntil = 0;
+    pinBuffer = result.pin;
+    updatePinDots(pinBuffer);
+    await submitPin();
+  } catch (error) {
+    if (!isBiometricCancellation(error) && errorEl) {
+      errorEl.textContent = t("biometric_failed");
+    }
+    await refreshNativeFeatures();
+  } finally {
+    biometricBusy = false;
+  }
+}
+
+async function toggleBiometricUnlock() {
+  if (!sessionPin || biometricBusy) return;
+  biometricBusy = true;
+  try {
+    const status = await getBiometricStatus();
+    if (status.configured) {
+      await disableBiometric();
+      showToast(t("biometric_disabled_toast"));
+    } else {
+      await enableBiometric(sessionPin);
+      showToast(t("biometric_enabled_toast"));
+    }
+  } catch (error) {
+    if (!isBiometricCancellation(error)) {
+      showModal({
+        icon: "⚠️",
+        title: t("biometric_failed"),
+        msg: error?.message || t("biometric_unavailable"),
+        confirmText: t("ok"),
+      });
+    }
+  } finally {
+    biometricBusy = false;
+    await refreshNativeFeatures();
   }
 }
 
@@ -1060,6 +1175,7 @@ function lockApp() {
   pinBuffer = "";
   updatePinDots("");
   document.getElementById("lock-error").textContent = "";
+  refreshNativeFeatures();
 
   // Lock and clear sensitive UI first. If navigation is blocked for any
   // reason, the app must remain securely locked rather than fail open.
@@ -1108,6 +1224,7 @@ async function forgotPinFlow() {
 async function _executeForgotPinReset() {
   try {
     await clearDB();
+    await disableBiometric();
     sessionStorage.clear();
     state = {
       lastPeriodStart: null,
@@ -1149,8 +1266,16 @@ async function _executeForgotPinReset() {
   }
 }
 
+async function persistEncryptedState(pin, pinHash = null) {
+  const salt = await getOrCreateSalt();
+  const enc = await encryptData(state, pin, salt);
+  const entries = [[STORE_KEY, enc]];
+  if (pinHash !== null) entries.push([PINHASH_KEY, pinHash]);
+  await setManyInDB(entries);
+}
+
 async function save() {
-  if (!sessionPin) return;
+  if (!sessionPin) return false;
   try {
     const salt = await getOrCreateSalt();
     const enc = await encryptData(state, sessionPin, salt);
@@ -1168,7 +1293,7 @@ async function save() {
           msg: t("storage_full_msg"),
           confirmText: t("ok"),
         });
-        return;
+        return false;
       }
       throw e;
     }
@@ -1181,7 +1306,7 @@ async function save() {
       msg: t("save_failed_msg") + detail,
       confirmText: t("ok"),
     });
-    return;
+    return false;
   }
 
   // Never let Drive backup scheduling fail a successful local save
@@ -1192,6 +1317,7 @@ async function save() {
   } catch (err) {
     console.warn("[Drive backup] schedule check failed:", err);
   }
+  return true;
 }
 
 function formatDateLocale(dateOrIso) {
@@ -1339,8 +1465,7 @@ async function startApp() {
 
     const salt = await getOrCreateSalt();
     const pinHash = await hashPin(setupPin, salt);
-    await setInDB(PINHASH_KEY, pinHash);
-    await save();
+    await persistEncryptedState(setupPin, pinHash);
 
     await finishOnboarding();
   } catch (error) {
@@ -1459,7 +1584,7 @@ async function autoSaveSymptomSelection() {
     rebuildCycleHistoryFromLogs();
     recalculatePeriodDuration();
   }
-  await save();
+  if (!(await save())) return false;
   renderCalendar();
   updateStatusCard();
   updateInsights();
@@ -1467,6 +1592,7 @@ async function autoSaveSymptomSelection() {
   if (didAutoFill) {
     try { showAutoFillBanner(getAutoFillDayCount()); } catch (_) {}
   }
+  return true;
 }
 
 // ── Autosave note debounce ──────────────────────────────────────────────
@@ -1480,8 +1606,7 @@ function scheduleAutoSaveNote() {
   }
   clearTimeout(_noteSaveTimer);
   _noteSaveTimer = setTimeout(async () => {
-    await autoSaveSymptomSelection();
-    showAutosaveIndicator();
+    if (await autoSaveSymptomSelection()) showAutosaveIndicator();
   }, 800);
 }
 
@@ -1503,8 +1628,7 @@ async function resetLogWithConfirm() {
     btn.textContent = "\u21ba Reset day";
     btn.classList.remove("confirming");
     clearTimeout(btn._confirmTimer);
-    await deleteLog();
-    showAutosaveIndicator();
+    if (await deleteLog()) showAutosaveIndicator();
   } else {
     // First tap — ask for confirmation
     btn.dataset.confirming = "true";
@@ -1527,9 +1651,10 @@ function deleteLogWithConfirm() {
     cancelText: t("cancel"),
     confirmText: t("log_delete_entry"),
     onConfirm: async () => {
-      await deleteLog();
-      updateLogEditorUI();
-      showToast(t("log_entry_deleted"));
+      if (await deleteLog()) {
+        updateLogEditorUI();
+        showToast(t("log_entry_deleted"));
+      }
     },
   });
 }
@@ -1557,10 +1682,11 @@ async function deleteLog() {
   rebuildCycleHistoryFromLogs();
 
   // Save and refresh
-  await save();
+  if (!(await save())) return false;
   renderCalendar();
   updateStatusCard();
   updateInsights();
+  return true;
 }
 
 function toggleLogSection(sectionName) {
@@ -3879,14 +4005,28 @@ function renderCalendar() {
   }
 }
 
+function setCalendarViewMonth(date) {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return;
+  viewMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+  setNavigationState(currentTab === "support" ? "about" : currentTab, viewMonth);
+  renderCalendar();
+}
+
 function changeMonth(dir) {
   const logModal = document.getElementById("log-modal-overlay");
   if (logModal && logModal.classList.contains("visible")) {
     return;
   }
 
-  viewMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth() + dir, 1);
-  renderCalendar();
+  setCalendarViewMonth(
+    new Date(viewMonth.getFullYear(), viewMonth.getMonth() + dir, 1)
+  );
+}
+
+function goToCurrentMonth() {
+  const logModal = document.getElementById("log-modal-overlay");
+  if (logModal && logModal.classList.contains("visible")) return;
+  setCalendarViewMonth(new Date());
 }
 
 function closeLogPanel() {
@@ -4027,7 +4167,7 @@ async function saveLog() {
     rebuildCycleHistoryFromLogs();
     recalculatePeriodDuration();
   }
-  await save();
+  if (!(await save())) return;
 
   renderCalendar();
   updateStatusCard();
@@ -4086,8 +4226,12 @@ async function savePeriodDuration() {
     });
     return;
   }
+  const previousDuration = state.periodDuration;
   state.periodDuration = pd;
-  await save();
+  if (!(await save())) {
+    state.periodDuration = previousDuration;
+    return;
+  }
   updateStatusCard();
   renderCalendar();
   updateInsights();
@@ -4098,8 +4242,12 @@ async function saveTolerance() {
   const raw = document.getElementById("s-tolerance").value.trim();
   const val = raw === "" ? null : parseInt(raw);
   if (val !== null && (isNaN(val) || val < 0 || val > 5)) return;
+  const previousTolerance = state.toleranceDays;
   state.toleranceDays = val;
-  await save();
+  if (!(await save())) {
+    state.toleranceDays = previousTolerance;
+    return;
+  }
   renderCalendar();
   showToast(t("settings_saved_toast"));
 }
@@ -4189,6 +4337,7 @@ async function performDriveBackupUpload(showSuccessToast = true) {
   backupReminderShownThisSession = true;
   updateBackupStatus();
   updateDriveBackupUI();
+  refreshNativeFeatures();
   if (showSuccessToast) showToast(t("drive_sync_success_toast"));
 }
 
@@ -4514,13 +4663,19 @@ function loadSettingsFields() {
   calculateStorageUsage();
   updateBackupStatus();
   updateDriveBackupUI();
+  refreshNativeFeatures();
 }
 
 async function toggleFertility() {
   const cb = document.getElementById("s-show-fertility");
   if (!cb) return;
+  const previous = state.showFertility;
   state.showFertility = cb.checked;
-  await save();
+  if (!(await save())) {
+    state.showFertility = previous;
+    cb.checked = previous === true;
+    return;
+  }
   renderCalendar();
   updateStatusCard();
   updateInsights();
@@ -4529,13 +4684,19 @@ async function toggleFertility() {
 async function toggleCyclePhaseTimeline() {
   const cb = document.getElementById("s-show-cycle-phases");
   if (!cb) return;
+  const previous = state.showCyclePhases;
   state.showCyclePhases = cb.checked;
-  await save();
+  if (!(await save())) {
+    state.showCyclePhases = previous;
+    cb.checked = previous !== false;
+    return;
+  }
   updateStatusCard();
 }
 
 async function saveAutoFillDays() {
   const input = document.getElementById("s-autofill-days");
+  const previous = state.autoFillDays;
   const raw = input?.value.trim() ?? "";
   if (raw === "") {
     state.autoFillDays = null;
@@ -4544,7 +4705,11 @@ async function saveAutoFillDays() {
     if (isNaN(val) || val < 0 || val > 10) return;
     state.autoFillDays = val;
   }
-  await save();
+  if (!(await save())) {
+    state.autoFillDays = previous;
+    if (input) input.value = previous == null ? "" : String(previous);
+    return;
+  }
   showToast(t("settings_saved_toast"));
 }
 
@@ -4557,7 +4722,7 @@ function recalculateCycleHistoryWithConfirm() {
     cancelText: t("cancel"),
     onConfirm: async () => {
       rebuildCycleHistoryFromLogs();
-      await save();
+      if (!(await save())) return;
       renderCalendar();
       updateStatusCard();
       updateInsights();
@@ -4850,7 +5015,10 @@ async function _submitImportPin(bundle, backupSalt) {
     state = restored;
     setCyclesState(state);
     setPeriodMarkingState(state);
-    await save(); // re-encrypts with current sessionPin + current salt
+    if (!(await save())) {
+      _importPinSubmitting = false;
+      return;
+    }
     document.getElementById("modal-overlay").classList.remove("visible");
     _clearImportPinContext();
     _restoreModalBox();
@@ -4920,7 +5088,7 @@ async function _finishOnboardingAfterImport(successTitle, successMsg, dayCount) 
   try {
     const salt = await getOrCreateSalt();
     const pinHash = await hashPin(setupPin, salt);
-    await setInDB(PINHASH_KEY, pinHash);
+    await persistEncryptedState(setupPin, pinHash);
     await finishOnboarding();
     showModal({
       icon: "✅",
@@ -4964,7 +5132,9 @@ async function _applyImportLogsToState(logs) {
 
   setCyclesState(state);
   setPeriodMarkingState(state);
-  await save();
+  if (!_importOnboarding && !(await save())) {
+    throw new Error("import_save_failed");
+  }
   return Object.keys(mergedLogs).length;
 }
 
@@ -5333,7 +5503,7 @@ async function _finishImportApply(importedLogs, preview, unmappedMoods, leftover
       sessionPin = setupPin;
       const salt = await getOrCreateSalt();
       const pinHash = await hashPin(setupPin, salt);
-      await setInDB(PINHASH_KEY, pinHash);
+      await persistEncryptedState(setupPin, pinHash);
       await finishOnboarding();
     } else {
       renderCalendar();
@@ -5463,7 +5633,10 @@ async function calculateStorageUsage() {
     const sizeKB = (bytes / 1024).toFixed(2);
     const usageSpan = document.getElementById("storage-usage");
     if (usageSpan) {
-      usageSpan.textContent = t("storage_used", { sizeKB });
+      usageSpan.textContent = t(
+        isNativeStorageBackend() ? "storage_used_native" : "storage_used",
+        { sizeKB }
+      );
     }
   } catch (error) {
     console.warn("⚠️ Could not calculate storage:", error);
@@ -5484,6 +5657,7 @@ function confirmClear() {
     onConfirm: async () => {
       try {
         await clearDB();
+        await disableBiometric();
         location.reload();
       } catch (error) {
         console.error("🚨 Clear error:", error);
@@ -5614,9 +5788,12 @@ async function _submitChangePinStep() {
     try {
       const salt = await getOrCreateSalt();
       const newHash = await hashPin(newPin, salt);
-      await setInDB(PINHASH_KEY, newHash);
+      // Commit the new hash and re-encrypted blob in one storage transaction.
+      // Writing the hash first can permanently lock the user out if the second
+      // write fails because of quota or an interrupted native write.
+      await persistEncryptedState(newPin, newHash);
       sessionPin = newPin;
-      await save(); // re-encrypts all data with new PIN
+      await disableBiometric();
       document.getElementById("modal-overlay").classList.remove("visible");
       _restoreModalBox();
       showModal({
@@ -5741,7 +5918,7 @@ async function init() {
       changePinInput,
       importPinInput: _handleImportPinKeyboardInput,
       closeLogPanel,
-      renderCalendar,
+      setCalendarViewMonth,
     });
 
     const hasData = !!(await getFromDB(STORE_KEY));
@@ -5792,7 +5969,11 @@ async function init() {
       );
     }
 
-    if (hasData && hasSalt && hasPinHash) {
+    const hasCompleteSecurityState = hasData && hasSalt && hasPinHash;
+    const hasPartialSecurityState =
+      !hasCompleteSecurityState && (hasData || hasSalt || hasPinHash);
+
+    if (hasCompleteSecurityState) {
       // Returning user: show lock screen
       document.getElementById("lock-screen").classList.remove("hidden");
       const lockSub = document.getElementById("lock-sub");
@@ -5804,6 +5985,11 @@ async function init() {
       } else if (lockSub) {
         lockSub.textContent = t("unlock_subtitle");
       }
+    } else if (hasPartialSecurityState) {
+      // Fail closed: onboarding would overwrite a surviving encrypted blob if
+      // one metadata write was lost or interrupted.
+      document.getElementById("lock-screen").classList.remove("hidden");
+      document.getElementById("lock-error").textContent = t("storage_incomplete");
     } else {
       // First time: show onboarding
       document.getElementById("lock-screen").classList.add("hidden");
@@ -5831,6 +6017,7 @@ async function init() {
   _initLangSwitcher();
   loadTheme();
   _updateMonthDropdown();
+  await refreshNativeFeatures();
 }
 
 function _initLangSwitcher() {
@@ -6004,6 +6191,7 @@ window.copyImportReport = copyImportReport;
 window.exportImportReportTxt = exportImportReportTxt;
 window.exportImportReportCsv = exportImportReportCsv;
 window.changeMonth = changeMonth;
+window.goToCurrentMonth = goToCurrentMonth;
 window.closeLogPanel = closeLogPanel;
 window.showFlowModal = showFlowModal;
 window.showPainModal = showPainModal;
@@ -6037,6 +6225,8 @@ window.printCycleSummary = printCycleSummary;
 window.closePrintOptions = closePrintOptions;
 window.confirmPrintCycleSummary = confirmPrintCycleSummary;
 window.showChangePinModal = showChangePinModal;
+window.unlockWithBiometrics = unlockWithBiometrics;
+window.toggleBiometricUnlock = toggleBiometricUnlock;
 window.exportFromAnotherApp = exportFromAnotherApp;
 window.showAppExportWizard = showAppExportWizard;
 window.closeAppExportWizard = closeAppExportWizard;

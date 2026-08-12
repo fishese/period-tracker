@@ -1,7 +1,9 @@
 /**
- * IndexedDB Storage Module for My Cycle Keeper
- * Replaces localStorage with persistent IndexedDB storage
- * Maintains AES-256-GCM encryption with PIN-derived keys
+ * Persistent storage for My Cycle Keeper.
+ *
+ * Browser/PWA builds use IndexedDB. The Android wrapper registers the
+ * NativeSecure Capacitor plugin, which stores the same serialized values in
+ * the APK's private app data instead of sharing a browser storage partition.
  */
 
 "use strict";
@@ -12,11 +14,24 @@ const STORE_NAME = "appdata";
 
 let db = null;
 
-/**
- * Initialize IndexedDB database with schema
- * @returns {Promise<IDBDatabase>}
- */
+function getNativeStoragePlugin() {
+  return globalThis.Capacitor?.Plugins?.NativeSecure || null;
+}
+
+function isNativeStorageBackend() {
+  return !!getNativeStoragePlugin();
+}
+
+function decodeNativeValue(result) {
+  if (!result || typeof result.value !== "string") return null;
+  return JSON.parse(result.value);
+}
+
+/** Initialize the active persistent storage backend. */
 async function initIndexedDB() {
+  const nativeStorage = getNativeStoragePlugin();
+  if (nativeStorage) return nativeStorage;
+
   return new Promise((resolve, reject) => {
     if (db) {
       resolve(db);
@@ -24,197 +39,202 @@ async function initIndexedDB() {
     }
 
     const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-    request.onerror = () => {
-      console.error("❌ IndexedDB init failed:", request.error);
-      reject(
-        new Error(`IndexedDB initialization failed: ${request.error?.message}`)
-      );
-    };
-
+    request.onerror = () => reject(
+      request.error || new Error("IndexedDB initialization failed")
+    );
+    request.onblocked = () => reject(
+      new Error("IndexedDB initialization is blocked by another open tab")
+    );
     request.onsuccess = () => {
       db = request.result;
-      console.log("✅ IndexedDB initialized");
+      db.onversionchange = () => {
+        db?.close();
+        db = null;
+      };
+      db.onclose = () => {
+        db = null;
+      };
       resolve(db);
     };
-
-    // Schema creation/upgrade
     request.onupgradeneeded = (event) => {
       const database = event.target.result;
-
-      // Create object store if it doesn't exist
       if (!database.objectStoreNames.contains(STORE_NAME)) {
         database.createObjectStore(STORE_NAME);
-        console.log("✅ IndexedDB schema created");
       }
     };
   });
 }
 
-/**
- * Get a value from IndexedDB by key
- * @param {string} key - The key to retrieve
- * @returns {Promise<any>} The stored value or null
- */
 async function getFromDB(key) {
-  try {
-    await initIndexedDB();
-
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction([STORE_NAME], "readonly");
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.get(key);
-
-      request.onsuccess = () => {
-        resolve(request.result !== undefined ? request.result : null);
-      };
-
-      request.onerror = () => {
-        console.error(`❌ Failed to read key "${key}":`, request.error);
-        reject(
-          new Error(`Failed to read from database: ${request.error?.message}`)
-        );
-      };
-    });
-  } catch (error) {
-    console.error("🚨 getFromDB error:", error);
-    throw error;
+  const nativeStorage = getNativeStoragePlugin();
+  if (nativeStorage) {
+    return decodeNativeValue(await nativeStorage.storageGet({ key }));
   }
+
+  await initIndexedDB();
+  return new Promise((resolve, reject) => {
+    let request;
+    try {
+      const transaction = db.transaction([STORE_NAME], "readonly");
+      request = transaction.objectStore(STORE_NAME).get(key);
+    } catch (error) {
+      db = null;
+      reject(error);
+      return;
+    }
+    request.onsuccess = () => resolve(
+      request.result !== undefined ? request.result : null
+    );
+    request.onerror = () => reject(
+      request.error || new Error(`Failed to read key "${key}"`)
+    );
+  });
 }
 
-/**
- * Set a value in IndexedDB
- * @param {string} key - The key to store
- * @param {any} value - The value to store
- * @returns {Promise<void>}
- */
 async function setInDB(key, value) {
-  try {
-    await initIndexedDB();
-
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction([STORE_NAME], "readwrite");
-      const store = transaction.objectStore(STORE_NAME);
-      store.put(value, key);
-      transaction.oncomplete = () => resolve();
-      transaction.onerror = () => {
-        console.error(`❌ Failed to write key "${key}":`, transaction.error);
-        reject(
-          new Error(`Failed to write to database: ${transaction.error?.message}`)
-        );
-      };
-    });
-  } catch (error) {
-    console.error("🚨 setInDB error:", error);
-    throw error;
+  const nativeStorage = getNativeStoragePlugin();
+  if (nativeStorage) {
+    await nativeStorage.storageSet({ key, value: JSON.stringify(value) });
+    return;
   }
+  await setManyInDB([[key, value]]);
 }
 
 /**
- * Delete a key from IndexedDB
- * @param {string} key - The key to delete
- * @returns {Promise<void>}
+ * Atomically store several values.
+ * @param {Array<[string, any]>} entries
  */
+async function setManyInDB(entries) {
+  if (!Array.isArray(entries) || entries.length === 0) {
+    throw new Error("setManyInDB requires at least one entry");
+  }
+
+  const nativeStorage = getNativeStoragePlugin();
+  if (nativeStorage) {
+    const encoded = {};
+    for (const [key, value] of entries) {
+      if (typeof key !== "string" || !key) throw new Error("Invalid storage key");
+      encoded[key] = JSON.stringify(value);
+    }
+    await nativeStorage.storageSetMany({ entries: encoded });
+    return;
+  }
+
+  await initIndexedDB();
+  return new Promise((resolve, reject) => {
+    let transaction;
+    try {
+      transaction = db.transaction([STORE_NAME], "readwrite");
+      const store = transaction.objectStore(STORE_NAME);
+      for (const [key, value] of entries) store.put(value, key);
+    } catch (error) {
+      db = null;
+      reject(error);
+      return;
+    }
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(
+      transaction.error || new Error("Failed to write values to database")
+    );
+    transaction.onabort = () => reject(
+      transaction.error || new Error("Database write was aborted")
+    );
+  });
+}
+
 async function deleteFromDB(key) {
-  try {
-    await initIndexedDB();
-
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction([STORE_NAME], "readwrite");
-      const store = transaction.objectStore(STORE_NAME);
-      store.delete(key);
-      transaction.oncomplete = () => resolve();
-      transaction.onerror = () => {
-        console.error(`❌ Failed to delete key "${key}":`, transaction.error);
-        reject(
-          new Error(`Failed to delete from database: ${transaction.error?.message}`)
-        );
-      };
-    });
-  } catch (error) {
-    console.error("🚨 deleteFromDB error:", error);
-    throw error;
+  const nativeStorage = getNativeStoragePlugin();
+  if (nativeStorage) {
+    await nativeStorage.storageRemove({ key });
+    return;
   }
+
+  await initIndexedDB();
+  return new Promise((resolve, reject) => {
+    let transaction;
+    try {
+      transaction = db.transaction([STORE_NAME], "readwrite");
+      transaction.objectStore(STORE_NAME).delete(key);
+    } catch (error) {
+      db = null;
+      reject(error);
+      return;
+    }
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(
+      transaction.error || new Error(`Failed to delete key "${key}"`)
+    );
+    transaction.onabort = () => reject(
+      transaction.error || new Error("Database delete was aborted")
+    );
+  });
 }
 
-/**
- * Clear all data from IndexedDB
- * @returns {Promise<void>}
- */
 async function clearDB() {
-  try {
-    await initIndexedDB();
-
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction([STORE_NAME], "readwrite");
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.clear();
-
-      request.onsuccess = () => {
-        console.log("✅ IndexedDB cleared");
-        resolve();
-      };
-
-      request.onerror = () => {
-        console.error("❌ Failed to clear database:", request.error);
-        reject(
-          new Error(`Failed to clear database: ${request.error?.message}`)
-        );
-      };
-    });
-  } catch (error) {
-    console.error("🚨 clearDB error:", error);
-    throw error;
+  const nativeStorage = getNativeStoragePlugin();
+  if (nativeStorage) {
+    await nativeStorage.storageClear();
+    return;
   }
+
+  await initIndexedDB();
+  return new Promise((resolve, reject) => {
+    let transaction;
+    try {
+      transaction = db.transaction([STORE_NAME], "readwrite");
+      transaction.objectStore(STORE_NAME).clear();
+    } catch (error) {
+      db = null;
+      reject(error);
+      return;
+    }
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(
+      transaction.error || new Error("Failed to clear database")
+    );
+    transaction.onabort = () => reject(
+      transaction.error || new Error("Database clear was aborted")
+    );
+  });
 }
 
-/**
- * Get all keys from IndexedDB
- * @returns {Promise<Array<string>>}
- */
 async function getAllKeysFromDB() {
-  try {
-    await initIndexedDB();
-
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction([STORE_NAME], "readonly");
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.getAllKeys();
-
-      request.onsuccess = () => {
-        resolve(request.result || []);
-      };
-
-      request.onerror = () => {
-        console.error("❌ Failed to get keys:", request.error);
-        reject(
-          new Error(
-            `Failed to get keys from database: ${request.error?.message}`
-          )
-        );
-      };
-    });
-  } catch (error) {
-    console.error("🚨 getAllKeysFromDB error:", error);
-    throw error;
+  const nativeStorage = getNativeStoragePlugin();
+  if (nativeStorage) {
+    const result = await nativeStorage.storageKeys();
+    return Array.isArray(result?.keys) ? result.keys : [];
   }
+
+  await initIndexedDB();
+  return new Promise((resolve, reject) => {
+    let request;
+    try {
+      const transaction = db.transaction([STORE_NAME], "readonly");
+      request = transaction.objectStore(STORE_NAME).getAllKeys();
+    } catch (error) {
+      db = null;
+      reject(error);
+      return;
+    }
+    request.onsuccess = () => resolve(request.result || []);
+    request.onerror = () => reject(
+      request.error || new Error("Failed to list database keys")
+    );
+  });
 }
 
-/**
- * Calculate total storage usage in IndexedDB
- * @returns {Promise<number>} Approximate storage size in bytes
- */
 async function calculateDBStorageUsage() {
   try {
-    if (!navigator.storage || !navigator.storage.estimate) {
-      console.warn("⚠️ Storage API not available");
-      return 0;
+    const nativeStorage = getNativeStoragePlugin();
+    if (nativeStorage) {
+      const result = await nativeStorage.storageUsage();
+      return Number(result?.bytes) || 0;
     }
-
+    if (!navigator.storage?.estimate) return 0;
     const estimate = await navigator.storage.estimate();
     return estimate.usage || 0;
   } catch (error) {
-    console.error("⚠️ Could not estimate storage usage:", error);
+    console.error("Could not estimate storage usage:", error);
     return 0;
   }
 }
@@ -223,8 +243,10 @@ Object.assign(globalThis, {
   initIndexedDB,
   getFromDB,
   setInDB,
+  setManyInDB,
   deleteFromDB,
   clearDB,
   getAllKeysFromDB,
   calculateDBStorageUsage,
+  isNativeStorageBackend,
 });
