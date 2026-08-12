@@ -90,6 +90,25 @@ That means a Client secret was found in a public place (e.g. this repo / Pages J
 6. Deploy **`drive-oauth-proxy/`** (see its README) with secrets `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET`.
 7. Set `DRIVE_TOKEN_PROXY_URL` in `js/drive-config.js` to the Worker URL. Client ID may stay in that file; **secret must not**.
 
+### Android OAuth client (required by the APK)
+
+The web OAuth client above is only for the browser app. In Google Auth Platform
+→ **Clients**, also create an **Android** OAuth client with:
+
+- Package name: `cc.fishese.mycyclekeeper`
+- SHA-1 certificate fingerprint:
+  `23:F6:A6:C9:C0:78:0E:ED:03:93:7A:03:62:06:15:FE:DF:04:09:86`
+
+That fingerprint belongs to the debug certificate currently used for the
+published sideload APK. Preserve the keystore at the path reported by
+`cd android && ./gradlew signingReport`; replacing it changes both Android
+update compatibility and the fingerprint registered with Google.
+
+Keep the Web application client as the server client used for offline access and
+token exchange. The Android app must request authorization through Google's
+native Android authorization API or a system browser; Google does not allow the
+authorization page to run inside an embedded Android WebView.
+
 ### Testing vs Production
 
 | Mode | Use |

@@ -49,7 +49,7 @@ Users who connected with the old secret should **Disconnect** and **Connect** ag
 - `{ grant_type: "authorization_code", code, code_verifier, redirect_uri }`
 - `{ grant_type: "refresh_token", refresh_token }`
 
-Forwards to `https://oauth2.googleapis.com/token` with `client_id` + `client_secret` from Worker secrets. CORS allows `https://fishese.github.io` and localhost.
+Forwards to `https://oauth2.googleapis.com/token` with `client_id` + `client_secret` from Worker secrets. CORS allows `https://period.fishese.cc`, the GitHub Pages fallback, and localhost development origins.
 
 ## Security notes
 

@@ -8,8 +8,9 @@ and an Android wrapper with separate app-private storage.
 - **Web / PWA:** [period.fishese.cc](https://period.fishese.cc/)
 - **Android debug APK:** [Download `app-debug.apk`](https://github.com/fishese/period-tracker/releases/download/android-debug/app-debug.apk)
 
-The APK is debug-signed, so Android may ask you to allow installation from the
-browser or file manager used to open it.
+The APK uses Android's automatic debug certificate for simple sideload updates,
+but the app itself is explicitly non-debuggable. Android may ask you to allow
+installation from the browser or file manager used to open it.
 
 My Cycle Keeper is designed for straightforward daily tracking, useful cycle insights, and control over your own data. Your cycle records are stored locally on your device and encrypted with AES-256-GCM. The app does not use a backend to store your health data, and no account is required unless you choose to connect Google Drive for encrypted backups.
 

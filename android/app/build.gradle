@@ -17,6 +17,11 @@ android {
         }
     }
     buildTypes {
+        debug {
+            // Keep automatic debug-certificate signing for easy sideload updates,
+            // but do not expose app-private data to Android debugging tools.
+            debuggable false
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'

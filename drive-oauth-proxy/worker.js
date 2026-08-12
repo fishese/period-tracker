@@ -10,6 +10,7 @@
  */
 
 const ALLOWED_ORIGINS = [
+  "https://period.fishese.cc",
   "https://fishese.github.io",
   "http://localhost:8000",
   "http://127.0.0.1:8000",
