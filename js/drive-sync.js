@@ -1,11 +1,16 @@
 "use strict";
 
 import { GOOGLE_CLIENT_ID, DRIVE_TOKEN_PROXY_URL } from "./drive-config.js";
+import {
+  authorizeNativeDrive,
+  hasNativeDriveAuthorization,
+} from "./native.js";
 
 const DRIVE_REFRESH_TOKEN_KEY = "mycyclekeeper_drive_refresh_token_v1";
 const DRIVE_FILE_ID_KEY = "mycyclekeeper_drive_file_id_v1";
 const DRIVE_LAST_SYNC_KEY = "mycyclekeeper_drive_last_sync_v1";
 const DRIVE_AUTO_KEY = "mycyclekeeper_drive_auto_v1";
+const NATIVE_AUTH_MARKER = "native_google_authorization_v1";
 const BACKUP_FILENAME = "mycyclekeeper_backup.bin";
 const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.appdata";
 
@@ -47,6 +52,8 @@ export function getDriveRedirectUri() {
 let _getFromDB = null;
 let _setInDB = null;
 let _deleteFromDB = null;
+let _nativeAccessToken = null;
+let _nativeAccessTokenFreshUntil = 0;
 
 export function wireDriveDb(api) {
   if (api?.getFromDB) _getFromDB = api.getFromDB;
@@ -262,6 +269,25 @@ async function getAccessToken() {
   const refresh = await idbGet(DRIVE_REFRESH_TOKEN_KEY);
   if (!refresh) throw new Error("not_connected");
 
+  if (hasNativeDriveAuthorization()) {
+    if (_nativeAccessToken && Date.now() < _nativeAccessTokenFreshUntil) {
+      return _nativeAccessToken;
+    }
+    try {
+      _nativeAccessToken = await authorizeNativeDrive(false);
+      // Google access tokens normally last an hour. Refresh through Play
+      // Services a little early without persisting the token in app storage.
+      _nativeAccessTokenFreshUntil = Date.now() + 50 * 60 * 1000;
+      return _nativeAccessToken;
+    } catch (error) {
+      const code = String(error?.code || error?.message || "");
+      if (code.includes("drive_authorization_required")) {
+        throw new Error("reconnect_required");
+      }
+      throw new Error("token_refresh_failed");
+    }
+  }
+
   try {
     const data = await postTokenViaProxy({
       grant_type: "refresh_token",
@@ -449,6 +475,13 @@ export async function startDriveConnect() {
   if (!isDriveConfigured()) throw new Error("not_configured");
   if (!navigator.onLine) throw new Error("offline");
 
+  if (hasNativeDriveAuthorization()) {
+    _nativeAccessToken = await authorizeNativeDrive(true);
+    _nativeAccessTokenFreshUntil = Date.now() + 50 * 60 * 1000;
+    await idbSet(DRIVE_REFRESH_TOKEN_KEY, NATIVE_AUTH_MARKER);
+    return finishConnectFlow(true);
+  }
+
   const { verifier, challenge } = await generatePkce();
   const state = base64UrlEncode(crypto.getRandomValues(new Uint8Array(16)));
   const redirectUri = getDriveRedirectUri();
@@ -481,6 +514,8 @@ function clearOAuthLocalStorage() {
 }
 
 export async function disconnectDrive() {
+  _nativeAccessToken = null;
+  _nativeAccessTokenFreshUntil = 0;
   await idbDel(DRIVE_REFRESH_TOKEN_KEY);
   await idbDel(DRIVE_FILE_ID_KEY);
   await idbDel(DRIVE_LAST_SYNC_KEY);

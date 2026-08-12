@@ -6,6 +6,10 @@ function getSystemBarsPlugin() {
   return globalThis.Capacitor?.Plugins?.SystemBars || null;
 }
 
+function getDriveAuthorizationPlugin() {
+  return globalThis.Capacitor?.Plugins?.DriveAuthorization || null;
+}
+
 export function isNativeApp() {
   const capacitor = globalThis.Capacitor;
   return !!(
@@ -46,6 +50,18 @@ export async function disableBiometric() {
   const plugin = getNativePlugin();
   if (!plugin) return;
   await plugin.biometricDisable();
+}
+
+export function hasNativeDriveAuthorization() {
+  return !!(isNativeApp() && getDriveAuthorizationPlugin());
+}
+
+export async function authorizeNativeDrive(interactive = true) {
+  const plugin = getDriveAuthorizationPlugin();
+  if (!plugin || !isNativeApp()) throw new Error("drive_authorization_unavailable");
+  const result = await plugin.authorize({ interactive: !!interactive });
+  if (!result?.accessToken) throw new Error("drive_access_token_missing");
+  return result.accessToken;
 }
 
 export function isBiometricCancellation(error) {

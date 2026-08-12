@@ -7,6 +7,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         registerPlugin(NativeSecurePlugin.class);
+        registerPlugin(DriveAuthorizationPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }

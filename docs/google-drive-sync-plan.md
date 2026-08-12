@@ -104,10 +104,12 @@ published sideload APK. Preserve the keystore at the path reported by
 `cd android && ./gradlew signingReport`; replacing it changes both Android
 update compatibility and the fingerprint registered with Google.
 
-Keep the Web application client as the server client used for offline access and
-token exchange. The Android app must request authorization through Google's
-native Android authorization API or a system browser; Google does not allow the
-authorization page to run inside an embedded Android WebView.
+The Android wrapper uses Google Play Services `AuthorizationClient` and receives
+short-lived access tokens for the `drive.appdata` scope. Tokens are requested
+silently again when needed and are never persisted in the APK. The Web
+application client and token-proxy secret continue to serve the browser/PWA
+flow only. Google does not allow the authorization page to run inside an
+embedded Android WebView.
 
 ### Testing vs Production
 

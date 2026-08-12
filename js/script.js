@@ -4394,6 +4394,7 @@ async function connectGoogleDrive() {
   }
   try {
     await startDriveConnect();
+    await maybeCompleteDriveConnectFlow();
   } catch (err) {
     showModal({
       icon: "⚠️",
@@ -4460,6 +4461,7 @@ async function restoreDriveBackupOnboarding() {
       return;
     }
     await startDriveConnect();
+    await maybeCompleteOnboardingDriveRestore();
   } catch (err) {
     showModal({
       icon: "⚠️",
