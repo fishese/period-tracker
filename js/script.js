@@ -6,6 +6,7 @@ const APP_SHARE_URL = "period.fishese.cc";
 // Import modular utilities
 import { toISO, fromISO, addDays, diffDays, today } from "./dateUtils.js";
 import { deriveKey, encryptData, decryptData, hashPin } from "./crypto.js";
+import { createStatePersistence } from "./persistence.js";
 import {
   resetSessionTimer,
   handleSessionActivity,
@@ -896,6 +897,7 @@ function _ensureModalBox() {
 }
 
 function closeAppModal() {
+  cancelChangePin();
   const overlay = document.getElementById("modal-overlay");
   if (overlay) overlay.classList.remove("visible");
   _clearImportPinContext();
@@ -1251,7 +1253,8 @@ async function forgotPinFlow() {
 
 async function _executeForgotPinReset() {
   try {
-    await clearDB();
+    lockApp();
+    await statePersistence.enqueue(() => clearDB());
     await disableBiometric();
     sessionStorage.clear();
     state = {
@@ -1294,21 +1297,25 @@ async function _executeForgotPinReset() {
   }
 }
 
-async function persistEncryptedState(pin, pinHash = null) {
-  const salt = await getOrCreateSalt();
-  const enc = await encryptData(state, pin, salt);
-  const entries = [[STORE_KEY, enc]];
-  if (pinHash !== null) entries.push([PINHASH_KEY, pinHash]);
-  await setManyInDB(entries);
+const statePersistence = createStatePersistence({
+  getSalt: getOrCreateSalt,
+  encrypt: encryptData,
+  write: async (enc, pinHash) => {
+    const entries = [[STORE_KEY, enc]];
+    if (pinHash !== null) entries.push([PINHASH_KEY, pinHash]);
+    await setManyInDB(entries);
+  },
+});
+
+function persistEncryptedState(pin, pinHash = null) {
+  return statePersistence.save(state, pin, pinHash);
 }
 
 async function save() {
-  if (!sessionPin) return false;
+  if (!sessionPin || changePinSaving) return false;
   try {
-    const salt = await getOrCreateSalt();
-    const enc = await encryptData(state, sessionPin, salt);
     try {
-      await setInDB(STORE_KEY, enc);
+      await persistEncryptedState(sessionPin);
     } catch (e) {
       if (
         e.name === "QuotaExceededError" ||
@@ -4281,8 +4288,11 @@ async function saveTolerance() {
 }
 
 async function buildBackupBundle() {
+  const pin = sessionPin;
+  if (!pin) throw new Error("not_unlocked");
+  const snapshot = JSON.parse(JSON.stringify(state));
   const salt = await getOrCreateSalt();
-  const enc = await encryptData(state, sessionPin, salt);
+  const enc = await encryptData(snapshot, pin, salt);
   const saltB64 = btoa(String.fromCharCode(...salt));
   return JSON.stringify({ enc, salt: saltB64, v: 1 });
 }
@@ -4908,6 +4918,7 @@ function _handleImportPinKeyboardInput(key) {
 }
 
 function _restoreModalBox() {
+  cancelChangePin();
   _clearImportPinContext();
   const box = document.querySelector("#modal-overlay .modal-box");
   if (!box) return;
@@ -5686,7 +5697,8 @@ function confirmClear() {
     cancelText: t("cancel"),
     onConfirm: async () => {
       try {
-        await clearDB();
+        lockApp();
+        await statePersistence.enqueue(() => clearDB());
         await disableBiometric();
         location.reload();
       } catch (error) {
@@ -5705,8 +5717,22 @@ function confirmClear() {
 let changePinStage = "new"; // 'new' | 'confirm'
 let changePinFirst = "";
 let changePinBuffer = "";
+let changePinTimer = null;
+let changePinSaving = false;
+let changePinActive = false;
+
+function cancelChangePin() {
+  clearTimeout(changePinTimer);
+  changePinTimer = null;
+  changePinActive = false;
+  changePinBuffer = "";
+  changePinFirst = "";
+}
 
 function showChangePinModal() {
+  if (!sessionPin || changePinSaving) return;
+  cancelChangePin();
+  changePinActive = true;
   changePinStage = "new";
   changePinFirst = "";
   changePinBuffer = "";
@@ -5765,6 +5791,7 @@ function _renderChangePinModal() {
   cancelBtn.className = "modal-btn secondary";
   cancelBtn.textContent = t("cancel");
   cancelBtn.addEventListener("click", () => {
+    if (changePinSaving) return;
     document.getElementById("modal-overlay").classList.remove("visible");
     _restoreModalBox();
   });
@@ -5775,6 +5802,7 @@ function _renderChangePinModal() {
 }
 
 function changePinInput(key) {
+  if (!changePinActive || changePinSaving || changePinTimer !== null) return;
   if (key === "⌫") {
     changePinBuffer = changePinBuffer.slice(0, -1);
     for (let i = 0; i < 4; i++) {
@@ -5783,18 +5811,22 @@ function changePinInput(key) {
     }
     return;
   }
-  if (changePinBuffer.length >= 4) return;
+  if (!/^\d$/.test(key) || changePinBuffer.length >= 4) return;
   changePinBuffer += key;
   for (let i = 0; i < 4; i++) {
     const el = document.getElementById("cpd" + i);
     if (el) el.classList.toggle("filled", i < changePinBuffer.length);
   }
   if (changePinBuffer.length === 4) {
-    setTimeout(() => _submitChangePinStep(), 150);
+    changePinTimer = setTimeout(() => {
+      changePinTimer = null;
+      void _submitChangePinStep();
+    }, 150);
   }
 }
 
 async function _submitChangePinStep() {
+  if (!changePinActive || changePinSaving || !sessionPin || changePinBuffer.length !== 4) return;
   if (changePinStage === "new") {
     changePinFirst = changePinBuffer;
     changePinBuffer = "";
@@ -5810,20 +5842,30 @@ async function _submitChangePinStep() {
       changePinBuffer = "";
       changePinFirst = "";
       changePinStage = "new";
-      setTimeout(() => _renderChangePinModal(), 900);
+      changePinTimer = setTimeout(() => {
+        changePinTimer = null;
+        if (changePinActive && sessionPin) _renderChangePinModal();
+      }, 900);
       return;
     }
     // PINs match — re-derive key, re-encrypt, update HMAC
     const newPin = changePinBuffer;
+    const oldPin = sessionPin;
+    const snapshot = JSON.parse(JSON.stringify(state));
+    changePinSaving = true;
     try {
       const salt = await getOrCreateSalt();
       const newHash = await hashPin(newPin, salt);
+      if (!changePinActive || sessionPin !== oldPin) return;
       // Commit the new hash and re-encrypted blob in one storage transaction.
       // Writing the hash first can permanently lock the user out if the second
       // write fails because of quota or an interrupted native write.
-      await persistEncryptedState(newPin, newHash);
-      sessionPin = newPin;
+      await statePersistence.save(snapshot, newPin, newHash);
+      // A timeout during encryption must not unlock the app again.
+      const stillUnlocked = sessionPin === oldPin;
+      if (stillUnlocked) sessionPin = newPin;
       await disableBiometric();
+      if (!stillUnlocked || !sessionPin) return;
       document.getElementById("modal-overlay").classList.remove("visible");
       _restoreModalBox();
       showModal({
@@ -5835,6 +5877,7 @@ async function _submitChangePinStep() {
       });
     } catch (error) {
       console.error("🚨 PIN change error:", error);
+      if (!sessionPin || !changePinActive) return;
       showModal({
         icon: "⚠️",
         title: t("pin_change_failed_title"),
@@ -5842,6 +5885,8 @@ async function _submitChangePinStep() {
         cancelText: "",
         confirmText: t("ok"),
       });
+    } finally {
+      changePinSaving = false;
     }
   }
 }

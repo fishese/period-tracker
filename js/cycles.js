@@ -303,7 +303,7 @@ export function getRollingAveragePeriodDuration(refDate = fromISO(today())) {
 
   // Skip the current episode while bleeding is still in progress.
   let counted = episodes;
-  if (episodes.length > 1 && state.lastPeriodStart) {
+  if (state.lastPeriodStart) {
     const lastStart = episodes[episodes.length - 1][0];
     if (isPeriodEpisodeActive(lastStart)) {
       counted = episodes.slice(0, -1);

@@ -14,6 +14,7 @@ import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.google.android.gms.auth.api.identity.AuthorizationRequest;
 import com.google.android.gms.auth.api.identity.AuthorizationResult;
+import com.google.android.gms.auth.api.identity.ClearTokenRequest;
 import com.google.android.gms.auth.api.identity.Identity;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.Scope;
@@ -24,6 +25,19 @@ import java.util.Collections;
 public class DriveAuthorizationPlugin extends Plugin {
     private static final String DRIVE_APPDATA_SCOPE =
             "https://www.googleapis.com/auth/drive.appdata";
+
+    @PluginMethod
+    public void clearToken(PluginCall call) {
+        String token = call.getString("accessToken");
+        if (token == null || token.isEmpty()) {
+            call.reject("An access token is required.", "drive_access_token_missing");
+            return;
+        }
+        Identity.getAuthorizationClient(getContext())
+                .clearToken(ClearTokenRequest.builder().setToken(token).build())
+                .addOnSuccessListener(unused -> call.resolve())
+                .addOnFailureListener(error -> rejectApiError(call, error));
+    }
 
     @PluginMethod
     public void authorize(PluginCall call) {
@@ -91,6 +105,10 @@ public class DriveAuthorizationPlugin extends Plugin {
     }
 
     private void resolveToken(PluginCall call, AuthorizationResult result) {
+        if (!result.getGrantedScopes().contains(DRIVE_APPDATA_SCOPE)) {
+            call.reject("Google Drive permission was not granted.", "drive_authorization_required");
+            return;
+        }
         String accessToken = result.getAccessToken();
         if (accessToken == null || accessToken.isEmpty()) {
             call.reject("Google did not return a Drive access token.", "drive_access_token_missing");

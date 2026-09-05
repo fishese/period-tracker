@@ -3,8 +3,10 @@
 import { GOOGLE_CLIENT_ID, DRIVE_TOKEN_PROXY_URL } from "./drive-config.js";
 import {
   authorizeNativeDrive,
+  clearNativeDriveToken,
   hasNativeDriveAuthorization,
 } from "./native.js";
+import { today } from "./dateUtils.js";
 
 const DRIVE_REFRESH_TOKEN_KEY = "mycyclekeeper_drive_refresh_token_v1";
 const DRIVE_FILE_ID_KEY = "mycyclekeeper_drive_file_id_v1";
@@ -52,8 +54,9 @@ export function getDriveRedirectUri() {
 let _getFromDB = null;
 let _setInDB = null;
 let _deleteFromDB = null;
-let _nativeAccessToken = null;
-let _nativeAccessTokenFreshUntil = 0;
+let _uploadTail = Promise.resolve();
+let _connectPromise = null;
+let _connectionGeneration = 0;
 
 export function wireDriveDb(api) {
   if (api?.getFromDB) _getFromDB = api.getFromDB;
@@ -270,15 +273,10 @@ async function getAccessToken() {
   if (!refresh) throw new Error("not_connected");
 
   if (hasNativeDriveAuthorization()) {
-    if (_nativeAccessToken && Date.now() < _nativeAccessTokenFreshUntil) {
-      return _nativeAccessToken;
-    }
     try {
-      _nativeAccessToken = await authorizeNativeDrive(false);
-      // Google access tokens normally last an hour. Refresh through Play
-      // Services a little early without persisting the token in app storage.
-      _nativeAccessTokenFreshUntil = Date.now() + 50 * 60 * 1000;
-      return _nativeAccessToken;
+      // Play Services may return an already cached token. Its remaining
+      // lifetime cannot be inferred from when this call completes.
+      return await authorizeNativeDrive(false);
     } catch (error) {
       const code = String(error?.code || error?.message || "");
       if (code.includes("drive_authorization_required")) {
@@ -297,12 +295,34 @@ async function getAccessToken() {
     return data.access_token;
   } catch (e) {
     const msg = String(e.message || "");
-    if (msg.includes(":400:") || msg.includes("invalid_grant")) {
+    if (msg.includes("invalid_grant")) {
       await disconnectDrive();
       throw new Error("reconnect_required");
     }
     throw new Error("token_refresh_failed");
   }
+}
+
+async function driveFetch(url, options = {}) {
+  const generation = _connectionGeneration;
+  let token = await getAccessToken();
+  const request = async () => {
+    if (generation !== _connectionGeneration) throw new Error("not_connected");
+    const response = await fetch(url, {
+      ...options,
+      headers: { ...options.headers, Authorization: `Bearer ${token}` },
+    });
+    if (generation !== _connectionGeneration) throw new Error("not_connected");
+    return response;
+  };
+  let res = await request();
+  if (res.status === 401 && hasNativeDriveAuthorization()) {
+    await clearNativeDriveToken(token);
+    token = await getAccessToken();
+    res = await request();
+    if (res.status === 401) throw new Error("reconnect_required");
+  }
+  return res;
 }
 
 async function driveApiError(prefix, res) {
@@ -320,10 +340,9 @@ async function driveApiError(prefix, res) {
   return new Error(`${prefix}:${res.status}:${detail}`);
 }
 
-async function verifyBackupOnDrive(fileId, accessToken) {
-  const res = await fetch(
-    `https://www.googleapis.com/drive/v3/files/${fileId}?fields=id,name,modifiedTime,size`,
-    { headers: { Authorization: `Bearer ${accessToken}` } }
+async function verifyBackupOnDrive(fileId) {
+  const res = await driveFetch(
+    `https://www.googleapis.com/drive/v3/files/${fileId}?fields=id,name,modifiedTime,size`
   );
   if (!res.ok) throw await driveApiError("drive_verify_failed", res);
   const meta = await res.json();
@@ -333,12 +352,8 @@ async function verifyBackupOnDrive(fileId, accessToken) {
 
 async function finishConnectFlow(pendingConnect) {
   if (pendingConnect) {
-    let existing = null;
-    try {
-      existing = await findExistingBackup();
-    } catch (_) {
-      /* list may fail offline — connect still succeeded */
-    }
+    // A failed lookup is not evidence that no backup exists.
+    const existing = await findExistingBackup();
     if (existing) {
       await idbSet(DRIVE_PENDING_RESTORE_KEY, "1");
     } else {
@@ -404,7 +419,7 @@ export async function completePendingDriveOAuth() {
       return { status: "error", error: "no_refresh_token" };
     }
 
-    return finishConnectFlow(!!pending.pendingConnect);
+    return await finishConnectFlow(!!pending.pendingConnect);
   } catch (e) {
     await idbDel(OAUTH_PENDING_EXCHANGE_KEY);
     const msg = e.message || "token_exchange_failed";
@@ -471,13 +486,24 @@ export async function handleDriveOAuthReturn() {
   return completePendingDriveOAuth();
 }
 
-export async function startDriveConnect() {
+export function startDriveConnect() {
+  if (!_connectPromise) {
+    _connectPromise = startDriveConnectOnce().finally(() => { _connectPromise = null; });
+  }
+  return _connectPromise;
+}
+
+async function startDriveConnectOnce() {
   if (!isDriveConfigured()) throw new Error("not_configured");
   if (!navigator.onLine) throw new Error("offline");
 
   if (hasNativeDriveAuthorization()) {
-    _nativeAccessToken = await authorizeNativeDrive(true);
-    _nativeAccessTokenFreshUntil = Date.now() + 50 * 60 * 1000;
+    const generation = _connectionGeneration;
+    await authorizeNativeDrive(true);
+    if (generation !== _connectionGeneration) throw new Error("not_connected");
+    await idbDel(DRIVE_FILE_ID_KEY);
+    await idbDel(SHOW_CONNECTED_KEY);
+    await idbDel(DRIVE_PENDING_RESTORE_KEY);
     await idbSet(DRIVE_REFRESH_TOKEN_KEY, NATIVE_AUTH_MARKER);
     return finishConnectFlow(true);
   }
@@ -514,8 +540,8 @@ function clearOAuthLocalStorage() {
 }
 
 export async function disconnectDrive() {
-  _nativeAccessToken = null;
-  _nativeAccessTokenFreshUntil = 0;
+  ++_connectionGeneration;
+  cancelScheduledDriveBackupUpload();
   await idbDel(DRIVE_REFRESH_TOKEN_KEY);
   await idbDel(DRIVE_FILE_ID_KEY);
   await idbDel(DRIVE_LAST_SYNC_KEY);
@@ -523,6 +549,7 @@ export async function disconnectDrive() {
   await idbDel(DRIVE_PENDING_RESTORE_KEY);
   await idbDel(OAUTH_PENDING_EXCHANGE_KEY);
   await idbDel(OAUTH_ERROR_KEY);
+  await idbDel(SHOW_CONNECTED_KEY);
   await clearOAuthSessionKeys();
   clearOAuthLocalStorage();
   if (await isDriveConnected()) {
@@ -531,17 +558,18 @@ export async function disconnectDrive() {
 }
 
 export async function findExistingBackup() {
-  const accessToken = await getAccessToken();
   const q = encodeURIComponent(
     `name='${BACKUP_FILENAME}' and trashed=false`
   );
-  const res = await fetch(
-    `https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=${q}&fields=files(id,name,modifiedTime)`,
-    { headers: { Authorization: `Bearer ${accessToken}` } }
+  const res = await driveFetch(
+    `https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=${q}&orderBy=modifiedTime%20desc&pageSize=1&fields=files(id,name,modifiedTime)`
   );
   if (!res.ok) throw new Error("drive_list_failed");
   const data = await res.json();
-  if (!data.files?.length) return null;
+  if (!data.files?.length) {
+    await idbDel(DRIVE_FILE_ID_KEY);
+    return null;
+  }
   const file = data.files[0];
   await idbSet(DRIVE_FILE_ID_KEY, file.id);
   return { fileId: file.id, modifiedTime: file.modifiedTime };
@@ -554,18 +582,28 @@ export async function downloadDriveBackup() {
     if (!found) return null;
     fileId = found.fileId;
   }
-  const accessToken = await getAccessToken();
-  const res = await fetch(
-    `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
-    { headers: { Authorization: `Bearer ${accessToken}` } }
-  );
+  let res = await driveFetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`);
+  if (res.status === 404) {
+    const found = await findExistingBackup();
+    if (!found) return null;
+    res = await driveFetch(`https://www.googleapis.com/drive/v3/files/${found.fileId}?alt=media`);
+  }
   if (!res.ok) throw new Error("drive_download_failed");
   return res.text();
 }
 
-export async function uploadDriveBackup(bundleString) {
+export function uploadDriveBackup(bundleString) {
+  const generation = _connectionGeneration;
+  const operation = _uploadTail.then(() => {
+    if (generation !== _connectionGeneration) throw new Error("not_connected");
+    return uploadDriveBackupOnce(bundleString);
+  });
+  _uploadTail = operation.catch(() => {});
+  return operation;
+}
+
+async function uploadDriveBackupOnce(bundleString) {
   if (!navigator.onLine) throw new Error("offline");
-  const accessToken = await getAccessToken();
   let fileId = await idbGet(DRIVE_FILE_ID_KEY);
 
   if (!fileId) {
@@ -574,19 +612,24 @@ export async function uploadDriveBackup(bundleString) {
   }
 
   if (fileId) {
-    const res = await fetch(
+    const res = await driveFetch(
       `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`,
       {
         method: "PATCH",
         headers: {
-          Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/octet-stream",
         },
         body: bundleString,
       }
     );
-    if (!res.ok) throw await driveApiError("drive_upload_failed", res);
-  } else {
+    if (res.status === 404) {
+      await idbDel(DRIVE_FILE_ID_KEY);
+      fileId = null;
+    } else if (!res.ok) {
+      throw await driveApiError("drive_upload_failed", res);
+    }
+  }
+  if (!fileId) {
     const metadata = { name: BACKUP_FILENAME, parents: ["appDataFolder"] };
     const boundary = "mycyclekeeper_" + Date.now();
     const body =
@@ -595,12 +638,11 @@ export async function uploadDriveBackup(bundleString) {
       `\r\n--${boundary}\r\nContent-Type: application/octet-stream\r\n\r\n` +
       bundleString +
       `\r\n--${boundary}--`;
-    const res = await fetch(
+    const res = await driveFetch(
       "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${accessToken}`,
           "Content-Type": `multipart/related; boundary=${boundary}`,
         },
         body,
@@ -613,9 +655,9 @@ export async function uploadDriveBackup(bundleString) {
     await idbSet(DRIVE_FILE_ID_KEY, fileId);
   }
 
-  await verifyBackupOnDrive(fileId, accessToken);
+  await verifyBackupOnDrive(fileId);
 
-  const syncDate = new Date().toISOString().slice(0, 10);
+  const syncDate = today();
   await idbSet(DRIVE_LAST_SYNC_KEY, syncDate);
   return syncDate;
 }

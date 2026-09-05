@@ -64,6 +64,12 @@ export async function authorizeNativeDrive(interactive = true) {
   return result.accessToken;
 }
 
+export async function clearNativeDriveToken(accessToken) {
+  const plugin = getDriveAuthorizationPlugin();
+  if (!plugin || !isNativeApp()) throw new Error("drive_authorization_unavailable");
+  await plugin.clearToken({ accessToken });
+}
+
 export function isBiometricCancellation(error) {
   const code = String(error?.code || "");
   return ["10", "13"].some((suffix) => code.endsWith(suffix));
