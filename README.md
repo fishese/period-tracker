@@ -17,7 +17,7 @@ My Cycle Keeper is designed for straightforward daily tracking, useful cycle ins
 ## Features
 
 - **Simple daily tracking** for flow, spotting, pain, mood, and notes
-- **Cycle and period predictions** based on your recent history, with adjustable prediction ranges
+- **Cycle and period predictions** based on your recent history, with recorded periods kept distinct from prediction-only dates
 - **Cycle insights and history** with recent-period summaries, long-term statistics, and compact flow, pain, and mood charts
 - **Optional cycle-phase and fertility estimates**, controlled separately in Settings
 - **Privacy-conscious sharing and printing** for appointments, with dates and durations by default and optional symptom or note details

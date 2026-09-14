@@ -38,15 +38,18 @@ function getFertileWindowOffsets(cl) {
   return { fertileStart, fertileEnd, ovulationDay };
 }
 
-/** Completed cycles exclude the current (ongoing) cycle — the last history entry. */
-export function getCompletedCycles(hist) {
+/** Completed cycles have a later recorded start on or before the reference date. */
+export function getCompletedCycles(hist, refDate = fromISO(today())) {
   if (!hist || hist.length <= 1) return [];
-  return hist.slice(0, -1);
+  return hist.filter((cycle, index) => {
+    const next = hist[index + 1];
+    return next && fromISO(next.start) <= refDate;
+  });
 }
 
 export function getCyclesInRollingWindow(hist, refDate = fromISO(today())) {
   const cutoff = addMonths(refDate, -ROLLING_WINDOW_MONTHS);
-  return getCompletedCycles(hist).filter((c) => fromISO(c.start) >= cutoff);
+  return getCompletedCycles(hist, refDate).filter((c) => fromISO(c.start) >= cutoff);
 }
 
 /**
@@ -105,9 +108,15 @@ function buildStatisticalData(cycles, requireMin = 3) {
 }
 
 /** All completed cycles — used for all-time stats display. */
-export function getOverallStatisticalCycleData(requireMin = 3) {
+export function getOverallStatisticalCycleData(
+  requireMin = 3,
+  refDate = fromISO(today())
+) {
   if (!state?.cycleHistory) return null;
-  return buildStatisticalData(getCompletedCycles(state.cycleHistory), requireMin);
+  return buildStatisticalData(
+    getCompletedCycles(state.cycleHistory, refDate),
+    requireMin
+  );
 }
 
 /** Last 6 months of completed cycles — used for predictions. */
@@ -133,89 +142,124 @@ export function getStatisticalCycleData() {
   );
 }
 
-export function getPredictionCycleLength() {
-  const rolling = getRollingStatisticalCycleData(fromISO(today()), 1);
+export function getPredictionCycleLength(refDate = fromISO(today())) {
+  const rolling = getRollingStatisticalCycleData(refDate, 1);
   if (rolling) return Math.round(rolling.mean);
-  const overall = getOverallStatisticalCycleData(1);
+  const overall = getOverallStatisticalCycleData(1, refDate);
   if (overall) return Math.round(overall.mean);
   return state?.cycleLength ?? 28;
 }
 
-/** Last flow day of the episode that began on lastPeriodStart. */
-function getLastPeriodBleedingEnd() {
-  if (!state?.lastPeriodStart || !state?.logs) return null;
+function uniqueSorted(values) {
+  return [...new Set(values.filter(Boolean))].sort();
+}
 
-  const startD = fromISO(state.lastPeriodStart);
-  let lastFlow = null;
-  for (let i = 0; i < 20; i++) {
-    const dStr = toISO(addDays(startD, i));
-    if (state.logs[dStr]?.flow) {
-      lastFlow = dStr;
-    } else if (lastFlow) {
-      const nextStr = toISO(addDays(fromISO(dStr), 1));
-      if (!state.logs[nextStr]?.flow) break;
+/** Resolve recorded cycle starts and bleeding without turning predictions into facts. */
+export function getRecordedCycleContext(refDate = fromISO(today())) {
+  if (!state) return null;
+  const refIso = toISO(refDate);
+  const logs = state.logs || {};
+  const historyStarts = uniqueSorted(
+    (state.cycleHistory || []).map((cycle) => cycle?.start)
+  );
+  const storedStarts = uniqueSorted([
+    ...historyStarts,
+    state.lastPeriodStart,
+  ]).filter((start) => !logs[start]?.flowEstimated);
+
+  const flowDates = Object.keys(logs)
+    .filter((date) => logs[date]?.flow)
+    .sort();
+  const groups = [];
+  let group = [];
+  for (const date of flowDates) {
+    if (
+      group.length &&
+      diffDays(fromISO(group[group.length - 1]), fromISO(date)) > 2
+    ) {
+      groups.push(group);
+      group = [];
     }
+    group.push(date);
   }
-  return lastFlow;
-}
+  if (group.length) groups.push(group);
 
-/** True when bleeding has ended but the next period has not been logged yet. */
-function isOpenCycleAfterBleeding() {
-  const bleedingEnd = getLastPeriodBleedingEnd();
-  if (!bleedingEnd) return false;
-
-  const todayD = fromISO(today());
-  if (todayD <= fromISO(bleedingEnd)) return false;
-
-  const laterFlow = Object.keys(state.logs)
-    .filter((d) => d > bleedingEnd && state.logs[d].flow)
-    .sort()[0];
-  if (!laterFlow) return true;
-
-  return diffDays(fromISO(bleedingEnd), fromISO(laterFlow)) <= 2;
-}
-
-/** Most recent expected period start that has passed without being logged. */
-function getMissedPeriodExpectedStart() {
-  if (!state?.lastPeriodStart || !isOpenCycleAfterBleeding()) return null;
-
-  const cl = getPredictionCycleLength();
-  const todayD = fromISO(today());
-  let expected = addDays(fromISO(state.lastPeriodStart), cl);
-
-  while (addDays(expected, cl) <= todayD) {
-    expected = addDays(expected, cl);
-  }
-
-  return todayD >= expected ? expected : null;
-}
-
-/** True when a history row's period episode is still actively bleeding. */
-export function isPeriodEpisodeActive(startDateStr) {
-  if (!state?.logs || startDateStr !== state.lastPeriodStart) return false;
-
-  const startD = fromISO(startDateStr);
-  const todayD = fromISO(today());
-  let lastFlow = null;
-
-  for (let i = 0; i < 20; i++) {
-    const d = addDays(startD, i);
-    const dStr = toISO(d);
-    if (state.logs[dStr]?.flow) {
-      lastFlow = d;
-    } else if (lastFlow) {
-      const nextStr = toISO(addDays(d, 1));
-      if (!state.logs[nextStr]?.flow) break;
-    }
+  const episodes = [];
+  const storedStartsInsideFlow = new Set();
+  for (const dates of groups) {
+    const firstReal = dates.find((date) => logs[date]?.flowEstimated !== true);
+    if (!firstReal) continue;
+    const end = dates[dates.length - 1];
+    const storedInGroup = storedStarts.filter(
+      (start) => start >= firstReal && start <= end && logs[start]?.flow
+    );
+    storedInGroup.forEach((start) => storedStartsInsideFlow.add(start));
+    const historyInGroup = historyStarts.filter(
+      (start) => start >= firstReal && start <= end && logs[start]?.flow
+    );
+    // A lone stored start may simply be the old onset after an earlier day was
+    // backfilled. Two stored starts inside one connected group preserve the
+    // user's explicit "new period" split.
+    const splitStarts =
+      historyInGroup.length > 1 ? historyInGroup.slice(1) : [];
+    const starts = uniqueSorted([firstReal, ...splitStarts]);
+    starts.forEach((start, index) => {
+      const nextStart = starts[index + 1];
+      const segmentDates = dates.filter(
+        (date) => date >= start && (!nextStart || date < nextStart)
+      );
+      if (segmentDates.length) {
+        episodes.push({ start, end: segmentDates[segmentDates.length - 1] });
+      }
+    });
   }
 
-  return lastFlow != null && todayD <= lastFlow;
+  const recordedStarts = uniqueSorted([
+    ...storedStarts.filter((start) => !storedStartsInsideFlow.has(start)),
+    ...episodes.map((episode) => episode.start),
+  ]);
+  const usableStarts = recordedStarts.filter((start) => start <= refIso);
+  const futureStarts = recordedStarts.filter((start) => start > refIso);
+  const cycleStartIso = usableStarts.at(-1) || null;
+  const currentEpisode = cycleStartIso
+    ? episodes.find(
+        (episode) =>
+          episode.start === cycleStartIso &&
+          episode.start <= refIso &&
+          refIso <= episode.end
+      )
+    : null;
+
+  return {
+    cycleStart: cycleStartIso ? fromISO(cycleStartIso) : null,
+    periodStart: currentEpisode ? fromISO(currentEpisode.start) : null,
+    periodEnd: currentEpisode ? fromISO(currentEpisode.end) : null,
+    isRecordedPeriod: !!currentEpisode,
+    periodDay: currentEpisode
+      ? diffDays(fromISO(currentEpisode.start), refDate) + 1
+      : null,
+    futureRecordedStart: futureStarts.length ? fromISO(futureStarts[0]) : null,
+  };
 }
 
-function getPredictionVariation() {
-  const rollingDetailed = getRollingStatisticalCycleData(fromISO(today()), 3);
+/** True when a history row's recorded period episode covers the reference day. */
+export function isPeriodEpisodeActive(
+  startDateStr,
+  refDate = fromISO(today())
+) {
+  const context = getRecordedCycleContext(refDate);
+  if (!context?.isRecordedPeriod) return false;
+  const rowStart = fromISO(startDateStr);
+  return (
+    rowStart >= context.periodStart &&
+    rowStart <= context.periodEnd
+  );
+}
+
+function getPredictionVariation(refDate = fromISO(today())) {
+  const rollingDetailed = getRollingStatisticalCycleData(refDate, 3);
   if (rollingDetailed) return rollingDetailed.variation;
-  const overallDetailed = getOverallStatisticalCycleData(3);
+  const overallDetailed = getOverallStatisticalCycleData(3, refDate);
   if (overallDetailed) return overallDetailed.variation;
   return 0;
 }
@@ -279,8 +323,9 @@ export function getRollingAveragePeriodDuration(refDate = fromISO(today())) {
   if (!state?.logs) return null;
 
   const cutoff = toISO(addMonths(refDate, -ROLLING_WINDOW_MONTHS));
+  const refIso = toISO(refDate);
   const flowDates = Object.keys(state.logs)
-    .filter((d) => d >= cutoff && state.logs[d]?.flow)
+    .filter((d) => d >= cutoff && d <= refIso && state.logs[d]?.flow)
     .sort();
   if (flowDates.length === 0) return null;
 
@@ -303,11 +348,8 @@ export function getRollingAveragePeriodDuration(refDate = fromISO(today())) {
 
   // Skip the current episode while bleeding is still in progress.
   let counted = episodes;
-  if (state.lastPeriodStart) {
-    const lastStart = episodes[episodes.length - 1][0];
-    if (isPeriodEpisodeActive(lastStart)) {
-      counted = episodes.slice(0, -1);
-    }
+  if (getRecordedCycleContext(refDate)?.isRecordedPeriod) {
+    counted = episodes.slice(0, -1);
   }
   if (counted.length === 0) return null;
 
@@ -321,8 +363,8 @@ export function getRollingAveragePeriodDuration(refDate = fromISO(today())) {
 }
 
 /** Rolling 6-month average period length for predictions and auto-fill. */
-export function getPredictionPeriodDuration() {
-  const rolling = getRollingAveragePeriodDuration();
+export function getPredictionPeriodDuration(refDate = fromISO(today())) {
+  const rolling = getRollingAveragePeriodDuration(refDate);
   if (rolling != null) return rolling;
   return state?.periodDuration ?? 5;
 }
@@ -335,52 +377,71 @@ export function recalculatePeriodDuration(refDate = fromISO(today())) {
   return state.periodDuration;
 }
 
-/** Walk forward from lastPeriodStart to the start of the current cycle. */
-function getCurrentCycleAnchor() {
-  if (!state?.lastPeriodStart) return null;
-
-  const todayD = fromISO(today());
-  const cl = getPredictionCycleLength();
-  let cycleStart = fromISO(state.lastPeriodStart);
-  if (cycleStart > todayD) {
-    while (cycleStart > todayD) cycleStart = addDays(cycleStart, -cl);
-  } else {
-    while (addDays(cycleStart, cl) <= todayD)
-      cycleStart = addDays(cycleStart, cl);
-  }
-  return { cycleStart, cl };
+function getCurrentCycleAnchor(refDate = fromISO(today())) {
+  const context = getRecordedCycleContext(refDate);
+  if (!context?.cycleStart) return null;
+  return {
+    cycleStart: context.cycleStart,
+    cl: getPredictionCycleLength(refDate),
+    context,
+  };
 }
 
-export function getCycleInfo() {
-  if (!state.lastPeriodStart) return null;
+export function getCycleInfo(refDate = fromISO(today())) {
+  if (!state) return null;
+  const context = getRecordedCycleContext(refDate);
+  if (!context?.cycleStart) {
+    if (context?.futureRecordedStart) {
+      const cl = getPredictionCycleLength(refDate);
+      const pd = getPredictionPeriodDuration(refDate);
+      const { fertileStart, fertileEnd, ovulationDay } =
+        getFertileWindowOffsets(cl);
+      return {
+        cycleStart: null,
+        cycleDay: null,
+        nextPeriod: null,
+        daysUntilNext: null,
+        cl,
+        pd,
+        fertileStart,
+        fertileEnd,
+        ovulationDay,
+        phase: null,
+        phaseColor: "",
+        isLate: false,
+        daysLate: 0,
+        expectedPeriodStart: null,
+        isRecordedPeriod: false,
+        periodStart: null,
+        periodEnd: null,
+        periodDay: null,
+        futureRecordedStart: context.futureRecordedStart,
+        hasDateConflict: true,
+      };
+    }
+    return null;
+  }
 
-  const todayD = fromISO(today());
-  const anchor = getCurrentCycleAnchor();
-  if (!anchor) return null;
+  const anchor = getCurrentCycleAnchor(refDate);
   const { cycleStart, cl } = anchor;
-  const pd = getPredictionPeriodDuration();
+  const pd = getPredictionPeriodDuration(refDate);
 
-  const expectedPeriodStart = getMissedPeriodExpectedStart();
-  const daysLate =
-    expectedPeriodStart != null ? diffDays(expectedPeriodStart, todayD) : 0;
-  const isLate = daysLate > 0;
-
-  const cycleDay = diffDays(cycleStart, todayD) + 1;
+  const cycleDay = diffDays(cycleStart, refDate) + 1;
   const nextPeriod = addDays(cycleStart, cl);
-  const daysUntilNext = diffDays(todayD, nextPeriod);
+  const daysUntilNext = diffDays(refDate, nextPeriod);
+  const daysLate = Math.max(0, -daysUntilNext);
+  const isLate = !context.isRecordedPeriod && daysLate > 0;
+  const expectedPeriodStart = isLate ? nextPeriod : null;
 
   const { fertileStart, fertileEnd, ovulationDay } = getFertileWindowOffsets(cl);
 
   let phase = "Luteal";
   let phaseColor = "var(--lavender)";
-  if (state.logs[today()]?.flow) {
+  if (context.isRecordedPeriod) {
     phase = "Menstruation";
     phaseColor = "var(--rose)";
   } else if (isLate) {
     phase = "Late";
-    phaseColor = "var(--rose)";
-  } else if (cycleDay >= 1 && cycleDay <= pd) {
-    phase = "Menstruation";
     phaseColor = "var(--rose)";
   } else if (cycleDay === ovulationDay) {
     phase = "Ovulation Day";
@@ -408,21 +469,27 @@ export function getCycleInfo() {
     isLate,
     daysLate,
     expectedPeriodStart,
+    isRecordedPeriod: context.isRecordedPeriod,
+    periodStart: context.periodStart,
+    periodEnd: context.periodEnd,
+    periodDay: context.periodDay,
+    futureRecordedStart: context.futureRecordedStart,
+    hasDateConflict: false,
   };
 }
 
-export function calculatePredictions() {
-  if (!state || !state.lastPeriodStart) return [];
+export function calculatePredictions(refDate = fromISO(today())) {
+  if (!state) return [];
 
-  const anchor = getCurrentCycleAnchor();
+  const anchor = getCurrentCycleAnchor(refDate);
   if (!anchor) return [];
 
   const { cycleStart, cl } = anchor;
   const variation =
     state.toleranceDays != null
       ? parseInt(state.toleranceDays)
-      : getPredictionVariation();
-  const pd = getPredictionPeriodDuration();
+      : getPredictionVariation(refDate);
+  const pd = getPredictionPeriodDuration(refDate);
   const {
     fertileStart: fertStartOff,
     fertileEnd: fertEndOff,

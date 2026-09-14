@@ -6,7 +6,7 @@
 
 This document is the **current source of truth** for continuing work. Older implementation history remains available in Git; verify historical notes against current code for predictions, storage keys, fertility defaults, and branding.
 
-**Current `CACHE_VERSION`:** `v20260812c` (in `service-worker.js`)
+**Current `CACHE_VERSION`:** `v20260914a` (in `service-worker.js`)
 
 An Android Capacitor wrapper now lives in `android/`; see `docs/android.md`.
 It uses private native storage plus an Android Keystore/`BiometricPrompt`
@@ -168,9 +168,9 @@ state = {
 |----------|-----|
 | `getRollingStatisticalCycleData()` | Predictions — mean cycle length from completed cycles in last 6 months |
 | `getOverallStatisticalCycleData()` | Insights — all-time stats |
-| `getCompletedCycles(hist)` | History **except** the last (open) cycle |
+| `getCompletedCycles(hist, refDate)` | Cycles closed by a later recorded start on or before the reference date |
 | `recalculateCycleLength(hist)` | Writes rolling mean → `state.cycleLength` |
-| `getPredictionCycleLength()` | Rounded rolling mean for anchor walking |
+| `getPredictionCycleLength()` | Rounded rolling mean for the next-period estimate |
 | `getPredictionPeriodDuration()` | Rolling mean of logged period lengths |
 | `recalculatePeriodDuration()` | Writes → `state.periodDuration` |
 
@@ -184,9 +184,11 @@ state = {
 
 `buildStatisticalData()` derives the predicted-period highlight padding from the **real rolling std-deviation** (`Math.round(stdDeviation)`, clamped 1–5 days) instead of the old binary 1-or-2-day flag. Manual override still available via `state.toleranceDays` (0–5, Settings).
 
-### Anchor walking
+### Recorded cycle anchor and status
 
-`getCurrentCycleAnchor()` walks from `lastPeriodStart` using **rolling average** cycle length (not last irregular cycle alone).
+`getRecordedCycleContext()` resolves the latest recorded start on or before the reference date from logs and cycle history. It never walks forward or backward by predicted cycle lengths. A manually recorded start and its saved auto-filled continuation count as an ongoing recorded period; prediction-only calendar days do not create a cycle or reset its day count. Cycle day is counted inclusively from the recorded start and may exceed the rolling average when an estimate passes.
+
+The status card gives an ongoing recorded period priority over forecasts: “Day N of your period” plus its recorded start date. Outside an ongoing period it says “Cycle day N” and describes the next date as an estimate. When that date passes, it keeps counting from the recorded start and reports days past the original estimate. A future-only recorded start produces a date-check message rather than a fabricated earlier cycle.
 
 ### Cycle history advancement (`updateCycleHistory()` in `script.js`)
 
@@ -195,13 +197,9 @@ Every new flow day that isn't "same menses" (1-day gap tolerance, `isSameMenses(
 - **Manual override:** log panel has a "This is a new period, not a continuation" checkbox (`#log-force-new-cycle`) to bypass the gap-tolerance heuristic when it misclassifies (e.g. spotting a couple days before real flow). The row (`#log-new-cycle-row`/`#log-new-cycle-hint`) is only shown when `isSameMenses(dateStr)` is true — i.e. only when there's actually a period day 1–2 days prior, so the option doesn't show up (confusingly, doing nothing) for an obviously-new cycle after weeks with no periods.
 - **Recovery tool:** Settings → Cycle → "Recalculate Cycle History" rebuilds `cycleHistory` + `lastPeriodStart` from scratch using `rebuildCycleHistoryFromLogs()` (safe — doesn't touch logs).
 
-### Late period UX
+### Past-estimate UX
 
-When bleeding ended, no new period logged, and today is past expected start:
-
-- Title: “Your period is N days late” (`status_period_late_*`)
-- Subtitle: expected start date (`status_period_expected_on`)
-- Status phase line uses `status_phase_line` (fully i18n’d)
+When no new period is recorded and the estimate has passed, the card keeps the true cycle day in the first pill, reports the original estimated date, and shows the number of days past that estimate in the second pill. The estimate is not treated as a recorded start.
 
 ### Calendar day types
 
@@ -292,8 +290,10 @@ Settings → Layout → Theme has a fifth option, **Customize**, which opens an 
 
 ### Status / i18n
 
-- Status subtitle: `status_phase_line` with `{num}`, `{phase}`, `{detail}`
-- Late strings + status date line use app language
+- Recorded-period, ordinary-cycle, past-estimate, and future-date-conflict strings are localized in `en`, `es`, `ja`, and `zh-TW`.
+- Estimated phase text is explicitly labelled as estimated and respects the phase timeline setting.
+- The date line and both dynamic status-pill labels are refreshed in the app language.
+- A minute-based watcher refreshes the card and calendar when the local day changes while unlocked.
 - Rolling avg label: `avg_length_rolling` (zh-TW 近期平均, ja 直近平均, es Prom. 6 m)
 
 ---

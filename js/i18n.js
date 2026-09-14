@@ -190,6 +190,22 @@ const LOCALES = {
     status_period_expected_on:
       "Based on past records, your period was expected to begin on {date}",
     status_phase_line: "Phase {num} — {phase}  ·  {detail}",
+    status_recorded_period_day: "Day {day} of your period",
+    status_recorded_period_started: "Period started {date}",
+    status_cycle_day: "Cycle day {day}",
+    status_next_period_estimated: "Next period estimated around {date}",
+    status_period_estimated_today: "Period estimated to start today",
+    status_period_estimate_passed:
+      "Period was estimated around {date}; no new period recorded",
+    status_check_period_date: "Check your period start date",
+    status_future_period_date:
+      "Period start is recorded as {startDate}. Today is {todayDate}.",
+    status_future_period_hint: "A future period start is recorded as {date}.",
+    status_estimated_phase_line: "Estimated phase: {phase}  ·  {detail}",
+    period_status: "Period status",
+    period_ongoing: "Ongoing",
+    estimated_start: "Estimated start",
+    days_past_estimate: "Days past estimate",
 
     // Status card
     now: "Now",
@@ -1463,6 +1479,22 @@ const LOCALES = {
     status_period_expected_on:
       "Según tus registros anteriores, se esperaba que tu período comenzara el {date}",
     status_phase_line: "Fase {num} — {phase}  ·  {detail}",
+    status_recorded_period_day: "Día {day} de tu período",
+    status_recorded_period_started: "El período comenzó el {date}",
+    status_cycle_day: "Día {day} del ciclo",
+    status_next_period_estimated: "Próximo período estimado cerca del {date}",
+    status_period_estimated_today: "Se estima que el período comience hoy",
+    status_period_estimate_passed:
+      "El período se estimó cerca del {date}; no se registró un período nuevo",
+    status_check_period_date: "Revisa la fecha de inicio del período",
+    status_future_period_date:
+      "El inicio del período está registrado como {startDate}. Hoy es {todayDate}.",
+    status_future_period_hint: "Hay un inicio futuro registrado para el {date}.",
+    status_estimated_phase_line: "Fase estimada: {phase}  ·  {detail}",
+    period_status: "Estado del período",
+    period_ongoing: "En curso",
+    estimated_start: "Inicio estimado",
+    days_past_estimate: "Días desde la estimación",
 
     // Status card
     now: "Ahora",
@@ -2107,6 +2139,22 @@ const LOCALES = {
     status_period_expected_on:
       "過去の記録では、{date}ごろに始まると予測されていました",
     status_phase_line: "フェーズ{num} — {phase}  ·  {detail}",
+    status_recorded_period_day: "生理{day}日目",
+    status_recorded_period_started: "生理開始日：{date}",
+    status_cycle_day: "周期{day}日目",
+    status_next_period_estimated: "次の生理は{date}ごろの予測です",
+    status_period_estimated_today: "生理開始予測日は今日です",
+    status_period_estimate_passed:
+      "生理開始は{date}ごろの予測でした。新しい生理記録はありません",
+    status_check_period_date: "生理開始日を確認してください",
+    status_future_period_date:
+      "生理開始日は{startDate}として記録されています。今日は{todayDate}です。",
+    status_future_period_hint: "未来の生理開始日が{date}として記録されています。",
+    status_estimated_phase_line: "推定フェーズ：{phase}  ·  {detail}",
+    period_status: "生理の状態",
+    period_ongoing: "生理中",
+    estimated_start: "予測開始日",
+    days_past_estimate: "予測日からの日数",
     now: "今日",
     bar_day: "{n}日目",
 
@@ -2706,6 +2754,22 @@ const LOCALES = {
     status_period_expected_on:
       "根據過往紀錄，月經原預計於 {date} 開始",
     status_phase_line: "階段 {num} — {phase}  ·  {detail}",
+    status_recorded_period_day: "月經第 {day} 天",
+    status_recorded_period_started: "月經於 {date} 開始",
+    status_cycle_day: "週期第 {day} 天",
+    status_next_period_estimated: "下次月經預計在 {date} 前後開始",
+    status_period_estimated_today: "預計今天開始月經",
+    status_period_estimate_passed:
+      "月經原預計在 {date} 前後開始；尚未記錄新的月經",
+    status_check_period_date: "請檢查月經開始日期",
+    status_future_period_date:
+      "月經開始日期記錄為 {startDate}。今天是 {todayDate}。",
+    status_future_period_hint: "已記錄未來的月經開始日期：{date}。",
+    status_estimated_phase_line: "推算階段：{phase}  ·  {detail}",
+    period_status: "月經狀態",
+    period_ongoing: "進行中",
+    estimated_start: "預計開始",
+    days_past_estimate: "超過預計日",
     now: "現在",
     bar_day: "第{n}天",
 

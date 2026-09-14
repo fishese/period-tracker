@@ -802,6 +802,8 @@ setPeriodMarkingState(state);
 loadTheme();
 
 let sessionPin = null; // PIN held only in JS memory (never persisted)
+let statusDayTimer = null;
+let lastStatusDate = null;
 let viewMonth = new Date();
 let selectedDate = null;
 let currentTab = "calendar";
@@ -840,10 +842,14 @@ function setupEventListeners() {
   document.addEventListener("visibilitychange", () => {
     if (sessionPin && document.visibilityState === "visible") {
       enforceSessionTimeout();
+      refreshForLocalDayChange();
     }
   });
   window.addEventListener("pageshow", () => {
-    if (sessionPin) enforceSessionTimeout();
+    if (sessionPin) {
+      enforceSessionTimeout();
+      refreshForLocalDayChange();
+    }
   });
   const bannerEl = document.getElementById("timeout-banner");
   if (bannerEl) {
@@ -1174,6 +1180,9 @@ async function toggleBiometricUnlock() {
 
 function lockApp() {
   sessionPin = null;
+  clearInterval(statusDayTimer);
+  statusDayTimer = null;
+  lastStatusDate = null;
   clearTimeout(serviceWorkerReloadDeadlineTimer);
   serviceWorkerReloadDeadlineTimer = null;
   state = {
@@ -2301,16 +2310,43 @@ function getStatusPhaseLabel(info) {
   return { phaseNum, phaseNameKey };
 }
 
+function refreshForLocalDayChange() {
+  if (!sessionPin) return;
+  const currentDate = today();
+  if (lastStatusDate === currentDate) return;
+  lastStatusDate = currentDate;
+  updateStatusCard();
+  renderCalendar();
+  updateInsights();
+}
+
+function ensureStatusDayWatcher() {
+  if (!sessionPin || statusDayTimer) return;
+  statusDayTimer = setInterval(refreshForLocalDayChange, 60_000);
+}
+
 function updateStatusCard() {
-  const info = getCycleInfo();
+  const referenceIso = today();
+  const referenceDate = fromISO(referenceIso);
+  lastStatusDate = referenceIso;
+  ensureStatusDayWatcher();
+  const info = getCycleInfo(referenceDate);
   const emptyHint = document.getElementById("status-empty-hint");
   const importHint = document.getElementById("status-import-hint");
+  const secondPillLabel = document.getElementById("days-until-next-label");
+  const setSecondPill = (value, labelKey) => {
+    safeText("days-until-next", value);
+    if (secondPillLabel) {
+      secondPillLabel.dataset.i18n = labelKey;
+      secondPillLabel.textContent = t(labelKey);
+    }
+  };
   if (!info) {
     safeText("status-phase-text", "");
     safeText("status-title", "");
     safeText("status-subtitle", "");
     safeText("cycle-day", "—");
-    safeText("days-until-next", "—");
+    setSecondPill("—", "until_next");
     safeText("cycle-len-disp", "—");
     const reminderBanner = document.getElementById("reminder-banner");
     if (reminderBanner) reminderBanner.style.display = "none";
@@ -2323,6 +2359,9 @@ function updateStatusCard() {
       if (link) link.textContent = t("status_import_hint");
       importHint.classList.remove("hidden");
     }
+    document.getElementById("cycle-bar")?.replaceChildren();
+    document.getElementById("shift-banner")?.style.setProperty("display", "none");
+    document.getElementById("spread-banner")?.style.setProperty("display", "none");
     return;
   }
   if (emptyHint) emptyHint.classList.add("hidden");
@@ -2331,66 +2370,78 @@ function updateStatusCard() {
   // Date line
   const phaseEl = document.getElementById("status-phase");
   if (phaseEl) phaseEl.style.color = "";
-  const dateLabel = new Date().toLocaleDateString(getLanguage(), {
+  const dateLabel = referenceDate.toLocaleDateString(getLanguage(), {
     month: "long",
     day: "numeric",
     year: "numeric",
   });
   safeText("status-phase-text", dateLabel);
 
-  // Main status line
-  if (info.isLate) {
+  if (info.hasDateConflict) {
+    safeText("status-title", t("status_check_period_date"));
+    safeText(
+      "status-subtitle",
+      t("status_future_period_date", {
+        startDate: formatDateLocale(info.futureRecordedStart),
+        todayDate: formatDateLocale(referenceDate),
+      })
+    );
+    safeText("cycle-day", "—");
+    setSecondPill("—", "until_next");
+    safeText("cycle-len-disp", info.cl);
+    document.getElementById("cycle-bar")?.replaceChildren();
+  } else if (info.isRecordedPeriod) {
     safeText(
       "status-title",
-      tp("status_period_late", info.daysLate, { n: info.daysLate })
+      t("status_recorded_period_day", { day: info.periodDay })
     );
     safeText(
       "status-subtitle",
-      t("status_period_expected_on", {
-        date: formatDateLocale(info.expectedPeriodStart),
+      t("status_recorded_period_started", {
+        date: formatDateLocale(info.periodStart),
       })
     );
+    safeText("cycle-day", info.cycleDay);
+    setSecondPill(t("period_ongoing"), "period_status");
+    safeText("cycle-len-disp", info.cl);
+    updateCycleBar(info);
   } else {
     safeText(
       "status-title",
-      t("status_cycle_day_of", { day: info.cycleDay, total: info.cl })
+      t("status_cycle_day", { day: info.cycleDay })
     );
-
-    const { phaseNum, phaseNameKey } = getStatusPhaseLabel(info);
-
-    const predictedDate = info.nextPeriod.toLocaleDateString(getLanguage(), { month: "long", day: "numeric" });
-    let periodMsg;
-    if (info.phase === "Menstruation") {
-      periodMsg = t("subtitle_menstruation", { day: info.cycleDay });
-    } else if (info.daysUntilNext <= 0) {
-      periodMsg = t("status_period_today");
-    } else if (info.daysUntilNext <= 3) {
-      periodMsg = t("status_period_soon_date", { date: predictedDate });
+    const predictedDate = formatDateLocale(info.nextPeriod);
+    let detail;
+    if (info.daysUntilNext < 0) {
+      detail = t("status_period_estimate_passed", { date: predictedDate });
+      setSecondPill(info.daysLate, "days_past_estimate");
+    } else if (info.daysUntilNext === 0) {
+      detail = t("status_period_estimated_today");
+      setSecondPill(t("now"), "estimated_start");
     } else {
-      periodMsg = t("status_period_in_date", { date: predictedDate });
+      detail = t("status_next_period_estimated", { date: predictedDate });
+      setSecondPill(info.daysUntilNext, "until_next");
     }
-
-    const showPhaseInStatus =
-      isCyclePhaseTimelineVisible() || info.phase === "Menstruation";
+    if (info.futureRecordedStart) {
+      detail += ` ${t("status_future_period_hint", {
+        date: formatDateLocale(info.futureRecordedStart),
+      })}`;
+    }
+    const showPhaseInStatus = isCyclePhaseTimelineVisible() && !info.isLate;
+    const { phaseNameKey } = getStatusPhaseLabel(info);
     safeText(
       "status-subtitle",
       showPhaseInStatus
-        ? t("status_phase_line", {
-            num: phaseNum,
+        ? t("status_estimated_phase_line", {
             phase: t(phaseNameKey),
-            detail: periodMsg,
+            detail,
           })
-        : periodMsg
+        : detail
     );
+    safeText("cycle-day", info.cycleDay);
+    safeText("cycle-len-disp", info.cl);
+    updateCycleBar(info);
   }
-
-  safeText("cycle-day", info.isLate ? info.daysLate : info.cycleDay);
-  safeText(
-    "days-until-next",
-    info.isLate ? "—" : info.daysUntilNext > 0 ? info.daysUntilNext : t("now")
-  );
-  safeText("cycle-len-disp", info.cl);
-  updateCycleBar(info);
   updateReminderBanner(info);
   updateShiftBanner();
   updateSpreadBanner();
@@ -2449,14 +2500,14 @@ function updateSpreadBanner() {
 function updateReminderBanner(info) {
   const banner = document.getElementById("reminder-banner");
   const text = document.getElementById("reminder-text");
-  if (!banner || !text || !info || info.isLate) return;
+  if (!banner || !text) return;
+  banner.style.display = "none";
+  if (!info || info.isLate || info.isRecordedPeriod || info.hasDateConflict) return;
 
   // Show banner if period is coming within 3 days
   if (info.daysUntilNext > 0 && info.daysUntilNext <= 3) {
     text.textContent = tp("period_expected_in", info.daysUntilNext);
     banner.style.display = "flex";
-  } else {
-    banner.style.display = "none";
   }
 }
 

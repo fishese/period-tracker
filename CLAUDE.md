@@ -105,9 +105,12 @@ Missing symptom properties mean “not recorded”; they are not zero. Use `getF
 ### Cycle Prediction Algorithm
 
 Calendar Rhythm Method + Standard Days Method:
+- **Recorded anchor:** The latest recorded period start on or before the reference date; predictions never become cycle starts
+- **Cycle day:** Counted inclusively from the recorded start and may exceed the predicted average
+- **Ongoing period:** A user-recorded start plus saved auto-filled continuation days; prediction-only dates never count
 - **Fertile window:** Days 8 through `(cycleLength - 11)`
 - **Ovulation:** Day `(cycleLength - 14)` from period start
-- **getDayType()** returns: `"period"`, `"fertile"`, `"ovulation"`, or `"normal"`
+- **getDayType()** also distinguishes `"predicted-period"` and `"tolerance-period"` from recorded `"period"` days
 
 ## Critical Conventions
 
