@@ -25,6 +25,7 @@ My Cycle Keeper is designed for straightforward daily tracking, useful cycle ins
 - **Portable exports** in **drip-compatible CSV**, **plain CSV**, or an encrypted app backup
 - **Optional encrypted Google Drive backup** for restoring your data on another device *(uses Google Drive's [`drive.appdata`](https://developers.google.com/workspace/drive/api/guides/api-specific-auth#drive-api-scopes) scope, which only allows My Cycle Keeper to access its own hidden app-data folder—not your other Drive files or folders)*
 - **Offline support** after the app has been loaded, with an installable mobile-friendly interface
+- **In-app web updates** from Settings, without clearing encrypted local records or needing a mobile hard refresh
 - Interface available in **English, Spanish, Japanese, and Traditional Chinese**
 - **Android APK wrapper** with app-private storage and optional Keystore-backed biometric unlock
 
@@ -98,7 +99,7 @@ This repository is deployed through GitHub Pages from the repository root.
 git push period-tracker master
 ```
 
-Before deploying, bump `CACHE_VERSION` in `service-worker.js`. Additional maintenance notes are available in [`docs/HANDOFF.md`](docs/HANDOFF.md).
+Before deploying, bump `CACHE_VERSION` in `service-worker.js`. After deployment, installed web-app users can open **Settings → Security & Privacy → Web app updates** to check for and reload the latest version. This refreshes the app shell without clearing encrypted IndexedDB records. Additional maintenance notes are available in [`docs/HANDOFF.md`](docs/HANDOFF.md).
 
 ## License
 

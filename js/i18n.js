@@ -416,6 +416,19 @@ const LOCALES = {
     settings_import: "Import Encrypted Backup",
     settings_import_app: "Import from another app",
     settings_export_app: "Export to another app",
+    web_update_title: "Web app updates",
+    web_update_desc:
+      "Check for the latest web version without clearing your local data. Your encrypted records remain in IndexedDB; after reloading, you may need to enter your PIN again.",
+    web_update_check: "Check for updates",
+    web_update_checking: "Checking…",
+    web_update_downloading: "Downloading the latest version…",
+    web_update_current: "You already have the latest version.",
+    web_update_ready: "Update ready. Reload when convenient; your local data will stay in place.",
+    web_update_reload: "Reload latest version",
+    web_update_saving: "Saving encrypted data before reload…",
+    web_update_save_failed: "Your data could not be saved, so the app was not reloaded.",
+    web_update_failed: "Could not check for updates. Check your connection and try again.",
+    web_update_unsupported: "Updates are managed by this browser and cannot be checked here.",
 
     // Multi-app export wizard
     app_export_title: "Export to another app",
@@ -543,7 +556,7 @@ const LOCALES = {
     drive_oauth_redirect_mismatch:
       "Google rejected the sign-in (redirect URI mismatch). In Google Cloud Console → Credentials → your Web client, confirm this exact redirect URI is listed:\n\nhttps://period.fishese.cc/\n\nAlso confirm the client type is Web application (not Desktop).",
     drive_oauth_missing_secret:
-      "Drive backup is not fully set up: deploy the token proxy (drive-oauth-proxy) with your Client secret, set DRIVE_TOKEN_PROXY_URL in drive-config.js, then hard-refresh. Never put the Client secret in the public app.",
+      "Drive backup is not fully set up: deploy the token proxy (drive-oauth-proxy) with your Client secret, set DRIVE_TOKEN_PROXY_URL in drive-config.js, then reload the web app. Never put the Client secret in the public app.",
     drive_oauth_invalid_grant:
       "Google would not accept the sign-in code — it may have expired or already been used. Tap Connect Google Drive once and complete the flow without refreshing the page.",
     drive_oauth_no_refresh:
@@ -1704,6 +1717,19 @@ const LOCALES = {
     settings_import: "Importar copia de seguridad cifrada",
     settings_import_app: "Importar desde otra app",
     settings_export_app: "Exportar a otra app",
+    web_update_title: "Actualizaciones de la app web",
+    web_update_desc:
+      "Busca la versión web más reciente sin borrar tus datos locales. Tus registros cifrados permanecen en IndexedDB; después de recargar, quizá debas introducir de nuevo tu PIN.",
+    web_update_check: "Buscar actualizaciones",
+    web_update_checking: "Buscando…",
+    web_update_downloading: "Descargando la versión más reciente…",
+    web_update_current: "Ya tienes la versión más reciente.",
+    web_update_ready: "Actualización lista. Recarga cuando quieras; tus datos locales se conservarán.",
+    web_update_reload: "Recargar la versión más reciente",
+    web_update_saving: "Guardando los datos cifrados antes de recargar…",
+    web_update_save_failed: "No se pudieron guardar tus datos, por lo que la app no se recargó.",
+    web_update_failed: "No se pudieron buscar actualizaciones. Comprueba la conexión e inténtalo de nuevo.",
+    web_update_unsupported: "Este navegador gestiona las actualizaciones y no permite buscarlas aquí.",
 
     // Multi-app export wizard
     app_export_title: "Exportar a otra app",
@@ -2321,6 +2347,19 @@ const LOCALES = {
     settings_import: "暗号化バックアップをインポート",
     settings_import_app: "他のアプリからインポート",
     settings_export_app: "他のアプリへエクスポート",
+    web_update_title: "Webアプリの更新",
+    web_update_desc:
+      "端末内のデータを消去せずに、最新のWeb版を確認します。暗号化された記録はIndexedDBに残ります。再読み込み後にPINの再入力が必要になる場合があります。",
+    web_update_check: "更新を確認",
+    web_update_checking: "確認中…",
+    web_update_downloading: "最新版をダウンロード中…",
+    web_update_current: "すでに最新版です。",
+    web_update_ready: "更新の準備ができました。都合のよい時に再読み込みしてください。端末内のデータは保持されます。",
+    web_update_reload: "最新版を再読み込み",
+    web_update_saving: "再読み込み前に暗号化データを保存中…",
+    web_update_save_failed: "データを保存できなかったため、再読み込みしませんでした。",
+    web_update_failed: "更新を確認できませんでした。接続を確認して、もう一度お試しください。",
+    web_update_unsupported: "このブラウザでは更新が自動管理されるため、ここから確認できません。",
 
     app_export_title: "他のアプリへエクスポート",
     app_export_format_intro: "ダウンロードする形式を選択してください。",
@@ -2936,6 +2975,19 @@ const LOCALES = {
     settings_import: "匯入加密備份",
     settings_import_app: "從其他應用程式匯入",
     settings_export_app: "匯出至其他應用程式",
+    web_update_title: "網頁版更新",
+    web_update_desc:
+      "檢查最新網頁版本，不會清除本機資料。加密紀錄會保留在 IndexedDB；重新載入後可能需要再次輸入 PIN 碼。",
+    web_update_check: "檢查更新",
+    web_update_checking: "正在檢查…",
+    web_update_downloading: "正在下載最新版本…",
+    web_update_current: "目前已是最新版本。",
+    web_update_ready: "更新已準備好。可在方便時重新載入，本機資料會保留。",
+    web_update_reload: "重新載入最新版本",
+    web_update_saving: "重新載入前正在儲存加密資料…",
+    web_update_save_failed: "無法儲存資料，因此應用程式未重新載入。",
+    web_update_failed: "無法檢查更新。請檢查網路連線後再試一次。",
+    web_update_unsupported: "此瀏覽器會自行管理更新，無法在這裡手動檢查。",
 
     app_export_title: "匯出至其他應用程式",
     app_export_format_intro: "請選擇下載格式。",

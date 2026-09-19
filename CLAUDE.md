@@ -42,7 +42,7 @@ git push period-tracker master   # NOT origin — origin is upstream pythonime-l
 1. Bump `CACHE_VERSION` in `service-worker.js` (current value is documented in `docs/HANDOFF.md`)
 2. Test offline: DevTools → Network → Offline → Reload
 3. Push: `git push period-tracker master`
-4. Hard-refresh or unregister Service Worker after deploy (avoids mixed-cache JS errors)
+4. After deploy, verify **Settings → Security & Privacy → Web app updates** can find and reload the new version without clearing IndexedDB
 
 ## Architecture
 

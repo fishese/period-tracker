@@ -1,12 +1,12 @@
 # My Cycle Keeper — Handoff Document
 
-**Last updated:** 2026-07-30 (app flattened to repo root; Pages at /period-tracker/)<br>
+**Last updated:** 2026-09-19 (in-app web update and safe reload control)<br>
 **Maintainer:** Personal fork (fishese)  
 **Status:** Stable for personal use. Latest on `period-tracker/master`. Come back in a new chat with the prompt in §13.
 
 This document is the **current source of truth** for continuing work. Older implementation history remains available in Git; verify historical notes against current code for predictions, storage keys, fertility defaults, and branding.
 
-**Current `CACHE_VERSION`:** `v20260914a` (in `service-worker.js`)
+**Current `CACHE_VERSION`:** `v20260919a` (in `service-worker.js`)
 
 An Android Capacitor wrapper now lives in `android/`; see `docs/android.md`.
 It uses private native storage plus an Android Keystore/`BiometricPrompt`
@@ -91,7 +91,7 @@ Note: serve from repo root locally (`http://localhost:8000/`). OAuth redirect UR
 2. Test offline: DevTools → Network → Offline → reload
 3. Push to GitHub (`period-tracker` remote)
 4. Confirm GitHub Pages build succeeded (Jekyll is disabled via `.nojekyll` + `_config.yml` exclude for `docs/`)
-5. Hard-refresh or unregister the Service Worker after deploy
+5. In the installed web app, use **Settings → Security & Privacy → Web app updates** and confirm the new version is found and reloaded
 
 ### Git remotes
 
@@ -417,6 +417,7 @@ Settings → Export to another app (in-app wizard)
 11. Service-worker activation no longer interrupts an unlocked session. It also defers while a PIN is partially entered or while hash/decrypt work is in progress, preventing the update race that produced two login screens back to back.
 12. Unlock remains security-equivalent: the PIN is memory-only, submissions are single-flight, the existing attempt counter/lockout remains active, and pending updates reload only after locking (with the existing maximum deferral).
 13. Japanese and Traditional Chinese period ranges now render compact month/day labels such as `6月4日–6月9日`, including `日` and no space before the day.
+14. Web/PWA users can check for updates from Settings. When a new worker is ready, the app offers an explicit reload, first persists the current encrypted state, clears sensitive in-memory UI through the normal lock path, and reloads without deleting IndexedDB. Background updates surface the same ready state.
 
 ### Multi-app import / export session (2026-07-27 → 2026-07-28; cache `v20260728e`)
 
@@ -487,7 +488,7 @@ Spec (as-built): [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
 
 ## 11. Known gotchas
 
-1. Hard-refresh / unregister SW after JS/CSS deploys; bump `CACHE_VERSION`. A `controllerchange` while unlocked, while a PIN is partially entered, or while unlock is in progress is deferred until the session next locks, with a five-minute maximum deferral. `unlockInProgress` also makes PIN validation single-flight. Do not persist this flag or the PIN. `lockApp()` clears state and sensitive overlays before attempting the pending reload so navigation failure cannot leave the app exposed.
+1. Bump `CACHE_VERSION` after JS/CSS changes. Use the in-app **Web app updates** control to check and reload on mobile; it replaces the old hard-refresh/unregister instruction and leaves IndexedDB intact. A `controllerchange` while unlocked, while a PIN is partially entered, or while unlock is in progress is deferred until the user reloads or the session next locks, with a five-minute maximum deferral. `unlockInProgress` also makes PIN validation single-flight. Do not persist this flag or the PIN. `lockApp()` clears state and sensitive overlays before attempting the pending reload so navigation failure cannot leave the app exposed.
 2. PIN modal: `_restoreModalBox()` after import / change-PIN. Encrypted-backup PIN entry uses `#ipin-dots` and must remain wired into `initKeyboardNavigation()` for digits + Backspace; its keypad controls are semantic buttons for Tab / Enter / Space. `_importPinSubmitting` keeps backup decryption single-flight.
 3. Dates: `toISO()` / `fromISO()` — never `Date.toISOString()` for day keys (this bit `import-drip.js` once already — fixed, see §8, but stay alert for new occurrences)  
 4. State by reference after decrypt  
@@ -502,7 +503,7 @@ Spec (as-built): [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
 13. **Git push:** use remote `period-tracker`, branch `master` — `origin` is upstream pythonime-lab.  
 14. **Drive backup file** is in hidden `appDataFolder` — not visible at drive.google.com; restore prompt on connect confirms it exists.  
 15. **`indexeddb-storage.js`** must stay classic-script + `defer` before `type="module" script.js` unless you migrate HTML and bust SW cache everywhere.  
-16. After deploy: hard-refresh or unregister Service Worker once if JS behaves oddly (mixed cache versions).  
+16. After deploy: use Settings → Security & Privacy → Web app updates. Do not clear site data or unregister the Service Worker as a routine update step.
 
 ---
 
@@ -517,6 +518,8 @@ Spec (as-built): [`google-drive-sync-plan.md`](./google-drive-sync-plan.md)
 - [ ] Fertility estimates toggle: calendar highlights + Fertile Days stat; cycle phase timeline remains independently configurable
 - [ ] Disable cycle phase timeline — neutral timeline shows only Period / Other cycle days with no Ovulation or Luteal legend
 - [ ] Activate a new service worker while unlocked — app stays open, then refreshes when the session locks
+- [ ] Settings → Web app updates reports the current version when no update exists
+- [ ] With a newer cache version deployed, Settings reports Update ready; reloading asks for the PIN again and preserves encrypted records
 - [ ] Encrypted-backup PIN modal accepts digits and Backspace before any click; keypad also works with Tab + Enter/Space
 - [ ] Daily editor: clear fields, delete entry, explicit No pain, and editing symptoms on an existing period does not auto-fill
 - [ ] History charts: bars start at the bottom; pain/mood overlay flow; SVG background works in every theme

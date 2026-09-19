@@ -3102,6 +3102,15 @@ body {
   margin-bottom: 0.625rem;
 }
 
+.btn--web-update {
+  background: linear-gradient(135deg, var(--teal), #0f766e);
+}
+
+.btn--web-update:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
 .drive-auto-row {
   margin-top: 0.75rem;
 }

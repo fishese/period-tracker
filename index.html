@@ -1307,6 +1307,27 @@
             <div class="field-hint hidden" id="drive-auto-hint" data-i18n="drive_auto_hint">Uploads a debounced encrypted backup after you save changes. Does not download or merge from other devices.</div>
           </div>
 
+          <div class="settings-section" id="web-update-section">
+            <h3 data-i18n="web_update_title">Web app updates</h3>
+            <div class="info-box info-box--security info-box--margin" data-i18n="web_update_desc">
+              Check for the latest web version without clearing your local data. Your encrypted records remain in IndexedDB; after reloading, you may need to enter your PIN again.
+            </div>
+            <div
+              id="web-update-status"
+              class="backup-status"
+              role="status"
+              aria-live="polite"
+            ></div>
+            <button
+              type="button"
+              class="apply-btn btn--web-update"
+              id="btn-web-update"
+              data-i18n="web_update_check"
+            >
+              Check for updates
+            </button>
+          </div>
+
           <div class="settings-section">
             <h3 data-i18n="settings_erase">Erase All Data</h3>
             <div class="info-box info-box--security">

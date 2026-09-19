@@ -165,7 +165,7 @@ Drive UI / OAuth errors: **en, es, ja, zh-TW**.
 - **`deleteFromDB`** — Waits for IndexedDB `transaction.oncomplete` before disconnect verification.
 - **`_uploadTimer`** — Module-scoped debounce id for auto-backup; must be declared or disconnect throws when cancelling scheduled uploads.
 - **IndexedDB loader** — Keep `indexeddb-storage.js` as a classic `<script defer>` before `script.js`; ES-module-only loader caused “Database Error” when Service Worker served mixed cache.
-- **Deploy** — `git push period-tracker master` (not `origin`). Hard-refresh / unregister SW after deploys.
+- **Deploy** — `git push period-tracker master` (not `origin`). After deployment, use Settings → Security & Privacy → Web app updates to load the new app shell without clearing IndexedDB.
 
 ---
 

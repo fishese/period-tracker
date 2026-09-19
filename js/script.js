@@ -811,6 +811,10 @@ let backupReminderShownThisSession = false;
 let serviceWorkerReloadPending = false;
 let serviceWorkerReloading = false;
 let serviceWorkerReloadDeadlineTimer = null;
+let serviceWorkerRegistration = null;
+let webUpdateChecking = false;
+let webUpdateReady = false;
+let webUpdateFoundDuringCheck = false;
 const SERVICE_WORKER_RELOAD_MAX_DELAY_MS = 5 * 60 * 1000;
 
 // Reset on any user interaction (deferred until DOM ready)
@@ -878,6 +882,7 @@ function setupEventListeners() {
   bindTap(document.getElementById("btn-drive-connect"), connectGoogleDrive);
   bindTap(document.getElementById("btn-drive-sync"), syncGoogleDriveNow);
   bindTap(document.getElementById("btn-drive-disconnect"), disconnectGoogleDrive);
+  bindTap(document.getElementById("btn-web-update"), handleWebUpdateAction);
 
   document.getElementById("import-flow-presets")?.addEventListener("click", _handleImportPresetClick);
   document.getElementById("import-flow-pattern")?.addEventListener("input", _sanitizeImportFlowPatternInput);
@@ -1086,6 +1091,9 @@ async function refreshNativeFeatures() {
   const settingsStatus = document.getElementById("biometric-settings-status");
   const nativeApp = isNativeApp();
   document
+    .getElementById("web-update-section")
+    ?.classList.toggle("hidden", nativeApp);
+  document
     .getElementById("android-biometric-promo")
     ?.classList.toggle("hidden", nativeApp);
   if (!nativeApp) {
@@ -1125,6 +1133,124 @@ async function refreshNativeFeatures() {
     console.warn("Could not read biometric status:", error);
     unlockBtn?.classList.add("hidden");
     settingsBtn?.classList.add("hidden");
+  }
+}
+
+function setWebUpdateStatus(key, tone = "") {
+  const status = document.getElementById("web-update-status");
+  if (!status) return;
+  status.textContent = key ? t(key) : "";
+  status.classList.toggle("backup-status--ok", tone === "ok");
+  status.classList.toggle("backup-status--warn", tone === "warn");
+}
+
+function setWebUpdateButton(key, disabled = false) {
+  const button = document.getElementById("btn-web-update");
+  if (!button) return;
+  button.dataset.i18n = key;
+  button.textContent = t(key);
+  button.disabled = disabled;
+}
+
+function markWebUpdateReady() {
+  webUpdateChecking = false;
+  webUpdateReady = true;
+  serviceWorkerReloadPending = true;
+  setWebUpdateStatus("web_update_ready", "ok");
+  setWebUpdateButton("web_update_reload");
+}
+
+function monitorWebUpdate(worker) {
+  if (!worker) return;
+  webUpdateFoundDuringCheck = true;
+  setWebUpdateStatus("web_update_downloading");
+  setWebUpdateButton("web_update_checking", true);
+
+  const handleState = () => {
+    if (worker.state === "activated") {
+      markWebUpdateReady();
+    } else if (worker.state === "redundant") {
+      webUpdateChecking = false;
+      setWebUpdateStatus("web_update_failed", "warn");
+      setWebUpdateButton("web_update_check");
+    }
+  };
+  worker.addEventListener("statechange", handleState);
+  handleState();
+}
+
+async function checkForWebUpdate() {
+  if (webUpdateChecking || webUpdateReady || isNativeApp()) return;
+  if (!("serviceWorker" in navigator)) {
+    setWebUpdateStatus("web_update_unsupported", "warn");
+    return;
+  }
+
+  webUpdateChecking = true;
+  webUpdateFoundDuringCheck = false;
+  setWebUpdateStatus("web_update_checking");
+  setWebUpdateButton("web_update_checking", true);
+
+  try {
+    const registration =
+      serviceWorkerRegistration ||
+      (await navigator.serviceWorker.getRegistration()) ||
+      (await navigator.serviceWorker.register("service-worker.js"));
+    serviceWorkerRegistration = registration;
+
+    const onUpdateFound = () => monitorWebUpdate(registration.installing);
+    registration.addEventListener("updatefound", onUpdateFound, { once: true });
+
+    if (registration.waiting) {
+      monitorWebUpdate(registration.waiting);
+    } else if (registration.installing) {
+      monitorWebUpdate(registration.installing);
+    }
+
+    await registration.update();
+
+    if (registration.waiting) {
+      monitorWebUpdate(registration.waiting);
+    } else if (registration.installing) {
+      monitorWebUpdate(registration.installing);
+    } else if (!webUpdateFoundDuringCheck && !webUpdateReady) {
+      webUpdateChecking = false;
+      setWebUpdateStatus("web_update_current", "ok");
+      setWebUpdateButton("web_update_check");
+    }
+  } catch (error) {
+    console.warn("Web app update check failed:", error);
+    webUpdateChecking = false;
+    setWebUpdateStatus("web_update_failed", "warn");
+    setWebUpdateButton("web_update_check");
+  }
+}
+
+async function reloadLatestWebVersion() {
+  if (serviceWorkerReloading) return;
+  setWebUpdateStatus("web_update_saving");
+  setWebUpdateButton("web_update_checking", true);
+
+  if (sessionPin && !(await save())) {
+    setWebUpdateStatus("web_update_save_failed", "warn");
+    setWebUpdateButton("web_update_reload");
+    return;
+  }
+
+  serviceWorkerReloadPending = true;
+  if (sessionPin || unlockInProgress || pinBuffer.length > 0) {
+    lockApp();
+    return;
+  }
+  serviceWorkerReloading = true;
+  window.location.reload();
+}
+
+function handleWebUpdateAction() {
+  if (webUpdateReady || serviceWorkerReloadPending) {
+    void reloadLatestWebVersion();
+  } else {
+    void checkForWebUpdate();
   }
 }
 
@@ -6060,6 +6186,7 @@ async function init() {
       navigator.serviceWorker
         .register(swUrl)
         .then((reg) => {
+          serviceWorkerRegistration = reg;
           console.log("Service Worker registered:", reg);
         })
         .catch((err) => {
@@ -6075,6 +6202,7 @@ async function init() {
         if (serviceWorkerReloading) return;
         if (sessionPin || unlockInProgress || pinBuffer.length > 0) {
           serviceWorkerReloadPending = true;
+          markWebUpdateReady();
           if (!serviceWorkerReloadDeadlineTimer) {
             serviceWorkerReloadDeadlineTimer = setTimeout(() => {
               if (serviceWorkerReloadPending && !serviceWorkerReloading) {
